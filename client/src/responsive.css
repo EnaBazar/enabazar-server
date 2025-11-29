@@ -1,0 +1,14 @@
+
+
+@media only screen and (min-width:320px) and (max-width:992px){
+    body{overflow-x: hidden;}
+.navigation ul{white-space:nowrap; overflow-y: hidden; overflow-x: scroll; display: block !important;}
+.navigation ul::-webkit-scrollbar{display: none;}
+.navigation ul li{display: inline-block !important; vertical-align: top !important;}
+
+}
+ @media only screen and (min-width:320px) and (max-width:767px){
+.MuiTabs-flexContainer button{font-size: 12px !important;}
+
+
+ }

@@ -1,0 +1,74 @@
+.categoryPanel button {
+  text-transform: capitalize !important;
+  font-size: 14px !important;
+}
+
+/* MAIN SUBMENU */
+.nav li .submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav li:hover > .submenu {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* SUBMENU LEVEL 2 */
+.nav li .submenu li {
+  position: relative;
+}
+
+.nav li .submenu li .submenu {
+  top: 0;
+  left: 100%;
+  background-color: #fff;
+  min-width: 180px;
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav li .submenu li:hover > .submenu {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+
+/* Buttons */
+.nav .submenu li button {
+  color: #020202 !important;
+  font-size: 13px !important;
+  text-align: left !important;
+  width: 100%;
+  justify-content: start;
+}
+
+.nav .submenu li button:hover {
+  color: #f58822 !important;
+  font-size: 15px !important;
+  border-bottom: 2px solid #f58822 !important;
+  border-radius: 0 !important;
+}
+
+/* Third Level Button Hover */
+.nav li .submenu li .submenu button {
+  color: #111010 !important;
+}
+
+.nav li .submenu li .submenu button:hover {
+  font-size: 15px !important;
+  border-bottom: 2px solid #f58822 !important;
+  border-radius: 0% !important;
+}
