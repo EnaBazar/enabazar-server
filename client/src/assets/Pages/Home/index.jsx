@@ -1,19 +1,19 @@
 import React from "react";
 
-import HomeCatSlider from "../../components/HomeCatSlider";
+import HomeCatSlider from "../../Components/HomeCatSlider";
 import {LiaShippingFastSolid} from "react-icons/lia"
-import AdsBannerSlider from "../../components/AdsBanneraslider";
-import AdsBannerSliderV2 from "../../components/AdsBannerasliderV2";
+import AdsBannerSlider from "../../Components/AdsBanneraslider";
+import AdsBannerSliderV2 from "../../Components/AdsBannerasliderV2";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import ProductsSlider from "../../components/ProductsSlider";
+import ProductsSlider from "../../Components/ProductsSlider";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import {FreeMode, Navigation } from 'swiper/modules';
-import BlogItem from "../../components/BlogItem";
-import HomeSliderV2 from "../../components/HomeSliderV2";
-import BannerBoxV2 from "../../components/BannarBoxV2";
+import BlogItem from "../../Components/BlogItem";
+import HomeSliderV2 from "../../Components/HomeSliderV2";
+import BannerBoxV2 from "../../Components/BannarBoxV2";
 
 
 
