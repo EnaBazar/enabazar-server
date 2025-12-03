@@ -37,7 +37,7 @@ nav ul button:hover{background: none !important;}
 .sliderHome{overflow: inherit !important;}
 
 .swiper-button-prev,.swiper-button-next{display: flex;  align-items: center; justify-content: center; 
-                                         background: #fff; border-radius: 100%; width: 35px !important; height: 35px !important; min-width: 45px !;
+                                         background: #fff; border-radius: 100%; width: 35px !important; height: 35px !important; min-width: 45px !important;
                                          box-shadow: 0 1px #0000001f, 0 1px #0000003d !important;}
 .swiper-button-prev:after,.swiper-button-next:after {font-size: 20px !important; color:
                                                     #000}
