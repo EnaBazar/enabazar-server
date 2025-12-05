@@ -110,6 +110,7 @@ window.scrollTo(0,0)
      localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
      
      context.setIsLogin(true);
+       window.location.reload(); 
               context?.setOpenLoginPanel(false);
         }else{
                    context?.setOpenLoginPanel(false);

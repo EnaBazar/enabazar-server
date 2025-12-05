@@ -57,27 +57,28 @@ console.log(isOpenFullScreenPanel)
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('accesstoken');
-    if (token) {
-      setIsLogin(true);
+useEffect(() => {
+  const token = localStorage.getItem('accesstoken');
+  if (token) {
+    setIsLogin(true);
 
-      fetchDataFromApi(`/auth/user-dtails`).then((res) => {
-        setUserData(res.data);
+    fetchDataFromApi(`/auth/user-dtails`).then((res) => {
+      setUserData(res.data);
 
-        if (res?.response?.data?.error === true) {
-          if (res?.response?.data?.message === "You have not login") {
-            localStorage.removeItem("accesstoken");
-            localStorage.removeItem("refreshtoken");
-            openAlertBox("error", "Your session is closed please login again!");
-            setIsLogin(false);
-          }
+      if (res?.response?.data?.error === true) {
+        if (res?.response?.data?.message === "You have not login") {
+          localStorage.removeItem("accesstoken");
+          localStorage.removeItem("refreshtoken");
+          openAlertBox("error", "Your session is closed please login again!");
+          setIsLogin(false);
         }
-      });
-    } else {
-      setIsLogin(false);
-    }
-  }, [isLogin]);
+      }
+    });
+  } else {
+    setIsLogin(false);
+  }
+}, []);  // 👈 শুধু একবার রান হবে
+
 
   useEffect(() => {
     getCat();

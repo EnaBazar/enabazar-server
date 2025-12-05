@@ -19,8 +19,8 @@ import ProductsSlider from "../../components/ProductsSlider";
 import BlogItem from "../../components/BlogItem";
 import HomeSliderV2 from "../../components/HomeSliderV2";
 import BannerBoxV2 from "../../components/BannarBoxV2";
-import ProductLoding from "../../Components/ProductLoding";
-import HomeSlider from "../../Components/HomeSlider";
+import ProductLoding from "../../components/ProductLoding";
+import HomeSlider from "../../components/HomeSlider";
 import { Pagination } from "@mui/material";
 
 

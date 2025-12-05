@@ -74,14 +74,14 @@ window.scrollTo(0,0)
     
         const valideValue = Object.values(formFields).every(el => el)
         
-    const handleSubmit=(e)=>{
+   const handleSubmit=(e)=>{
       
       e.preventDefault();
       setIsLoading(true)
       
       if(formFields.mobile==="")
         {
-          context.openAlertBox("error","Please entry your Eamil")
+          context.openAlertBox("error","Please entry your Mobile")
           return false
         }
         
@@ -93,21 +93,23 @@ window.scrollTo(0,0)
       
       postData("/auth/login",formFields,{withCredentials:true}).then((res)=>{
         console.log(res)
-        if(res?.error !== true){
-          setIsLoading(false)
-          context.openAlertBox("success",res?.message);
-      
-          setFormFields({
-            mobile: "",
-            name: ""
-          })
-     
-     localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-     localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-     
-     context.setIsLogin(true);
-          history("/")
-        }else{
+    if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+
+  setFormFields({
+    mobile: "",
+    password: ""
+  })
+
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+
+  context.setIsLogin(true);
+
+  history("/");       
+  window.location.reload();  // Force Home Page Reload
+}else{
           context.openAlertBox("error",res?.message);
           setFormFields({
             mobile: "",
@@ -143,18 +145,24 @@ window.scrollTo(0,0)
         
           postData("/auth/authWithGoogle",fields).then((res)=>{
        
-        if(res?.error !== true){
-          setIsLoading(false)
-          context.openAlertBox("success",res?.message);
-          localStorage.setItem("userEmail",fields.email)
-          
-           localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-         localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-         
-         context.setIsLogin(true);
-     
-          history("/")
-        }else{
+      if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+
+  setFormFields({
+    mobile: "",
+    password: ""
+  })
+
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+
+  context.setIsLogin(true);
+
+  history("/");       
+  window.location.reload();  // Force Home Page Reload
+}
+else{
           context.openAlertBox("error",res?.message);
           setFormFields({
             name:"",

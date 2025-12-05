@@ -41,8 +41,7 @@ const App =() => {
   });
   const [fullWidth, setFullWidth] = useState(true);
   const [maxWidth, setMaxWidth] = useState('lg');
-  const [isLogin,setIsLogin] = useState(false);
-  const [userData,setUserData] = useState(null);
+
   const [catData, setCatData]= useState([]);
   const [cartData, setCartData]= useState([]);
   const [addressMode, setAddressMode]= useState("add");
@@ -85,7 +84,14 @@ const App =() => {
   setOpenCartPanel(newOpen);
   };
   
+const [isLogin, setIsLogin] = useState(() => {
+  return localStorage.getItem("isLogin") === "true";
+});
 
+const [userData, setUserData] = useState(() => {
+  const data = localStorage.getItem("userData");
+  return data ? JSON.parse(data) : null;
+});
     const toggleLoginPanel = (newOpen) => () => {
   setOpenLoginPanel(newOpen);
   };
@@ -103,20 +109,18 @@ const App =() => {
 
   };
   
-    useEffect(()=>{
-    const token = localStorage.getItem('accesstoken') ;
-    if(token !== undefined && token !== null && token !== ""){
-    setIsLogin(true);
-        
+useEffect(() => {
+  const token = localStorage.getItem('accesstoken');
+  if (token) {
+      setIsLogin(true);
+      getCartItems();
+      getMyListData();
+      getUserDeatils();
+  } else {
+      setIsLogin(false);
+  }
+}, []);   // only run on page load
 
-    getCartItems();
-    getMyListData();
-    getUserDeatils();
-    }else{
-    setIsLogin(false);
-    }
-    
-  },[isLogin])
   
 const getUserDeatils=()=>{
     fetchDataFromApi(`/auth/user-dtails`).then((res)=>{    

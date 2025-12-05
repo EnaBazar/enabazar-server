@@ -99,17 +99,19 @@ const handleBellClick = async () => {
   };
 
   // --- Logout ---
-  const logout = () => {
-    setAnchorMyAcc(null);
-    fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`, { withCredentials: true }).then((res) => {
-      if (res?.error === false) {
-        context.setIsLogin(false);
-        localStorage.removeItem("accesstoken");
-        localStorage.removeItem("refreshtoken");
-        history("/");
-      }
-    });
-  };
+const logout = () => {
+    fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`,{withCredentials:true}).then((res)=>{ 
+           if(res?.error === false){
+             context.setIsLogin(false);
+             localStorage.removeItem("accesstoken")     
+              localStorage.removeItem("refreshtoken")
+            window.location.reload();
+              history("/");
+           }    
+         })
+
+};
+
 
   return (
     <>

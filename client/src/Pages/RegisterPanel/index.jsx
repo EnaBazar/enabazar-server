@@ -196,7 +196,7 @@ id="name"
 name="name"
 value={formFields.name}
 disabled={isLoading===true ? true : false}
- label="Full Name"
+ label="আপনার নাম"
   variant="outlined"
   className='w-full' 
   onChange={onchangeInput}
@@ -209,7 +209,7 @@ id="mobile"
 name="mobile"
 value={formFields.mobile}
 disabled={isLoading===true ? true : false}
- label="Mobile"
+ label="মোবাইল নাম্বার"
   variant="outlined"
   className='w-full' 
   onChange={onchangeInput}
