@@ -12,9 +12,7 @@ homeSlideRoutes.post('/uploadImages', auth, upload.array('images'), uploadImages
 homeSlideRoutes.post('/add', auth, addHomeSlide);
 homeSlideRoutes.get('/', getHomeSlides);
 homeSlideRoutes.get('/:id', getSlide);
-
 homeSlideRoutes.delete('/deleteImage', auth, removeimageFromCloudinary);
-
 // ✅ static route comes before dynamic one
 homeSlideRoutes.delete('/deleteMultiple', auth, deletemultipleSlides);
 homeSlideRoutes.delete('/:id', auth, deleteSlide);

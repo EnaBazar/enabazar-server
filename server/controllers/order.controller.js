@@ -181,7 +181,7 @@ export async function getAllOrdersForAdminController(request, response) {
       .skip(skip)
       .limit(limit)
       .populate("delivery_address")
-      .populate("userId", "name email avatar");
+      .populate("userId", "name mobile avatar");
 
     const totalOrders = await ordermodel.countDocuments(query);
 

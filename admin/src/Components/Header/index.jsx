@@ -195,7 +195,7 @@ const logout = () => {
                     </div>
                     <div className='info'>
                       <h3 className='text-[16px] font-[500] leading-5'>{context?.userData?.name}</h3>
-                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.email}</p>
+                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.mobile}</p>
                     </div>
                   </div>
                 </MenuItem>

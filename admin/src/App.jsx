@@ -57,27 +57,45 @@ console.log(isOpenFullScreenPanel)
     }
   };
 
+const handleSessionExpire = () => {
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
+  setIsLogin(false);
+  setUserData(null);
+  openAlertBox("error", "Your session is expired, please login again!");
+};
+
+
+
+
 useEffect(() => {
-  const token = localStorage.getItem('accesstoken');
+  const token = localStorage.getItem("accesstoken");
+
   if (token) {
     setIsLogin(true);
 
-    fetchDataFromApi(`/auth/user-dtails`).then((res) => {
-      setUserData(res.data);
-
-      if (res?.response?.data?.error === true) {
-        if (res?.response?.data?.message === "You have not login") {
-          localStorage.removeItem("accesstoken");
-          localStorage.removeItem("refreshtoken");
-          openAlertBox("error", "Your session is closed please login again!");
-          setIsLogin(false);
-        }
+    fetchDataFromApi("/auth/user-dtails", {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    });
+    })
+      .then((res) => {
+        if (res?.error === false) {
+          setUserData(res.data);
+        } else {
+          // যদি error থাকে
+          handleSessionExpire();
+        }
+      })
+      .catch(() => {
+        handleSessionExpire();
+      });
   } else {
     setIsLogin(false);
   }
-}, []);  // 👈 শুধু একবার রান হবে
+}, []);
+
+
 
 
   useEffect(() => {

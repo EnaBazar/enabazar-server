@@ -530,19 +530,14 @@ export async function loginPanelUserController(request, response) {
      
      try{
        const userId = request.userId 
-       const {name,email,mobile,password}= request.body;
+       const {name,mobile,password}= request.body;
        const userExist = await usermodel.findById(userId);
        
        
        if (!userExist)
        return response.status(400).send("The user cannot be Updated!")
        
-       let verifyCode=""  ;
-       if(email !== userExist.email){
-           
-           verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-           
-       }
+   
          let hashPassword =""
          
          if(password){
@@ -562,10 +557,7 @@ export async function loginPanelUserController(request, response) {
              {
                name:name,
                mobile: mobile,
-               email: email,
-               verify_email:email !== userExist.email ? false : true,
                password: hashPassword,
-               otp:verifyCode!== "" ? verifyCode : null,
                otpExpires:verifyCode!=="" ? Date.now() + 600000 : ''
               
              },
@@ -577,12 +569,9 @@ export async function loginPanelUserController(request, response) {
          
          /// send  Verification email
          
-         const user = await usermodel.findOne({email:email})
+         const user = await usermodel.findOne({mobile:mobile})
          
-         if(email !== userExist.email){
-            SendVerficationCode(user.email,verifyCode)
-             
-         }
+    
          
          
     
@@ -599,7 +588,7 @@ export async function loginPanelUserController(request, response) {
                  
                  name:updateUser?.name,
                  _id:updateUser?._id,
-                 email:updateUser?.email,
+      
                  mobile:updateUser?.mobile,
                  avatar:updateUser?.avatar
                 
@@ -757,8 +746,8 @@ export async function loginPanelUserController(request, response) {
   
   export async function resetpassword(request,response) {
     try{
-        const { email, newPassword, confirmPassword } = request.body;
-        if (!email || !newPassword || !confirmPassword) {
+        const { newPassword, confirmPassword } = request.body;
+        if ( !newPassword || !confirmPassword) {
             
             return response.status(400).json({
                 error:true,
@@ -766,7 +755,7 @@ export async function loginPanelUserController(request, response) {
                 message : "Provide required fields email, newPassword,confirmPassword"
             })
         }
-        const user = await usermodel.findOne({ email });
+        const user = await usermodel.findOne({ mobile });
         if(!user){
             return response.status(400).json({
                 

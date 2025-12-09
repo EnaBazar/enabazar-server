@@ -122,23 +122,26 @@ useEffect(() => {
 }, []);   // only run on page load
 
   
-const getUserDeatils=()=>{
-    fetchDataFromApi(`/auth/user-dtails`).then((res)=>{    
-    setUserData(res.data);
- 
-    if(res?.response?.data?.error===true){
-            
-    if(res?.response?.data?.message==="You have not login"){
-              
-    localStorage.removeItem("accesstoken");
-    localStorage.removeItem("refreshtoken");
-    openAlertBox("error","Your session is closed please login again!");
-    window.location.href = "/login"
-    setIsLogin(false)
+const getUserDeatils = () => {
+  fetchDataFromApi(`/auth/user-dtails`).then((res) => {
+
+    if (res?.error === false) {
+      setUserData(res.data);
+      localStorage.setItem("userData", JSON.stringify(res.data));
+      return;
     }
+
+    // If error
+    if (res?.message === "You have not login") {
+      localStorage.removeItem("accesstoken");
+      localStorage.removeItem("refreshtoken");
+      openAlertBox("error", "Your session is closed, please login again!");
+      setIsLogin(false);
+      window.location.href = "/login";
     }
-    })
-}
+  });
+};
+
 
 
 

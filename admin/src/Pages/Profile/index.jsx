@@ -40,14 +40,14 @@ const label = { inputProps:{ 'aria-label': 'Checkbox demo' }};
     const [formFields, setFormFields]= useState({
          
          name:"",
-         email:"",
+
          mobile:""
          
       });
   
   
       const [changePassword, setChangePassword] = useState({
-        email: '',
+ 
         oldpassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -98,7 +98,6 @@ useEffect(() => {
       setFormFields({
         
         name:context?.userData?.name,
-        email:context?.userData?.email,
         mobile:context?.userData?.mobile
       })
        const ph = `"${context?.userData?.mobile}"`
@@ -106,7 +105,7 @@ useEffect(() => {
   
       setChangePassword({
         
-        email: context?.userData?.email
+        mobile: context?.userData?.mobile
       })
       
     } 
@@ -148,11 +147,7 @@ const onchangeInput=(e)=>{
             return false
           }
           
-          if(formFields.email==="")
-            {
-              context.openAlertBox("error","Please entry your Email")
-              return false
-            }
+      
             
             if(formFields.mobile==="")
               {
@@ -323,22 +318,14 @@ const onchangeInput=(e)=>{
         disabled={isLoading}
         onChange={onchangeInput}
       />
-      <TextField
-        label="Email"
-        variant="outlined"
-        size='small'
-        className='w-full'
-        name='email'
-        value={formFields.email}
-        disabled
-        onChange={onchangeInput}
-      />
+  
     </div>
 
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-5 mt-4'>
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
       <PhoneInput
         defaultCountry='bd'
         value={phone}
+          className='w-full'
         disabled={isLoading}
         onChange={(phone) => {
           setPhone(phone);

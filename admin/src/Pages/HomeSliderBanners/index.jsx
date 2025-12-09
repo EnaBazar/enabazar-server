@@ -12,7 +12,8 @@ import TableRow from '@mui/material/TableRow';
 import { AiOutlineEdit } from 'react-icons/ai';
 import { GoTrash } from 'react-icons/go';
 import { MyContext } from '../../App';
-import { deleteData, fetchDataFromApi } from '../../utils/api';
+import { deleteData, deleteMultipleData, fetchDataFromApi } from '../../utils/api';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
@@ -27,6 +28,8 @@ const HomeSliderBanners = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [slidesData, setSlidesData] = useState([]);
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
   
 
   useEffect(() => {
@@ -41,7 +44,19 @@ const HomeSliderBanners = () => {
  
   };
 
+ const handleOpenConfirm = (id) => {
+    setDeleteId(id);
+    setOpenConfirm(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    await deleteMultipleData(`/homeSlides/${deleteId}`);
+    context.openAlertBox('success', 'BannerV1 deleted');
+    getData();
+    setOpenConfirm(false);
+    setDeleteId(null);
+  };
 
   const deleteSlide = (id) => {
     deleteData(`/homeSlides/${id}`).then(() => {
@@ -126,12 +141,14 @@ const HomeSliderBanners = () => {
                 {/* Action Column */}
                 <TableCell width={100}>
                   <div className="flex items-center gap-1">
-                    <Button className="!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]">
+                    <Button className="!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border
+                     !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]">
                       <AiOutlineEdit className="text-[rgba(0,0,0,0.7)] text-[20px]" />
                     </Button>
 
                     <Button
-                      onClick={() => deleteSlide(item._id)}
+         
+                       onClick={() => handleOpenConfirm(item._id)}
                       className="!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]"
                     >
                       <GoTrash className="text-[#ff5252] text-[20px]" />
@@ -155,6 +172,23 @@ const HomeSliderBanners = () => {
     onRowsPerPageChange={handleChangeRowsPerPage}
   />
 </div>
+
+
+     <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this BannerV1?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirm(false)}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color='error' variant='contained'>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
 
     </>
   );

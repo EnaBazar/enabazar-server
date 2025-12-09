@@ -22,8 +22,8 @@ import TableRow from '@mui/material/TableRow';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import { MyContext } from '../../App';
-import { fetchDataFromApi } from '../../utils/api';
-import { CircularProgress } from '@mui/material';
+import { deleteData, editData, fetchDataFromApi } from '../../utils/api';
+import { CircularProgress, DialogContentText } from '@mui/material';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import Rating from '@mui/material/Rating';
@@ -102,6 +102,12 @@ const [endDate, setEndDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteMode, setDeleteMode] = useState("single"); // single | multiple
+
+
+
 
   const handleChange = (event, id) => {
     const newStatus = event.target.value;
@@ -119,7 +125,31 @@ const [endDate, setEndDate] = useState("");
 
 
 
+  // confirm dialog open
+  const handleOpenConfirm = (id = null, mode = "single") => {
+    setDeleteId(id);
+    setDeleteMode(mode);
+    setOpenConfirm(true);
+  };
 
+
+    const handleConfirmDelete = async () => {
+      if (deleteMode === "single" && deleteId) {
+        await deleteData(`/product/${deleteId}`);
+        context.openAlertBox("success", "Product Deleted");
+      }
+  
+      if (deleteMode === "multiple" && sortedIds.length > 0) {
+        for (let id of sortedIds) {
+          await deleteData(`/product/${id}`);
+        }
+        context.openAlertBox("success", "Selected products deleted");
+        setSortedIds([]);
+      }
+  
+      getProducts();
+      setOpenConfirm(false);
+    };
 
 
 useEffect(() => {
@@ -795,10 +825,12 @@ const getChartData = async () => {
 
 {
   productData?.length !== 0 && users?.length !== 0 && allReviews?.length !== 0 && 
-  <DashboardBoxes orders={ordersCount} products={productData?.length} totalsSalesAmount={allSaleAmount} users={users?.length}
+  <DashboardBoxes orders={ordersCount} products={productData?.length} 
+  totalsSalesAmount={allSaleAmount} users={users?.length}
   reviews={allReviews?.length} category={context?.catData?.length} 
   /> 
 }
+
 
 
 <div className='card my-5 shadow-md mt-9 sm:rounded-lg backdrop-blur-md bg-#f2f2f2 '>
@@ -806,7 +838,7 @@ const getChartData = async () => {
 <div className='flex flex-col md:flex-row items-start md:items-center justify-between py-0 mt-3 gap-3'>
   {/* Title */}
   <h2 className='text-[18px] md:text-[20px] font-[600]'>
-    Products{" "}
+    Product{" "}
     <span className='text-[12px] font-[600]'>(Material UI Table)</span>
   </h2>
 
@@ -962,7 +994,8 @@ const getChartData = async () => {
                           <TableCell>{product.catName}</TableCell>
                           <TableCell>{product.subCat}</TableCell>
                           <TableCell>
-                            <div className='flex flex-col gap-1'><span className='line-through text-[15px] font-[600]'>&#2547; {product.price}</span><span className='text-blue-700 text-[15px] font-[600]'>&#2547; {product.oldPrice}</span></div>
+                            <div className='flex flex-col gap-1'><span className='line-through text-[15px] font-[600]'>&#2547; {product.price}</span><span
+                             className='text-blue-700 text-[15px] font-[600]'>&#2547; {product.oldPrice}</span></div>
                           </TableCell>
                           <TableCell><span className='text-[14px]'><span className='font-[600]'>{product.sale}</span> sale</span></TableCell>
                               <TableCell><Rating name='half-rating' size='small' defaultValue={product.Rating} 
@@ -975,7 +1008,7 @@ const getChartData = async () => {
                             <div className='flex items-center gap-1'>
                               <Button className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !rounded-full' onClick={() => context.setIsOpenFullScreenPanel({ open: true, model: 'Edit Product', id: product._id })}><AiOutlineEdit /></Button>
                               <Link to={`/product/${product._id}`}><Button className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !rounded-full'><FaRegEye /></Button></Link>
-                              <Button className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !rounded-full' onClick={() => deleteProduct(product._id)}><GoTrash className='text-red-500' /></Button>
+                              <Button className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !rounded-full' onClick={() => handleOpenConfirm(product._id, "single")}><GoTrash className='text-red-500' /></Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -989,6 +1022,8 @@ const getChartData = async () => {
           )}
         </div>
       </div>
+
+
 
 
 
@@ -1082,11 +1117,11 @@ const getChartData = async () => {
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2 hidden sm:table-cell">Phone</th>
               <th className="px-3 py-2 hidden lg:table-cell">Address</th>
-              <th className="px-3 py-2 hidden lg:table-cell">Pincode</th>
+      
               <th className="px-3 py-2">Subtotal</th>
               <th className="px-3 py-2 hidden sm:table-cell">D.Charge</th>
               <th className="px-3 py-2">Total</th>
-              <th className="px-3 py-2 hidden lg:table-cell">Email</th>
+   
               <th className="px-3 py-2 hidden sm:table-cell">User Id</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2 hidden sm:table-cell">Date</th>
@@ -1109,20 +1144,20 @@ const getChartData = async () => {
                   <td className="px-3 py-2 text-[#ff5252]">{order?._id}</td>
                   <td className="px-3 py-2">{order?.paymentId || "Cash on Delivery"}</td>
                   <td className="px-3 py-2">{order?.userId?.name}</td>
-                  <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_address?.mobile || "--"}</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>
                   <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.address_line}</td>
-                  <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.pincode || "--"}</td>
+               
                   <td className="px-3 py-2">{order?.subTotalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
                   <td className="px-3 py-2">{order?.totalAmt}</td>
-                  <td className="px-3 py-2 hidden lg:table-cell">{order?.userId?.email}</td>
+               
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
                   <td className="px-3 py-2">
                     <Select value={order?.order_status || ""} onChange={(e) => handleChange(e, order?._id)} className="w-full h-[30px]">
-                      <MenuItem value={"pending"}>Pending</MenuItem>
-                      <MenuItem value={"confirm"}>Confirm</MenuItem>
-                      <MenuItem value={"delivered"}>Delivered</MenuItem>
-                    </Select>
+                                         <MenuItem value={"pending"}>Pending</MenuItem>
+                                         <MenuItem value={"confirm"}>Confirm</MenuItem>
+                                         <MenuItem value={"delivered"}>Delivered</MenuItem>
+                                       </Select>
                   </td>
                   <td className="px-3 py-2 hidden sm:table-cell">
                     {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
@@ -1244,6 +1279,10 @@ const getChartData = async () => {
       </Dialog>
     </div>
 
+
+
+
+
 <div className='card my-4 shadow-md sm:rounded-lg bg-white'>
   {/* Section Header */}
   <div className='flex items-center justify-between px-5 py-5 pb-0'>
@@ -1300,7 +1339,19 @@ const getChartData = async () => {
   </div>
 </div>
 
-
+      {/* 🔹 Delete Confirmation Dialog */}
+      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText className='text-[12px]'>
+            আপনি কি নিশ্চিত {deleteMode === "multiple" ? "নির্বাচিত সব প্রোডাক্ট" : "এই প্রোডাক্ট"} ডিলিট করতে চান?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirm(false)}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">Delete</Button>
+        </DialogActions>
+      </Dialog>
 
 </> 
   )

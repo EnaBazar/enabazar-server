@@ -232,7 +232,8 @@ id="Password"
  !h-[35px] !min-w-[35px] !rounded-full 
  !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
  {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+    IsShowPassword===true ?  <IoMdEye className="text-[20px] 
+    opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
  }
 </Button>
 </div>
