@@ -72,18 +72,15 @@ const Footer = () => {
     <div className="lg:w-1/4 flex flex-col gap-4">
       <h2 className="font-semibold text-lg mb-2 text-[#FC8934]">Contact Us</h2>
       <p>
-        Ena Bazar.com<br />
+        gorobazar.com<br />
         Islampur Road-3900 <br />
         Bangladesh
       </p>
       <Link className="text-[#FC8934] hover:underline" to="mailto:ikhalil7446@gmail.com">
         ikhalil7446@gmail.com
       </Link>
-      <span className="text-[#FC8934] font-semibold block mt-2 mb-2">+880167-4847446</span>
-      <div className="flex items-center gap-2">
-        <IoChatboxOutline className="text-3xl text-[#FC8934]" />
-        <span className="text-sm">Online Chat <br />Get Expert Help</span>
-      </div>
+      <span className="text-[#FC8934] font-semibold block  mb-2">+880167-4847446</span>
+     
     </div>
 
     {/* Products & Company */}
@@ -139,27 +136,11 @@ const Footer = () => {
         </ul>
       </div>
     </div>
+ <div className="flex items-center gap-2">
+        <IoChatboxOutline className="text-3xl text-[#FC8934]" />
+        <span className="text-bg">Online Chat <br />Get Expert Help</span>
+      </div>
 
-    {/* Newsletter */}
-    <div className="lg:w-1/3 flex flex-col gap-4">
-      <h2 className="font-semibold text-lg mb-2 text-[#FC8934]">Subscribe To Newsletters</h2>
-      <p className="text-sm mb-2">
-        Subscribe to our latest newsletters to get news about special discounts
-      </p>
-      <form className="flex flex-col gap-2">
-        <input
-          type="email"
-          placeholder="Your Email Address"
-          className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
-        />
-        <Button className="bg-[#FC8934] text-white hover:bg-[#e67300] py-2">SUBSCRIBE</Button>
-        <FormControlLabel
-          control={<Checkbox defaultChecked />}
-          label="I agree to the terms and conditions and the privacy policy"
-          className="text-sm"
-        />
-      </form>
-    </div>
 
   </div>
 </div>
@@ -186,7 +167,7 @@ const Footer = () => {
     </ul>
 
     {/* Copy Text */}
-    <p className="text-center text-sm mb-0">© 2025 - EnaBazar.com By Ibrahim Khalil</p>
+    <p className="text-center text-sm mb-0">© 2025 - GoroaBazar.com By Ibrahim Khalil</p>
 
     {/* Payment Image */}
     <div className="flex items-center justify-center">
