@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import ProductZoom from '../../Components/ProductZoom';
 import ProductsSlider from '../../components/ProductsSlider';
 import ProductDetailsComponant from '../../Components/ProductDetailsComponant';
-import { fetchDataFromApi } from '../../utils/api';
+import { fetchDataFromApi } from '../../utils/api'; 
 import CircularProgress from '@mui/material/CircularProgress';
 import { Reviews } from './addReviews';
 
