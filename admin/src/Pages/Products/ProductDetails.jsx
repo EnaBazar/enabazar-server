@@ -25,12 +25,21 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [loading, setLoading] = useState(false);
-
+   const [reviewsData, setReviewsData] = useState();
   const goto = (index) => {
     setSlideIndex(index);
     zoomSliderBig.current.swiper.slideTo(index);
     zoomSliderSml.current.swiper.slideTo(index);
   };
+
+    const getReviews=()=>{
+        fetchDataFromApi(`/auth/getReviews?productId=${id}`).then((res)=> {
+            if( res?.error == false){
+               setReviewsData(res?.reviews) 
+             
+            }
+        })
+    }
 
   // Fetch product
   useEffect(() => {
@@ -43,6 +52,7 @@ const ProductDetails = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+      getReviews()
   }, [id]);
 
   if (loading) {
@@ -218,12 +228,18 @@ const ProductDetails = () => {
       </h2>
 
       {/* Sample Review UI */}
-      <div className="reviewsWrap mt-3">
-        <div className="reviews w-full p-4 bg-white shadow-sm border rounded-md flex items-center gap-5">
+      <div className="reviewsWrap mt-3 !mb-3">
+     {
+        reviewsData?.length!==0 &&
+        <div className='scroll w-full max-h-[300px] overflow-y-scroll overflow-x-hidden !mt-5 '>   
+    {
+        reviewsData?.map((review,index)=>{
+  return(
+     <div className="reviews w-full p-4 bg-white shadow-sm border rounded-md flex items-center gap-5 mb-3">
 
           {/* Avatar */}
           <img
-            src="https://mironcoder-hotash.netlify.app/images/avatar/01.webp"
+            src={review?.image}
             alt="avatar"
             className="w-[60px] h-[60px] md:w-[75px] md:h-[75px] rounded-full border"
           />
@@ -232,21 +248,33 @@ const ProductDetails = () => {
           <div className="info w-full">
             <div className="flex items-center justify-between">
               <h4 className="text-[14px] md:text-[15px] font-[500]">
-                Ibrahim Khalil
+              {review?.userName}
               </h4>
-              <Rating defaultValue={4} precision={0.5} size="small" />
+              <Rating defaultValue={review?.rating}  readOnly size="small" />
             </div>
 
             <span className="text-[11px] md:text-[12px] font-[500]">
-              2025-01-08
+             {review?.createdAt.split("T")[0]}
             </span>
 
             <p className="text-[12px] md:text-[13px] mt-2">
-              পণ্যের মান খুবই ভালো—ডেলিভারি দ্রুত পেয়েছি। ধন্যবাদ।
+             {review?.review}
             </p>
           </div>
+          
         </div>
+  )   
+            
+        })
+    }
+     
+     
+    </div> 
+    }
       </div>
+
+   
+
 
       <br />
     </>
