@@ -12,15 +12,15 @@ import { MyContext } from "../../App";
 import { fetchDataFromApi } from "../../utils/api";
 
 // Components
-import HomeCatSlider from "../../components/HomeCatSlider";
-import AdsBannerSlider from "../../components/AdsBanneraslider";
-import AdsBannerSliderV2 from "../../components/AdsBannerasliderV2";
-import ProductsSlider from "../../components/ProductsSlider";
-import BlogItem from "../../components/BlogItem";
-import HomeSliderV2 from "../../components/HomeSliderV2";
-import BannerBoxV2 from "../../components/BannarBoxV2";
-import ProductLoding from "../../components/ProductLoding";
-import HomeSlider from "../../components/HomeSlider";
+import HomeCatSlider from "../../Components/HomeCatSlider";
+import AdsBannerSlider from "../../Components/AdsBanneraslider";
+import AdsBannerSliderV2 from "../../Components/AdsBannerasliderV2";
+import ProductsSlider from "../../Components/ProductsSlider";
+import BlogItem from "../../Components/BlogItem";
+import HomeSliderV2 from "../../Components/HomeSliderV2";
+import BannerBoxV2 from "../../Components/BannarBoxV2";
+import ProductLoding from "../../Components/ProductLoding";
+import HomeSlider from "../../Components/HomeSlider";
 import { Pagination } from "@mui/material";
 
 
@@ -173,12 +173,12 @@ const Home = () => {
         </div>
 
         <div className="col2">
-          <p className="mb-0 font-[500]">
-            Free Delivery Now On Your First Order and Over $200
+          <p className="mb-0 font-[700]">
+           ১৫০০ টাকার বেশী পন্য ক্রয় করলে ,সারা বাংলাদেশ ডেলিভারি সম্পূর্ন ফ্রী!
           </p>
         </div>
 
-        <p className="font-bold text-[30px]">- Only $200*</p>
+
       </div>
 
       {bannerV1Data?.length !== 0 && (
@@ -188,7 +188,7 @@ const Home = () => {
   </section>
 
   {/* Latest Products */}
-  <section className="!mt-0 bg-white ">
+  <section className="!mt-0 bg-white " >
     <div className="container">
       <h2 className="text-[20px] font-[600]">Latest Products</h2>
       <p className="text-[14px] font-[400]">

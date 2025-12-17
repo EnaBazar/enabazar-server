@@ -51,7 +51,6 @@ const register = async (req, res) => {
         // Hash password
         const salt = await bcryptjs.genSalt(10);
         const hashPassword = await bcryptjs.hash(password, salt);
-
         // Create new user
         const user = new usermodel({
             mobile,
@@ -558,7 +557,7 @@ export async function loginPanelUserController(request, response) {
                name:name,
                mobile: mobile,
                password: hashPassword,
-               otpExpires:verifyCode!=="" ? Date.now() + 600000 : ''
+        
               
              },
              {new: true}

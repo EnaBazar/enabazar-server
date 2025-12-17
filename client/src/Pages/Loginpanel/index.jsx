@@ -198,9 +198,19 @@ window.scrollTo(0,0)
     
   return (
    <section className='section py-10'>
-   <div className='container'>
-   <div className='card !shadow-md !w-[400px] !m-auto !rounded-md !bg-white p-5 px-12'>
-<h3 className='text-center text-[18px] text-[200]'>Login to your account</h3>
+  
+    <div
+    className="
+      w-[90%] 
+      max-w-[360px] 
+      bg-white/80 
+      backdrop-blur-md 
+      shadow-xl 
+      rounded-xl 
+      p-6
+    "
+  >
+<h3 className='text-center  text-[18px] text-[200]'>Login to your account</h3>
 
 <form className='w-full !mt-5' onSubmit={handleSubmit}>
 
@@ -260,15 +270,12 @@ onChange={onchangeInput}
 </div>
 <p className='text-center '>Not Registered? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/register">Sign Up </Link></p>
 
-<p className='text-center font-[500]'>Or continue with social account</p>
 
-<Button className='flex gap-3 w-full !bg-[f1f1f1] btn-lg !text-black'
 
-onClick={authWithGoogle}
-><FcGoogle className='text-[20px]'/>SignIn with Google</Button>
+
 </form>
    </div>
-   </div>  
+
    </section>
   )
 }

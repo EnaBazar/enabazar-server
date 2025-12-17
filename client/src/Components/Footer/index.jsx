@@ -36,11 +36,11 @@ const Footer = () => {
 <div className="bg-white border-t border-b py-8">
   <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
     {[
-      { icon: LiaShippingFastSolid, title: "Free Shipping", desc: "For all Order Over $100" },
-      { icon: TbTruckReturn, title: "30 Days Returns", desc: "For Exchange Product" },
-      { icon: BsWallet2, title: "Secured Payment", desc: "Payment Cards Accepted" },
-      { icon: LiaGiftSolid, title: "Special Gifts", desc: "Our First Product Order" },
-      { icon: RiCustomerService2Line, title: "Support 24/7", desc: "Contact us anytime" },
+      { icon: LiaShippingFastSolid, title: "ফ্রী ডেলিভারি", desc: "১৫০০ টাকার বেশী পন্য় ক্রয় করলে ডেলিভারি ফ্রী!" },
+      { icon: TbTruckReturn, title: "৭ দিনের মধ্য়ে রিটান", desc: "পন্য ৭ দিনের মধ্যে পরির্বতন করার সুবিধা!" },
+      { icon: BsWallet2, title: "কেশ অন ডেলিভেরি", desc: "পন্য হাতে পাওয়ার পর দাম পরিশোধের সুবিধা!" },
+      { icon: LiaGiftSolid, title: "বিশেষ কুপন সুবিধা", desc: "পন্য ক্রয়ের উপর কেশ কুপন সুবিধা! " },
+      { icon: RiCustomerService2Line, title: "২৪/৭ অন লাইন সার্বিস", desc: "২৪/৭ আমাদের অন লাইন সার্বিস চালু থাকে!" },
     ].map((item, idx) => {
       const Icon = item.icon;
       return (

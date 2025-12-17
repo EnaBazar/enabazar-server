@@ -108,12 +108,12 @@ const Header =() => {
              !min-h-[45px] !rounded-full !text-gray-400 "
              onClick={()=> setisOpenCatPanel(true)}
              > 
-            <HiOutlineMenu className="text-[30px] text-gray-600 "/> 
+            <HiOutlineMenu className="text-[80px] text-gray-900 "/> 
             </Button>
           }
       </div>
       
-  <div className="col1 w-[30%] lg:w-[10%] flex items-center 
+  <div className="col1 w-[70%] lg:w-[10%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
     <img src="/logo.png" className="" />

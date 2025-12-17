@@ -72,6 +72,22 @@ const App =() => {
       item: item
       });
     }
+
+  const handleSessionExpire = () => {
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
+  localStorage.removeItem("userData");
+
+  setIsLogin(false);
+  setUserData(null);
+
+  openAlertBox("error", "Your session is expired, please login again!");
+
+  window.location.href = "/login";
+};
+
+
+
   const handleCloseProductDetailsModel = () => {
   setOpenProductDetailsModel({
       open: false,
@@ -123,29 +139,39 @@ useEffect(() => {
 
   
 const getUserDeatils = () => {
-  fetchDataFromApi(`/auth/user-dtails`).then((res) => {
-
-    if (res?.error === false) {
-      setUserData(res.data);
-      localStorage.setItem("userData", JSON.stringify(res.data));
-      return;
-    }
-
-    // If error
-    if (res?.message === "You have not login") {
-      localStorage.removeItem("accesstoken");
-      localStorage.removeItem("refreshtoken");
-      openAlertBox("error", "Your session is closed, please login again!");
-      setIsLogin(false);
-      window.location.href = "/login";
-    }
-  });
+  fetchDataFromApi(`/auth/user-dtails`)
+    .then((res) => {
+      if (res?.error === false) {
+        setUserData(res.data);
+        localStorage.setItem("userData", JSON.stringify(res.data));
+      } else {
+        handleSessionExpire();
+      }
+    })
+    .catch(() => {
+      handleSessionExpire();
+    });
 };
 
 
 
 
+
+
         useEffect(() => {
+
+  const token = localStorage.getItem("accesstoken");
+
+  if (token) {
+    setIsLogin(true);
+    getCartItems();
+    getMyListData();
+    getUserDeatils();
+  } else {
+    setIsLogin(false);
+  }
+
+
         fetchDataFromApi("/category")
         .then((res) => {
         if (res?.error === false) {

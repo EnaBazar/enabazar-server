@@ -25,6 +25,12 @@ const handleSelecteQty=(qty)=>{
   setquantity(qty)
 }
 
+
+
+
+
+
+
 const addToCart = async (product, userId, quantity) => {
 
   // 1️⃣ User not logged in
