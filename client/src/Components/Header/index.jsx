@@ -113,10 +113,10 @@ const Header =() => {
           }
       </div>
       
-  <div className="col1 w-[70%] lg:w-[10%] flex items-center 
+  <div className="col1 w-[60%] lg:w-[10%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
-    <img src="/logo.png" className="" />
+    <img src="/logo.png"/>
   </Link>
 </div>
    {
