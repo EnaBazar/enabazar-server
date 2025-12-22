@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import { Link, useParams } from 'react-router-dom';
 import ProductZoom from '../../Components/ProductZoom';
-import ProductsSlider from '../../components/ProductsSlider';
+import ProductsSlider from '../../Components/ProductsSlider';
 import ProductDetailsComponant from '../../Components/ProductDetailsComponant';
 import { fetchDataFromApi } from '../../utils/api'; 
 import CircularProgress from '@mui/material/CircularProgress';

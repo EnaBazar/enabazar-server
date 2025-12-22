@@ -11,10 +11,11 @@ import productRoutes from './route/product.route.js';
 import cartRoutes from './route/cart.route.js';
 import mylistRoutes from './route/mylist.route.js';
 import addressRouter from './route/address.route.js';
-import homeSlideRoutes from './route/homeSlide.route .js';
+
 import bannerV1Routes from './route/bannerV1.route.js';
 import blogRoutes from './route/blog.route.js';
 import orderRoutes from './route/order.route.js';
+import homeSlideRoutes from './route/homeSlide.route.js';
 
 
 
@@ -24,10 +25,13 @@ DbCon()
 
 const PORT = process.env.PORT || 5000
 const app=express()
-app.use(cors());
+app.use(cors(
+
+   { origin: "*"}
+));
 app.use(express.json());
 app.use(cookieParser());
-app.use(morgan());
+app.use(morgan('combined'));
 app.use(helmet({
     
     crossOriginResourcePolicy:false
