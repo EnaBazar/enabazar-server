@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 
-const Search = () => {
+const Search = () => { 
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,23 +39,30 @@ const Search = () => {
   return (
     <>
       {/* Search Box */}
-      <div className='w-[100%] h-[30px] bg-white !rounded-md relative'>
-        <input
-          type='text'
-          placeholder='Search'
-          className='w-full h-[35px] focus:outline-none bg-inherit p-3 text-[16px] lg:text-[14px]'
-          value={searchQuery}
-          onChange={onChangeInput}
-        />
-        <Button
-          className='!absolute top-[1px] right-[5px] z-50 !w-[36px] 
-          !min-w-[36px] h-[37px] !rounded-full !text-black text-[20px]'
-          onClick={search}
-          
-        >
-          <IoSearch className='text-[#4e4e4e] text-[25px]' />
-        </Button>
-      </div>
+    <div className="relative w-full max-w-xl">
+  <div className="flex items-center h-[42px]  rounded-full 
+    border border-gray-300 focus-within:border-[#FC8934] 
+    focus-within:shadow-sm transition">
+
+    <input
+      type="text"
+      placeholder="Search for products..."
+      className="flex-1 h-full bg-transparent px-4 text-[14px] 
+      outline-none placeholder:text-gray-400"
+      value={searchQuery}
+      onChange={onChangeInput}
+    />
+
+    <Button
+      onClick={search}
+      className="!min-w-[40px] !w-[40px] !h-[40px] 
+      !rounded-full !text-black hover:!bg-[#FC8934]/10"
+    >
+      <IoSearch className="text-[20px] text-gray-600" />
+    </Button>
+  </div>
+</div>
+
 
       {/* Backdrop Loader */}
       <Backdrop

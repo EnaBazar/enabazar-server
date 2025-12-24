@@ -213,7 +213,7 @@ setProductActionIndex(index)
      
       className="btn-org btn-border !h-[40px] rounded-md flex 
       items-center justify-center gap-2 
-             !text-[15px] font-[600] transition-all"
+      !text-[15px] font-[600] transition-all"
       onClick={async () => {
         const result = await addToCart(
           props?.item,
@@ -237,39 +237,29 @@ setProductActionIndex(index)
 {/* Checkout Button — Always Below */}
   
 <button
- className="btn-org flex gap-2 h-[40px] !text-[15px] 
- !mt-3 font-[600] flex items-center justify-center rounded-md !min-w-[160px]"
-  onClick={async () => {
+    className="btn-org flex gap-2 h-[40px] !text-[15px] 
+    !mt-3 font-[600] flex items-center justify-center rounded-md !min-w-[160px]"
+    onClick={async () => {
     const result = await addToCart(
-      props?.item,
-      context?.userData?._id,
-      quantity
+    props?.item,
+    context?.userData?._id,
+    quantity
     );
     if (result?.success) navigate("/checkout");
-  }}
->
-BUY NOW
-</button>
-
-</div>
+    }}
+    >
+    BUY NOW
+    </button>
+    </div>
 
     
-    <div className='flex items-center gap-4 !mt-4'>
-    
+  <div className='flex items-center gap-4 !mt-4'>
   <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-    FaRegHeart className='text-[18px]'/>Add to WishList</span>
+  FaRegHeart className='text-[18px]'/>Add to WishList</span>
   <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-    IoGitCompareOutline className='text-[18px]'/>Add to Compare</span>
+  IoGitCompareOutline className='text-[18px]'/>Add to Compare</span>
   </div>
-  
-  
-  
-         
-      
-    
-    </>
-    
-
+  </>
   )
 }
 export default ProductDetailsComponant;
