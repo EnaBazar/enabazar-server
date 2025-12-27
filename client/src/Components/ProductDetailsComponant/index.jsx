@@ -33,7 +33,6 @@ const handleSelecteQty=(qty)=>{
 
 const addToCart = async (product, userId, quantity) => {
 
-  // 1️⃣ User not logged in
   if (!userId) {
     context?.openAlertBox("error", "আপনি প্রথমবার ব্যবহার করছেন, মোবাইল নাম্বার দিয়ে প্রবেশ করুন!");
     setTimeout(() => {
@@ -42,7 +41,7 @@ const addToCart = async (product, userId, quantity) => {
     return { success: false };
   }
 
-  // 2️⃣ Required variation validation
+
   const variationRequired =
     props?.item?.size?.length ||
     props?.item?.productWeight?.length ||
@@ -127,8 +126,8 @@ setProductActionIndex(index)
     </div>
     
     <br/>
-    <p className='text-[14px] !mb-5 !mt-3 pr-10'>{props?.item?.description} </p>
-    
+ 
+
     {
      props?.item?.productRam?.length !== 0 && 
          <div className='flex items-center gap-3'>
@@ -195,71 +194,65 @@ setProductActionIndex(index)
     }
     
     <p className='!text-[12px] !mt-4 !mb-2 font-[500]'>
-      Free shipping (Est. delivery Time 2-3 Days)</p>
+    Free shipping (Est. delivery Time 2-3 Days)</p>
     
   <div className="py-4 w-full">
-
   {/* Row: Qty + Add to Cart */}
   <div className="flex items-center gap-4 mb-4">
 
     {/* Qty Box */}
     <div className="w-[100px] ">
-      <QtcBox handleSelecteQty={handleSelecteQty} 
-      item={props?.item} />
+    <QtcBox handleSelecteQty={handleSelecteQty} 
+    item={props?.item} />
     </div>
 
     {/* Add to Cart */}
+
     <Button
-     
-      className="btn-org btn-border !h-[40px] rounded-md flex 
-      items-center justify-center gap-2 
-      !text-[15px] font-[600] transition-all"
-      onClick={async () => {
+        className="btn-org btn-border !h-[40px] rounded-md flex 
+        items-center justify-center gap-2 
+        !text-[15px] font-[600] transition-all"
+        onClick={async () => {
         const result = await addToCart(
-          props?.item,
-          context?.userData?._id,
-          quantity
+        props?.item,
+        context?.userData?._id,
+        quantity
         );
-      }}
-    >
-      {isLoading ? (
+        }}
+        >
+        {isLoading ? (
         <CircularProgress size={22} />
-      ) : (
+        ) : (
         <>
-          <MdOutlineShoppingCart className="text-[22px]" />
-          Add Cart
+        <MdOutlineShoppingCart className="text-[22px]" />
+        Add Cart
         </>
       )}
-    </Button>
-
-  </div>
-
-{/* Checkout Button — Always Below */}
-  
-<button
-    className="btn-org flex gap-2 h-[40px] !text-[15px] 
-    !mt-3 font-[600] flex items-center justify-center rounded-md !min-w-[160px]"
-    onClick={async () => {
-    const result = await addToCart(
-    props?.item,
-    context?.userData?._id,
-    quantity
-    );
-    if (result?.success) navigate("/checkout");
-    }}
-    >
-    BUY NOW
-    </button>
-    </div>
-
-    
-  <div className='flex items-center gap-4 !mt-4'>
-  <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-  FaRegHeart className='text-[18px]'/>Add to WishList</span>
-  <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-  IoGitCompareOutline className='text-[18px]'/>Add to Compare</span>
-  </div>
-  </>
-  )
-}
-export default ProductDetailsComponant;
+      </Button>
+      </div>
+      {/* Checkout Button — Always Below */}
+      <button
+      className="btn-org flex gap-2 h-[40px] !text-[15px] 
+      !mt-3 font-[600] flex items-center justify-center rounded-md !min-w-[160px]"
+      onClick={async () => {
+      const result = await addToCart(
+      props?.item,
+      context?.userData?._id,
+      quantity
+      );
+      if (result?.success) navigate("/checkout");
+      }}
+      >
+      BUY NOW
+      </button>
+      </div>
+      <div className='flex items-center gap-4 !mt-4'>
+      <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
+      FaRegHeart className='text-[18px]'/>Add to WishList</span>
+      <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
+      IoGitCompareOutline className='text-[18px]'/>Add to Compare</span>
+      </div>
+      </>
+      )
+      }
+      export default ProductDetailsComponant;

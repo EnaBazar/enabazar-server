@@ -29,6 +29,7 @@
     "react-inner-image-zoom": "^4.0.1",
     "react-international-phone": "^4.5.0",
     "react-lazy-load-image-component": "^1.6.3",
+    "react-quill": "^2.0.0",
     "react-router-dom": "^7.4.0",
     "react-simple-wysiwyg": "^3.4.0",
     "recharts": "^2.15.2",

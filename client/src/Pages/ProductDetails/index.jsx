@@ -128,7 +128,12 @@ const ProductDetails = () => {
         {/* Description Tab */}
         {activeTab === 0 && (
           <div className="shadow-md py-4 sm:py-5 px-4 sm:px-8 w-full rounded-md border border-[rgba(0,0,0,0.2)] text-[14px] sm:text-[15px]">
-            {productData?.description}
+        <div
+        
+  dangerouslySetInnerHTML={{
+    __html: productData?.description
+  }}
+/>
           </div>
         )}
 

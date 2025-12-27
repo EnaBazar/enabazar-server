@@ -201,10 +201,13 @@ const ProductDetails = () => {
           <h2 className="text-[18px] md:text-[20px] font-[500] mb-3">
             Product Description
           </h2>
+<div
+  dangerouslySetInnerHTML={{
+    __html: product?.description
+  }}
+/>
 
-          <p className="text-[13px] md:text-[14px] leading-relaxed">
-            {product?.description}
-          </p>
+       
 
         </div>
       </div>

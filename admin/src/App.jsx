@@ -147,7 +147,6 @@ useEffect(() => {
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-account", element: <VerifyAccount /> },
     { path: "/change-password", element: <ChangePassword /> },
-
     { path: "/products", element: <Layout><Products /></Layout> },
     { path: "/homeSliderlist", element: <Layout><HomeSliderBanners /></Layout> },
     { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
@@ -155,12 +154,10 @@ useEffect(() => {
     { path: "/users", element: <Layout><Users /></Layout> },
     { path: "/orders", element: <Layout><Orders /></Layout> },
     { path: "/profile", element: <Layout><Profile /></Layout> },
-
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
     { path: "/product/addRams", element: <Layout><AddRams /></Layout> },
     { path: "/product/addSize", element: <Layout><AddSize /></Layout> },
     { path: "/product/addWieght", element: <Layout><AddWieght /></Layout> },
-
     { path: "/bannerV1/list", element: <Layout><BannerV1List /></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
   ]);

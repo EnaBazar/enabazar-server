@@ -102,7 +102,7 @@ const Header =() => {
   bg-[#dfd7d7] flex items-center">
         <div className="container flex items-center justify-between">
          
-          <div className="col1 w-[0%] lg:w-[0]  ">
+          <div className="col1 w-[35%] lg:w-[0]  ">
           {
             context?.windowWidth < 992 &&    
             <Button className="!w-[45px] !min-w-[45px] !h-[45px]
@@ -114,10 +114,10 @@ const Header =() => {
           }
       </div>
       
-  <div className="col1 w-[60%] lg:w-[20%] flex items-center 
+  <div className="col1 w-[30%] lg:w-[20%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
-    <img src="/logo.png"/>
+    <img src="/logol.png"/>
   </Link>
 </div>
    {
@@ -152,7 +152,7 @@ const Header =() => {
 </div>
 
 
-      <div className="Reginfo col3 w-[50%] lg:w-[35%] flex items pl-8">
+      <div className="Reginfo col3 w-[35%] lg:w-[35%] flex items pl-8">
     
       <ul className="flex items-center justify-end gap-0 lg:gap-3 w-full">
         
