@@ -64,7 +64,7 @@ const Navigation =(props) => {
       return(
         <li className="list-none relative" key={index}>
         <Link to={`/product?catId=${cat?._id}`} className="link transition text-[12px] font-[500]">
-        <Button className="link transition !text-[12px] lg:!text-[14px]  !font-[600] !text-[rgba(0,0,0,0.8)] hover:!text-[#f58822] ">
+        <Button className="link transition !text-[10px] lg:!text-[12px]  !font-[500] !text-[rgba(0,0,0,0.8)] hover:!text-[#f58822] ">
         {cat?.name}
         </Button>
         </Link>
