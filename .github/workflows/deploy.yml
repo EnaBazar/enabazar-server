@@ -17,7 +17,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /var/www/enabazar-server
+            cd /var/www/enabazar-server/client
             git pull origin main
             npm install
             npm run build
