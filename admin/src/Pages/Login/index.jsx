@@ -144,7 +144,7 @@ const Login = () => {
     <header className='w-full static lg:fixed top-0 left-0 px-4 py-5 flex items-center  justify-center
     sm:justify-between z-50'>
     
-     <div className="col1 w-[20%] lg:w-[20%] flex items-center 
+     <div className="col1 w-[5%] lg:w-[10%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
     <img src="/logo.png"/>
