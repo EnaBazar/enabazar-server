@@ -51,7 +51,7 @@ const HomeCatSlider = (props)=> {
         alt={cat?.name}
         className="w-[60px] h-[60px] lg:w-[100px] lg:h-[100px] rounded-full object-cover border border-gray-200 shadow-sm"
       />
-      <h3 className="!mt-3 text-[12px] lg:text-[16px] font-medium">{cat?.name}</h3>
+      <h3 className="!mt-3 text-[10px] lg:text-[14px] font-medium">{cat?.name}</h3>
     </Link>
   </div>
 </SwiperSlide>

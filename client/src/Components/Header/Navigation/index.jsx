@@ -38,23 +38,23 @@ const Navigation =(props) => {
 
           {
             context?.windowWidth > 992 && 
-             <div className="CatMenu col_1 w-[20%]">
+             <div className="CatMenu col_1 w-[10%]">
         <Button className="!text-black gap-2 min-w-auto  justify-start" onClick={openCategoryPanel}>
-        <RiMenu2Fill className="text-[18px]"/>
+        <RiMenu2Fill className="text-[14px]"/>
         catagories 
-        <LiaAngleDownSolid className="text-[13px] ml-auto font-bold " />
+        <LiaAngleDownSolid className="text-[12px] ml-auto font-bold " />
         </Button>
         
             </div>
           }
        
-        <div className="col_2 w-full lg:w-[80%] ">
+        <div className="col_2 w-full lg:w-[90%] ">
         <ul className="flex items-center gap-3 nav !font-[600]">
  
         
         <li className="list-none">
         <Link to="/" className="link transition text-[14px] !font-[600]">
-        <Button className="link transition !text-[12px] lg:!text-[14px]
+        <Button className="link transition !text-[10px] lg:!text-[12px]
          !font-[600] !text-[rgba(0,0,0,0.8)] hover:!text-[#f58822]">Home</Button> 
         </Link>
         </li> 
@@ -64,7 +64,7 @@ const Navigation =(props) => {
       return(
         <li className="list-none relative" key={index}>
         <Link to={`/product?catId=${cat?._id}`} className="link transition text-[12px] font-[500]">
-        <Button className="link transition !text-[10px] lg:!text-[12px]  !font-[500] !text-[rgba(0,0,0,0.8)] hover:!text-[#f58822] ">
+        <Button className="link transition !text-[10px] lg:!text-[12px]  !font-[600] !text-[rgba(0,0,0,0.8)] hover:!text-[#f58822] ">
         {cat?.name}
         </Button>
         </Link>

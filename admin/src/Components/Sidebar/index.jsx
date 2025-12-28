@@ -60,11 +60,12 @@ import { fetchDataFromApi } from '../../utils/api';
     <div className='sidebar  top-0 left-0 bg-[#f1f1f1]
     h-full border-r border-[rgba(0,0,0,0.2)] py-2 px-2 z-50'  >
     
-    <div className='py-2 px-4 w-full h-[30px]  flex items-center '>
-    <Link   to={"/"}> <p><span className='font-[800] text-[32px] text-[#ff5252]'>F
-    <span className=' font-bold text-[25px] text-black'>enix</span></span></p></Link>
-    
-    </div>
+     <div className="col1 w-[40%] lg:w-[50%] flex items-center 
+     justify-end lg:justify-start">
+  <Link to={"/"}> 
+    <img src="/logo.png"/>
+  </Link>
+</div>
     
     <ul className='mt-4'>
     <li>

@@ -819,7 +819,7 @@ const getChartData = async () => {
   
   ><FaPlus/>Add Product</Button>
  </div>
- <img src='src/assets/logo.png' className='w-[250px] hidden lg:block'/>
+ <img src="/logo.png" className='w-[250px] hidden lg:block'/>
  </div>         
 
 
