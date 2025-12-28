@@ -46,7 +46,7 @@ const Search = () => {
 
     <input
       type="text"
-      placeholder="Search for products..."
+      placeholder="Search..."
       className="flex-1 h-full bg-transparent px-4 text-[14px] 
       outline-none placeholder:text-gray-400"
       value={searchQuery}
