@@ -144,7 +144,7 @@ const Login = () => {
     <header className='w-full static lg:fixed top-0 left-0 px-4 py-5 flex items-center  justify-center
     sm:justify-between z-50'>
     
-     <div className="col1 w-[40%] lg:w-[50%] flex items-center 
+     <div className="col1 w-[20%] lg:w-[20%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
     <img src="/logo.png"/>
@@ -174,25 +174,7 @@ const Login = () => {
    <div className='loginBox card w-full md:w-[600px] h-[auto] pb-25 mx-auto pt-0 lg:pt-20 relative z-50'>
   
        
-       
-       <h1 className='text-center text-[18px] sm:text-[30px] font-[800] mt-4'>Welcome Back <br/>Sign in with Credentials.</h1>
-       
-       <div className='flex items-center justify-center w-full mt-5 gap-2'>
-       <Button
-          size="small"
-          onClick={handleClickGoogle}
-          endIcon={<FcGoogle className='!text-[25px]'/>}
-          loading={loadingGoogle}
-          loadingPosition='end'
-          variant="outlined"
-        className='!bg-none !py-2 !text-[14px] !capitalize !px-5 !text-[rgba(0,0,0,0.7)]'
-        >
-        signing with Google
-        </Button>
-       
-        
-        
-       </div>
+   
        
        <br/>
        
