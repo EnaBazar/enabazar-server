@@ -117,7 +117,7 @@ const Header =() => {
   <div className="col1 w-[30%] lg:w-[20%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
-    <img src="/logo.png"/>
+    <img src="/logol.png"/>
   </Link>
 </div>
    {
