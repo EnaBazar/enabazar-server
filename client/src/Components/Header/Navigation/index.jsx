@@ -145,10 +145,7 @@ const Navigation =(props) => {
        
 
        
-        <div className="FreeDel col_2 w-[20%] hidden lg:block">
-        <p className="text-[13px] font-[500] flex items-center gap-3 mb-0 mt-0">
-          <GoRocket className="text-[18px] !ml-auto"/>Free International Delivery</p>
-        </div>
+       
         </div>
         
         </nav>
