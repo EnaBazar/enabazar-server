@@ -21,11 +21,11 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
         }}
         breakpoints={{
           0: {          // ✅ ছোট মোবাইল
-            slidesPerView: 2,
+            slidesPerView: 1,
             spaceBetween: 5,
           },
           480: {        // ✅ মাঝারি মোবাইল
-            slidesPerView: 2,
+            slidesPerView: 1,
             spaceBetween: 5,
           },
           768: {        // ✅ ট্যাবলেট
