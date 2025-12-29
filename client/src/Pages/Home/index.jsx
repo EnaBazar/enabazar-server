@@ -136,8 +136,8 @@ const Home = () => {
   </section>
 
   {/* Middle Slider + Banner */}
-  <section className="mt-10">
-    <div className="container flex flex-col lg:flex-row gap-5">
+  <section className="!mt-10">
+    <div className="container flex flex-col lg:flex-row gap-5 ">
       {/* Slider */}
       <div className="part1 w-full lg:w-[65%]">
         {allProductsData?.length !== 0 && (
@@ -145,19 +145,7 @@ const Home = () => {
         )}
       </div>
 
-      {/* Banners */}
-      <div className="part2 w-full lg:w-[35%] flex flex-row lg:flex-col items-center justify-between gap-4">
-        <BannerBoxV2
-          info={bannerV1Data[bannerV1Data?.length - 1]?.alignInfo}
-          image={bannerV1Data[bannerV1Data?.length - 1]?.images[0]}
-          item={bannerV1Data[bannerV1Data?.length - 1]}
-        />
-        <BannerBoxV2
-          info={bannerV1Data[bannerV1Data?.length - 2]?.alignInfo}
-          image={bannerV1Data[bannerV1Data?.length - 2]?.images[0]}
-          item={bannerV1Data[bannerV1Data?.length - 2]}
-        />
-      </div>
+   
     </div>
   </section>
 

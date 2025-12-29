@@ -218,7 +218,8 @@ onChange={onchangeInput}
  !h-[35px] !min-w-[35px] !rounded-full 
  !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
  {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff
+     className="text-[20px] opacity-75"/>
  }
 </Button>
 </div>
@@ -255,7 +256,8 @@ onChange={onchangeInput}
 </Button>
 
 </div>
-<p className='text-center '>Not Registered? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/register">Sign Up </Link></p>
+<p className='text-center '>Not Registered? <Link className='link !text-[14px] cursor-pointer 
+ !font-[600] !text-[#ff5252]' to="/register">Sign Up </Link></p>
 
 <p className='text-center font-[500]'>Or continue with social account</p>
 
