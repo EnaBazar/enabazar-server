@@ -12,7 +12,7 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
 
     const context = useContext(MyContext);
   return (
-    <div className="py-5 w-full">
+    <div className="py-5  w-full">
       <Swiper
         loop={true}
         autoplay={{

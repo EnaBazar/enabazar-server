@@ -18,12 +18,12 @@ const BannerBoxV2 = (props) => {
         <img
           src={props.image}
           alt="banner"
-          className="w-full h-[120px] sm:h-full object-cover transition-all duration-200 group-hover:scale-105"
+          className="w-full h-[90px] sm:h-full object-cover transition-all duration-200 group-hover:scale-105"
         />
 
         {/* Info box */}
         <div
-          className={`info absolute inset-0 flex flex-col justify-center gap-1 p-3 sm:p-5 z-10
+          className={`info absolute inset-0 flex flex-col justify-center gap-1 p-3 !mt-3 !mb-3 sm:p-5 z-10
             ${isLeft && "items-start text-left"}
             ${isCenter && "items-center text-center"}
             ${isRight && "items-end text-right"}

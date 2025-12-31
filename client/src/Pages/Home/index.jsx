@@ -145,7 +145,7 @@ const Home = () => {
         )}
       </div>
 
-      {/* Banners */}
+      {/*  frist Banners */}
       <div className="part2 w-full  lg:w-[35%] flex flex-row lg:flex-col items-center justify-between gap-4">
         <BannerBoxV2
           info={bannerV1Data[bannerV1Data?.length - 1]?.alignInfo}
@@ -180,7 +180,7 @@ const Home = () => {
 
 
       </div>
-
+      {/*  Second Banners */}
       {bannerV1Data?.length !== 0 && (
         <AdsBannerSliderV2 data={bannerV1Data} />
       )}
@@ -199,7 +199,7 @@ const Home = () => {
       {allProductsData?.length !== 0 && (
         <ProductsSlider items={6} data={allProductsData} />
       )}
-
+      {/*  3rd Banners */}
 
    {bannerV1Data?.length !== 0 && (
         <AdsBannerSlider data={bannerV1Data} />

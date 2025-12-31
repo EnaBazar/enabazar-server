@@ -79,11 +79,11 @@ const Header =() => {
   <div className="marquee">
     <div className="marquee-track">
       <span>আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446_01677190919   
-        এবং সকল পন্যের উপর মোট ১৮০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span>
+        এবং সকল পন্যের উপর মোট ১৫০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span>
 
       {/* duplicate for smooth loop */}
      <span>আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446_01677190919  
-       এবং সকল পন্যের উপর মোট ১৮০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span> 
+       এবং সকল পন্যের উপর মোট ১৫০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span> 
    </div>  
    </div>
    </div>
@@ -289,7 +289,14 @@ const Header =() => {
       </div>
       </div>
         
-     <Navigation setisOpenCatPanel={setisOpenCatPanel} isOpenCatPanel={isOpenCatPanel}/>
+   {/* Navigation */}
+<div className="hidden lg:block">
+  <Navigation 
+    setisOpenCatPanel={setisOpenCatPanel} 
+    isOpenCatPanel={isOpenCatPanel} 
+  />
+</div>
+
     </header>
     );
 };
