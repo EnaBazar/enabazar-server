@@ -34,6 +34,7 @@ const Home = () => {
   const [allProductsData, setAllProductsData] = useState([]);
   const [allFeaturedProductsData, setAllFeaturedProductsData] = useState([]);
   const [bannerV1Data, setBannerV1Data] = useState([]);
+    const [bannerV2Data, setBannerV2Data] = useState([]);
   const [blogData, setBlogData] = useState([]);
 
   // ✅ Initial Data Load
@@ -55,6 +56,11 @@ const Home = () => {
     fetchDataFromApi("/bannerV1").then((res) => 
       setBannerV1Data(res?.data || [])
     );
+ fetchDataFromApi("/bannerV2").then((res) => 
+      setBannerV2Data(res?.data || [])
+    );
+
+
 
     fetchDataFromApi("/blog").then((res) => setBlogData(res?.blog || []));
   }, []);
@@ -181,9 +187,13 @@ const Home = () => {
 
       </div>
       {/*  Second Banners */}
+         <div className="w-full !h-[100px]">
       {bannerV1Data?.length !== 0 && (
-        <AdsBannerSliderV2 data={bannerV1Data} />
+        <AdsBannerSliderV2 data={bannerV2Data} />
       )}
+</div>
+
+
     </div>
   </section>
 

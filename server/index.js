@@ -16,6 +16,7 @@ import bannerV1Routes from './route/bannerV1.route.js';
 import blogRoutes from './route/blog.route.js';
 import orderRoutes from './route/order.route.js';
 import homeSlideRoutes from './route/homeSlide.route.js';
+import bannerV2Routes from './route/bannerV2.route.js';
 
 
 
@@ -47,6 +48,7 @@ app.use('/mylist',mylistRoutes)
 app.use('/address',addressRouter)
 app.use('/homeSlides',homeSlideRoutes)
 app.use('/bannerV1',bannerV1Routes)
+app.use('/bannerV2',bannerV2Routes)
 app.use('/blog',blogRoutes)
 app.use('/order',orderRoutes)
 app.listen(PORT,()=>{

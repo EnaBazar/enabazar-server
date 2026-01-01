@@ -28,6 +28,8 @@ import EditCategory from '../../Pages/Category/EditeCategory.jsx';
 import EditProduct from '../../Pages/AddProduct/editProduct.jsx';
 import AddBannerV1 from '../../Pages/Banners/addBannerV1.jsx';
 import EditBannerV1 from '../../Pages/Banners/EditBannerV1.jsx';
+import AddBannerV2 from '../../Pages/Banners2/addBannerV2.jsx';
+import EditBannerV2 from '../../Pages/Banners2/EditBannerV2.jsx';
 import Addblog from '../../Pages/Blog/Addblog.jsx';
 import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
@@ -252,6 +254,8 @@ const logout = () => {
         {context?.isOpenFullScreenPanel?.model === "Edit Product" && <EditProduct />}
         {context?.isOpenFullScreenPanel?.model === "Add BannerV1" && <AddBannerV1 />}
         {context?.isOpenFullScreenPanel?.model === "Edit BannerV1" && <EditBannerV1 />}
+          {context?.isOpenFullScreenPanel?.model === "Add BannerV2" && <AddBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV2" && <EditBannerV2 />}
         {context?.isOpenFullScreenPanel?.model === "add Blog" && <Addblog />}
         {context?.isOpenFullScreenPanel?.model === "edit Blog" && <Editblog />}
           {context?.isOpenFullScreenPanel?.model === "Order List" && <Orders />}

@@ -26,6 +26,7 @@ import BlogList from './Pages/Blog';
 
 import { fetchDataFromApi } from './utils/api';
 import Layout from './Components/Layout';   // নতুন Layout ইউজ করবো
+import BannerV2List from './Pages/Banners2/BannerV2List';
 
 const MyContext = createContext();
 
@@ -159,6 +160,7 @@ useEffect(() => {
     { path: "/product/addSize", element: <Layout><AddSize /></Layout> },
     { path: "/product/addWieght", element: <Layout><AddWieght /></Layout> },
     { path: "/bannerV1/list", element: <Layout><BannerV1List /></Layout> },
+    { path: "/bannerV2/list", element: <Layout><BannerV2List /></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
   ]);
 

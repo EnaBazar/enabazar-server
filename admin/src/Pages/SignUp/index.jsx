@@ -113,8 +113,8 @@ const handleSubmit=(e)=>{
     <header className='w-full static lg:fixed top-0 left-0 px-4 py-5 flex items-center  justify-center
     sm:justify-between z-50'>
    
-         <div className="col1 w-[40%] lg:w-[50%] flex items-center 
-         justify-end lg:justify-start">
+         <div className="col1 w-[50%] lg:w-[10%] flex items-center 
+     justify-end ">
       <Link to={"/"}> 
         <img src="/logo.png"/>
       </Link>
