@@ -22,5 +22,7 @@ jobs:
         script: |
           cd /var/www/enabazar-server
           git pull origin main
-          cd /client
+       
+        script: |
+          cd /var/www/enabazar-server/client
           npm run build
