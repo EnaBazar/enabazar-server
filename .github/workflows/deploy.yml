@@ -18,7 +18,7 @@ jobs:
       with:
         node-version: 20
 
-    - name: Install dependencies & Build client
+    - name: Install dependencies & Build admin
       run: |
         cd admin
         npm ci
