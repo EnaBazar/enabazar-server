@@ -24,6 +24,12 @@ jobs:
         npm ci
         npm run build
 
+    - name: Install dependencies & Build admin
+      run: |
+        cd admin
+        npm ci
+        npm run build
+
     - name: Deploy to VPS via SSH
       uses: appleboy/ssh-action@v0.1.9
       with:
@@ -35,6 +41,10 @@ jobs:
           git reset --hard
           git pull origin main
           cd client
+          npm ci
+          npm run build
+          cd ..
+          cd admin
           npm ci
           npm run build
           cd ..
