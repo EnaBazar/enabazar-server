@@ -1,25 +1,21 @@
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import { EffectFade, Pagination, Navigation, Autoplay } from 'swiper/modules';
-
-import { useContext } from 'react';
-import { MyContext } from '../../App';
-import BannerBoxV3 from '../BannarBoxV3';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { useContext } from "react";
+import { MyContext } from "../../App";
+import BannerBoxV4 from "../BannarBoxV4";
 
 const AdsBannerSliderV2 = ({ data = [] }) => {
   const context = useContext(MyContext);
 
   return (
-    <div className="py-5 w-full ">
+    <div className="py-5 w-full">
       <Swiper
         loop={true}
-        autoplay={{
-          delay: 2500,
-          disableOnInteraction: false,
-        }}
+        autoHeight={true} // ✅ slide height auto adjust
+        autoplay={{ delay: 2500, disableOnInteraction: false }}
         breakpoints={{
           0: { slidesPerView: 1, spaceBetween: 5 },
           480: { slidesPerView: 1, spaceBetween: 5 },
@@ -28,23 +24,18 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
           1280: { slidesPerView: 5, spaceBetween: 20 },
         }}
         navigation={context?.windowWidth < 992 ? false : true}
-        modules={[EffectFade, Pagination, Navigation, Autoplay]}
+        pagination={{ clickable: true }}
+        modules={[Navigation, Pagination, Autoplay]}
         className="mySwiper smlBtn"
       >
         {data.length > 0 ? (
           data.map((item, index) => (
             <SwiperSlide
               key={item?._id || index}
-              className="flex  justify-center items-center"
+              className="flex justify-center items-stretch"
             >
-              {/* Responsive height */}
-              <div className="w-full h-[160px] sm:h-[180px] md:h-[200px] lg:h-[220px]">
-                <BannerBoxV3
-                  info={item?.alignInfo}
-                  image={item?.images?.[0]}
-                  item={item}
-                />
-              </div>
+              {/* Full height banner */}
+              <BannerBoxV4 info={item?.alignInfo} image={item?.images?.[0]} item={item} />
             </SwiperSlide>
           ))
         ) : (

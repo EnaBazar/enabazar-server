@@ -8,12 +8,8 @@ const BannerBoxV4 = ({ info, image, item }) => {
   const isRight = info === "right";
 
   return (
-    <Link
-      to={`/product?catId=${item?.catId}`}
-      className="block w-full h-full"
-    >
-      <div className="bannerBoxV2 w-full h-full min-h-[160px] sm:min-h-[180px] md:min-h-[200px] rounded-[10px] overflow-hidden relative group">
-        
+    <Link to={`/product?catId=${item?.catId}`} className="block w-full h-full">
+      <div className="bannerBoxV2 w-full h-full rounded-[10px] overflow-hidden relative group">
         {/* Image */}
         <img
           src={image}
@@ -21,7 +17,7 @@ const BannerBoxV4 = ({ info, image, item }) => {
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Content */}
+        {/* Overlay Content */}
         <div
           className={`absolute inset-0 z-10 flex flex-col justify-center gap-1 p-3 sm:p-5
             ${isLeft && "items-start text-left"}
