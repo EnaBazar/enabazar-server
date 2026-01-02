@@ -6,12 +6,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-
 import { Autoplay } from "swiper/modules";
-
 import { MyContext } from "../../App";
 import { fetchDataFromApi } from "../../utils/api";
-
 // Components
 import HomeCatSlider from "../../Components/HomeCatSlider";
 import AdsBannerSlider from "../../Components/AdsBanneraslider";
@@ -28,15 +25,14 @@ import { Pagination } from "@mui/material";
 
 const Home = () => {
   const context = useContext(MyContext);
-
   const [value, setValue] = useState(0);
   const [homeSlideData, setHomeSlideData] = useState([]);
   const [propularProductsData, setPropularProductsData] = useState([]);
   const [allProductsData, setAllProductsData] = useState([]);
   const [allFeaturedProductsData, setAllFeaturedProductsData] = useState([]);
   const [bannerV1Data, setBannerV1Data] = useState([]);
-    const [bannerV2Data, setBannerV2Data] = useState([]);
-      const [bannerV3Data, setBannerV3Data] = useState([]);
+  const [bannerV2Data, setBannerV2Data] = useState([]);
+  const [bannerV3Data, setBannerV3Data] = useState([]);
   const [blogData, setBlogData] = useState([]);
 
   // ✅ Initial Data Load
