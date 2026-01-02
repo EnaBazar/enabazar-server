@@ -26,8 +26,8 @@ const AdsBannerSlider = ({ data = [] }) => {
           0: { slidesPerView: 1, spaceBetween: 10 },
           480: { slidesPerView: 2, spaceBetween: 10 },
           768: { slidesPerView: 2, spaceBetween: 15 },
-          1024: { slidesPerView: 2, spaceBetween: 10 },
-          1280: { slidesPerView: 2, spaceBetween: 10 },
+          1024: { slidesPerView: 2, spaceBetween: 15 },
+          1280: { slidesPerView: 2, spaceBetween: 15 },
         }}
         navigation={context?.windowWidth < 992 ? false : true}
         modules={[FreeMode, Navigation, Pagination, Autoplay]}

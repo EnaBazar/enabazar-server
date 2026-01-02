@@ -211,7 +211,7 @@ const Home = () => {
 
 
         {/*  Second Banners */}
-         <div className="w-full !mb-5">
+         <div className="w-full !mb-5 ">
       {bannerV1Data?.length !== 0 && (
         <AdsBannerSliderV2 data={bannerV2Data} />
       )}
@@ -237,7 +237,7 @@ const Home = () => {
     </div>
 
      {/*  3rd Banners */}
-<div className="w-full !mb-5 !p-8">
+<div className="w-full !mb-5 p-8">
    {bannerV1Data?.length !== 0 && (
         <AdsBannerSlider data={bannerV3Data} />
       )}
