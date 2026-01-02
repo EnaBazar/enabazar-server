@@ -18,11 +18,6 @@ jobs:
       with:
         node-version: 20
 
-    - name: Install dependencies & Build client
-      run: |
-        cd client
-        npm ci
-        npm run build
 
     - name: Install dependencies & Build admin
       run: |
@@ -40,10 +35,7 @@ jobs:
           cd /var/www/enabazar-server
           git reset --hard
           git pull origin main
-          cd client
-          npm ci
-          npm run build
-          cd ..
+          
           cd admin
           npm ci
           npm run build
