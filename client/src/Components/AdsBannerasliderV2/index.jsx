@@ -35,7 +35,8 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
               className="flex justify-center items-stretch"
             >
               {/* Full height banner */}
-              <BannerBoxV4 info={item?.alignInfo} image={item?.images?.[0]} item={item} />
+              <BannerBoxV4 
+              info={item?.alignInfo} image={item?.images?.[0]} item={item} />
             </SwiperSlide>
           ))
         ) : (

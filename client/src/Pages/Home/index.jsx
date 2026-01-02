@@ -206,12 +206,16 @@ const Home = () => {
       {allProductsData?.length !== 0 && (
         <ProductsSlider items={6} data={allProductsData} />
       )}
-      {/*  3rd Banners */}
+   
 
-   {bannerV1Data?.length !== 0 && (
-        <AdsBannerSlider data={bannerV3Data} />
+
+
+        {/*  Second Banners */}
+         <div className="w-full !mb-5">
+      {bannerV1Data?.length !== 0 && (
+        <AdsBannerSliderV2 data={bannerV2Data} />
       )}
-
+</div>
   
     </div>
   </section>
@@ -232,12 +236,11 @@ const Home = () => {
 
     </div>
 
-          {/*  Second Banners */}
-         <div className="w-full !mb-5">
-      {bannerV1Data?.length !== 0 && (
-        <AdsBannerSliderV2 data={bannerV2Data} />
+     {/*  3rd Banners */}
+
+   {bannerV1Data?.length !== 0 && (
+        <AdsBannerSlider data={bannerV3Data} />
       )}
-</div>
 
   </section>
 
