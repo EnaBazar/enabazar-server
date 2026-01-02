@@ -1,9 +1,9 @@
-name: Deploy to VPS
+name: Deploy to VPS (Build Once)
 
 on:
   push:
     branches:
-      - main  # main branch-এ push হলে workflow চলবে
+      - main
 
 jobs:
   deploy:
@@ -18,34 +18,39 @@ jobs:
       with:
         node-version: 20
 
-    - name: Install dependencies & Build client
+    # ---------------- CLIENT BUILD ----------------
+    - name: Build Client
       run: |
         cd client
         npm ci
         npm run build
 
-    - name: Install dependencies & Build admin
+    # ---------------- ADMIN BUILD ----------------
+    - name: Build Admin
       run: |
         cd admin
         npm ci
         npm run build
 
-    - name: Deploy to VPS via SSH
+    # ---------------- DEPLOY ----------------
+    - name: Deploy to VPS
       uses: appleboy/ssh-action@v0.1.9
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
+          # Backend
           cd /var/www/enabazar-server
           git reset --hard
           git pull origin main
-          cd client
           npm ci
-          npm run build
-          cd ..
-          cd admin
-          npm ci
-          npm run build
-          cd ..
           pm2 restart project-backend
+
+          # Client deploy
+          rm -rf /var/www/client/*
+          
+          # Admin deploy
+          rm -rf /var/www/admin/*
+
+          sudo systemctl reload nginx
