@@ -20,7 +20,7 @@ jobs:
 
     - name: Install dependencies & Build client
       run: |
-        cd client
+        cd admin
         npm ci
         npm run build
 
@@ -40,7 +40,7 @@ jobs:
           cd /var/www/enabazar-server
           git reset --hard
           git pull origin main
-          cd client
+          cd admin
           npm ci
           npm run build
           cd ..
