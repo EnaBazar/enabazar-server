@@ -324,7 +324,7 @@ import { fetchDataFromApi } from '../../utils/api';
     </Collapse>
     </li> 
     
-       <li><Button className='w-full !capitalize !justify-start gap-3 
+    <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
     onClick={()=>isOpenSubMenu(7)}
     >
@@ -363,7 +363,44 @@ import { fetchDataFromApi } from '../../utils/api';
     </Collapse>
     </li> 
 
-
+    <li><Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
+    onClick={()=>isOpenSubMenu(8)}
+    >
+    <RiProductHuntLine className='text-[16px]'
+    /><span>BannersV3</span>
+    <span className='ml-auto  w-[30px] h-[30px] flex items-center justify-center'
+    onClick={()=>isOpenSubMenu(2)}
+    ><FaAngleDown  className={`transition-all ${submenuIndex === 8 ? 'rotate-180' : ''}`}/></span>
+    </Button>
+    <Collapse isOpened={submenuIndex===8 ? true : false}>
+    <ul className='w-full bg-[#fff] shadow-md border-t border-[rgba(0,0,0,0.2)] rounded-sm'>
+   
+    <li className='w-full'>
+    <Link to="/bannerV3/list" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full 
+    !text-[12px] !font-[500] !pl-9 flex gap-3'>
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+   BannerV3 List</Button>
+   </Link>
+    </li>
+    
+    <li className='w-full' onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full !text-[12px]
+    !font-[500] !pl-9 flex gap-3'
+    onClick={()=>context.setIsOpenFullScreenPanel({
+    open:true,
+    model:"Add BannerV3"
+    })}
+    
+    >
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+    Add BannerV3</Button>
+    </li>
+    </ul>
+    </Collapse>
+    </li> 
 
     <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'

@@ -2,7 +2,7 @@ import React from "react";
 import "../BannarBoxV3/style.css";
 import { Link } from "react-router-dom";
 
-const BannerBoxV3 = ({ info, image, item }) => {
+const BannerBoxV4 = ({ info, image, item }) => {
   const isLeft = info === "left";
   const isCenter = info === "center";
   const isRight = info === "right";
@@ -48,4 +48,4 @@ const BannerBoxV3 = ({ info, image, item }) => {
   );
 };
 
-export default BannerBoxV3;
+export default BannerBoxV4;

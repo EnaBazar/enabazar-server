@@ -38,7 +38,7 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
               className="flex  justify-center items-center"
             >
               {/* Responsive height */}
-              <div className="w-full  ">
+              <div className="w-full h-[160px] sm:h-[180px] md:h-[200px] lg:h-[220px]">
                 <BannerBoxV3
                   info={item?.alignInfo}
                   image={item?.images?.[0]}

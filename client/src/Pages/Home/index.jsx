@@ -35,6 +35,7 @@ const Home = () => {
   const [allFeaturedProductsData, setAllFeaturedProductsData] = useState([]);
   const [bannerV1Data, setBannerV1Data] = useState([]);
     const [bannerV2Data, setBannerV2Data] = useState([]);
+      const [bannerV3Data, setBannerV3Data] = useState([]);
   const [blogData, setBlogData] = useState([]);
 
   // ✅ Initial Data Load
@@ -60,6 +61,9 @@ const Home = () => {
       setBannerV2Data(res?.data || [])
     );
 
+ fetchDataFromApi("/bannerV3").then((res) => 
+      setBannerV3Data(res?.data || [])
+    );
 
 
     fetchDataFromApi("/blog").then((res) => setBlogData(res?.blog || []));
@@ -187,7 +191,7 @@ const Home = () => {
 
       </div>
       {/*  Second Banners */}
-         <div className="w-full !h-[100px]">
+         <div className="w-full !mb-5">
       {bannerV1Data?.length !== 0 && (
         <AdsBannerSliderV2 data={bannerV2Data} />
       )}
@@ -198,7 +202,7 @@ const Home = () => {
   </section>
 
   {/* Latest Products */}
-  <section className="!mt-0 bg-white " >
+  <section className="!mt-6 bg-white " >
     <div className="container">
       <h2 className="text-[20px] font-[600]">Latest Products</h2>
       <p className="text-[14px] font-[400]">
@@ -212,7 +216,7 @@ const Home = () => {
       {/*  3rd Banners */}
 
    {bannerV1Data?.length !== 0 && (
-        <AdsBannerSlider data={bannerV1Data} />
+        <AdsBannerSlider data={bannerV3Data} />
       )}
 
   
@@ -220,7 +224,7 @@ const Home = () => {
   </section>
 
   {/* Featured Products */}
-  <section className="mt-10 bg-white py-8">
+  <section className="!mt-3 bg-white py-8">
     <div className="container">
       <h2 className="text-[20px] font-[600]">Featured Products</h2>
       <p className="text-[14px] font-[400]">

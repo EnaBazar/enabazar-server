@@ -11,12 +11,12 @@ import productRoutes from './route/product.route.js';
 import cartRoutes from './route/cart.route.js';
 import mylistRoutes from './route/mylist.route.js';
 import addressRouter from './route/address.route.js';
-
 import bannerV1Routes from './route/bannerV1.route.js';
 import blogRoutes from './route/blog.route.js';
 import orderRoutes from './route/order.route.js';
 import homeSlideRoutes from './route/homeSlide.route.js';
 import bannerV2Routes from './route/bannerV2.route.js';
+import bannerV3Routes from './route/bannerV3.route.js';
 
 
 
@@ -49,6 +49,7 @@ app.use('/address',addressRouter)
 app.use('/homeSlides',homeSlideRoutes)
 app.use('/bannerV1',bannerV1Routes)
 app.use('/bannerV2',bannerV2Routes)
+app.use('/bannerV3',bannerV3Routes)
 app.use('/blog',blogRoutes)
 app.use('/order',orderRoutes)
 app.listen(PORT,()=>{

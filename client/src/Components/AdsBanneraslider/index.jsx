@@ -7,6 +7,7 @@ import BannerBox from '../BannerBox';
 import BannerBoxV2 from '../BannarBoxV2';
 import { useContext } from 'react';
 import { MyContext } from '../../App';
+import BannerBoxV3 from '../BannarBoxV3';
 
 const AdsBannerSlider = ({ data = [] }) => {
   const context = useContext(MyContext);
@@ -46,7 +47,7 @@ const AdsBannerSlider = ({ data = [] }) => {
         {data.length > 0 ? (
           data.map((item, index) => (
             <SwiperSlide key={item?._id || index}>
-                    <BannerBoxV2
+                    <BannerBoxV3
                 info={item?.alignInfo}
                 image={item?.images?.[0]}
                 item={item}

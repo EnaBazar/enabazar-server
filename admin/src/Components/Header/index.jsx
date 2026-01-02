@@ -17,7 +17,6 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Slide from '@mui/material/Slide';
-
 // Pages
 import AddProduct from "../../Pages/AddProduct";
 import AddHomeSlide from '../../Pages/HomeSliderBanners/AddHomeSlide';
@@ -33,6 +32,8 @@ import EditBannerV2 from '../../Pages/Banners2/EditBannerV2.jsx';
 import Addblog from '../../Pages/Blog/Addblog.jsx';
 import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
+import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
+import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
 
 // Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -254,8 +255,10 @@ const logout = () => {
         {context?.isOpenFullScreenPanel?.model === "Edit Product" && <EditProduct />}
         {context?.isOpenFullScreenPanel?.model === "Add BannerV1" && <AddBannerV1 />}
         {context?.isOpenFullScreenPanel?.model === "Edit BannerV1" && <EditBannerV1 />}
-          {context?.isOpenFullScreenPanel?.model === "Add BannerV2" && <AddBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV2" && <AddBannerV2 />}
         {context?.isOpenFullScreenPanel?.model === "Edit BannerV2" && <EditBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV3" && <AddBannerV3 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV3" && <EditBannerV3 />}
         {context?.isOpenFullScreenPanel?.model === "add Blog" && <Addblog />}
         {context?.isOpenFullScreenPanel?.model === "edit Blog" && <Editblog />}
           {context?.isOpenFullScreenPanel?.model === "Order List" && <Orders />}

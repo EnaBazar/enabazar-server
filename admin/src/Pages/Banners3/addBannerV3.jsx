@@ -9,7 +9,7 @@ import UploadBox from '../../Components/UploadBox';
 import { MyContext } from '../../App';
 import { deleteImages, postData } from '../../utils/api';
 
-const AddBannerV2 = () => {
+const AddBannerV3 = () => {
   const context = useContext(MyContext);
   const history = useNavigate();
 
@@ -58,13 +58,13 @@ const AddBannerV2 = () => {
       return;
     }
 
-    postData('/bannerV2/create', formFields, { withCredentials: true })
+    postData('/bannerV3/create', formFields, { withCredentials: true })
       .then((res) => {
         setIsLoading(false);
         if (!res.error) {
           context.openAlertBox('success', res.message);
           context.setIsOpenFullScreenPanel({ open: false });
-          history('/bannerV2/list');
+          history('/bannerV3/list');
         } else {
           context.openAlertBox('error', res.message);
         }
@@ -178,7 +178,7 @@ const AddBannerV2 = () => {
                   <LazyLoadImage src={img} effect="blur" className="w-full h-full object-cover" alt="banner" />
                 </div>
               ))}
-              <UploadBox multiple={true} url="/bannerV2/uploadImages" setPreviewsFun={setPreviewsFun} />
+              <UploadBox multiple={true} url="/bannerV3/uploadImages" setPreviewsFun={setPreviewsFun} />
             </div>
           </div>
 
@@ -196,4 +196,4 @@ const AddBannerV2 = () => {
   );
 };
 
-export default AddBannerV2;
+export default AddBannerV3;
