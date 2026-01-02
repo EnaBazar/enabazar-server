@@ -190,12 +190,6 @@ const Home = () => {
 
 
       </div>
-      {/*  Second Banners */}
-         <div className="w-full !mb-5">
-      {bannerV1Data?.length !== 0 && (
-        <AdsBannerSliderV2 data={bannerV2Data} />
-      )}
-</div>
 
 
     </div>
@@ -235,7 +229,17 @@ const Home = () => {
       {allFeaturedProductsData?.length !== 0 && (
         <ProductsSlider items={6} data={allFeaturedProductsData} />
       )}
+
+
     </div>
+
+          {/*  Second Banners */}
+         <div className="w-full !mb-5">
+      {bannerV1Data?.length !== 0 && (
+        <AdsBannerSliderV2 data={bannerV2Data} />
+      )}
+</div>
+
   </section>
 
 {/* Blog Section */}
