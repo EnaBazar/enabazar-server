@@ -21,7 +21,7 @@ jobs:
 
     - name: Install dependencies & Build admin
       run: |
-        cd admin
+        cd client
         npm ci
         npm run build
 
@@ -36,7 +36,7 @@ jobs:
           git reset --hard
           git pull origin main
           
-          cd admin
+          cd client
           npm ci
           npm run build
           cd ..
