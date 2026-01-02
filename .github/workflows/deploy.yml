@@ -1,4 +1,4 @@
-name: Deploy to VPS (Build Once)
+name: CI/CD Deploy to VPS
 
 on:
   push:
@@ -10,47 +10,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Setup Node.js
+    - name: Setup Node
       uses: actions/setup-node@v3
       with:
         node-version: 20
 
-    # ---------------- CLIENT BUILD ----------------
+    # -------- BUILD CLIENT --------
     - name: Build Client
       run: |
         cd client
         npm ci
         npm run build
 
-    # ---------------- ADMIN BUILD ----------------
+    # -------- BUILD ADMIN --------
     - name: Build Admin
       run: |
         cd admin
         npm ci
         npm run build
 
-    # ---------------- DEPLOY ----------------
-    - name: Deploy to VPS
+    # -------- UPLOAD CLIENT --------
+    - name: Upload Client Build
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        source: "client/dist/*"
+        target: "/var/www/enabazar-server/client"
+
+    # -------- UPLOAD ADMIN --------
+    - name: Upload Admin Build
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        source: "admin/dist/*"
+        target: "/var/www/enabazar-server/admin"
+
+    # -------- BACKEND DEPLOY --------
+    - name: Deploy Backend
       uses: appleboy/ssh-action@v0.1.9
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
-          # Backend
-          cd /var/www/enabazar-server
+          cd /var/www/enabazar-server/server
           git reset --hard
           git pull origin main
           npm ci
           pm2 restart project-backend
-
-          # Client deploy
-          rm -rf /var/www/client/*
-          
-          # Admin deploy
-          rm -rf /var/www/admin/*
-
           sudo systemctl reload nginx
