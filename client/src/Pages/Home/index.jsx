@@ -252,6 +252,10 @@ const Home = () => {
 
       <Swiper
         spaceBetween={20}
+         autoplay={{
+          delay: 2500,
+          disableOnInteraction: false,
+        }}
         breakpoints={{
           0: { slidesPerView: 2, spaceBetween: 10 },       // Mobile
           640: { slidesPerView: 2, spaceBetween: 15 },     // Small tablets
