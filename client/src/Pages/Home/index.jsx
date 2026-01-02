@@ -7,6 +7,8 @@ import { FreeMode, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 
+import { Autoplay } from "swiper/modules";
+
 import { MyContext } from "../../App";
 import { fetchDataFromApi } from "../../utils/api";
 
@@ -250,23 +252,26 @@ const Home = () => {
     <div className="container mx-auto px-4">
       <h2 className="text-[20px] font-[600] !mb-6 sm:mb-8 lg:mb-10">From The Blog</h2>
 
-      <Swiper
-        spaceBetween={20}
-         autoplay={{
-          delay: 2500,
-          disableOnInteraction: false,
-        }}
-        breakpoints={{
-          0: { slidesPerView: 2, spaceBetween: 10 },       // Mobile
-          640: { slidesPerView: 2, spaceBetween: 15 },     // Small tablets
-          768: { slidesPerView: 2, spaceBetween: 20 },     // Tablets
-          1024: { slidesPerView: 3, spaceBetween: 25 },    // Laptops
-          1280: { slidesPerView: 4, spaceBetween: 30 },    // Desktop
-        }}
-        navigation={true}
-        modules={[FreeMode, Navigation]}
-        className="BlogSlider"
-      >
+<Swiper
+  spaceBetween={20}
+  autoplay={{
+    delay: 2500,
+    disableOnInteraction: false,
+    pauseOnMouseEnter: true, // hover করলে থামবে (optional)
+  }}
+  breakpoints={{
+    0: { slidesPerView: 2, spaceBetween: 10 },
+    640: { slidesPerView: 2, spaceBetween: 15 },
+    768: { slidesPerView: 2, spaceBetween: 20 },
+    1024: { slidesPerView: 3, spaceBetween: 25 },
+    1280: { slidesPerView: 4, spaceBetween: 30 },
+  }}
+  navigation={true}
+  loop={true}              // autoplay smooth করার জন্য recommended
+  modules={[FreeMode, Navigation, Autoplay]}
+  className="BlogSlider"
+>
+
         {blogData?.map((item, index) => (
           <SwiperSlide key={item?._id || index} className="flex justify-center">
             <BlogItem item={item} />
