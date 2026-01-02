@@ -25,9 +25,9 @@ const AdsBannerSlider = ({ data = [] }) => {
         breakpoints={{
           0: { slidesPerView: 1, spaceBetween: 10 },
           480: { slidesPerView: 2, spaceBetween: 10 },
-          768: { slidesPerView: 3, spaceBetween: 15 },
-          1024: { slidesPerView: 4, spaceBetween: 20 },
-          1280: { slidesPerView: 5, spaceBetween: 20 },
+          768: { slidesPerView: 2, spaceBetween: 15 },
+          1024: { slidesPerView: 3, spaceBetween: 20 },
+          1280: { slidesPerView: 3, spaceBetween: 20 },
         }}
         navigation={context?.windowWidth < 992 ? false : true}
         modules={[FreeMode, Navigation, Pagination, Autoplay]}
