@@ -221,7 +221,7 @@ const Home = () => {
   </section>
 
   {/* Featured Products */}
-  <section className="!mt-3 bg-white py-8">
+  <section className="!mt-3 bg-white ">
     <div className="container">
       <h2 className="text-[20px] font-[600]">Featured Products</h2>
       <p className="text-[14px] font-[400]">
@@ -237,11 +237,11 @@ const Home = () => {
     </div>
 
      {/*  3rd Banners */}
-
+<div className="w-full !mb-5 !p-8">
    {bannerV1Data?.length !== 0 && (
         <AdsBannerSlider data={bannerV3Data} />
       )}
-
+</div>
   </section>
 
 {/* Blog Section */}

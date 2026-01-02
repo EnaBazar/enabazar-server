@@ -12,7 +12,7 @@ const AdsBannerSlider = ({ data = [] }) => {
   const context = useContext(MyContext);
 
   return (
-    <div className="py-5 w-full">
+    <div className="!py-5 w-full">
       <Swiper
         loop={true}
         autoplay={{
@@ -26,8 +26,8 @@ const AdsBannerSlider = ({ data = [] }) => {
           0: { slidesPerView: 1, spaceBetween: 10 },
           480: { slidesPerView: 2, spaceBetween: 10 },
           768: { slidesPerView: 2, spaceBetween: 15 },
-          1024: { slidesPerView: 3, spaceBetween: 20 },
-          1280: { slidesPerView: 3, spaceBetween: 20 },
+          1024: { slidesPerView: 2, spaceBetween: 10 },
+          1280: { slidesPerView: 2, spaceBetween: 10 },
         }}
         navigation={context?.windowWidth < 992 ? false : true}
         modules={[FreeMode, Navigation, Pagination, Autoplay]}
