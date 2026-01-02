@@ -1,68 +1,51 @@
-name: CI/CD Deploy to VPS
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - main
+      - main  # main branch-এ push হলে workflow চলবে
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup Node
+    - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 20
 
-    # -------- BUILD CLIENT --------
-    - name: Build Client
+    - name: Install dependencies & Build client
       run: |
         cd client
         npm ci
         npm run build
 
-    # -------- BUILD ADMIN --------
-    - name: Build Admin
+    - name: Install dependencies & Build admin
       run: |
         cd admin
         npm ci
         npm run build
 
-    # -------- UPLOAD CLIENT --------
-    - name: Upload Client Build
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        source: "client/dist/*"
-        target: "/var/www/enabazar-server/client"
-
-    # -------- UPLOAD ADMIN --------
-    - name: Upload Admin Build
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_SSH_KEY }}
-        source: "admin/dist/*"
-        target: "/var/www/enabazar-server/admin"
-
-    # -------- BACKEND DEPLOY --------
-    - name: Deploy Backend
+    - name: Deploy to VPS via SSH
       uses: appleboy/ssh-action@v0.1.9
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USER }}
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
-          cd /var/www/enabazar-server/server
+          cd /var/www/enabazar-server
           git reset --hard
           git pull origin main
+          cd client
           npm ci
+          npm run build
+          cd ..
+          cd admin
+          npm ci
+          npm run build
+          cd ..
           pm2 restart project-backend
-          sudo systemctl reload nginx
