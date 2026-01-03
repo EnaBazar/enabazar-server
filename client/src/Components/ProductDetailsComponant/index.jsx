@@ -1,258 +1,266 @@
-import React, {useContext, useState } from 'react'
-import Rating from '@mui/material/Rating';
-import { Button } from '@mui/material';
-import CircularProgress from '@mui/material/CircularProgress';
-import {MdOutlineShoppingCart} from "react-icons/md";
-import {FaRegHeart} from "react-icons/fa";
-import {IoGitCompareOutline} from "react-icons/io5";
-import { QtcBox } from '../QtyBox';
-import { MyContext } from '../../App';
-import { postData } from '../../utils/api';
-import { Link } from 'react-router-dom';
- import { useNavigate } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import Rating from "@mui/material/Rating";
+import { Button } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
+import { MdOutlineShoppingCart } from "react-icons/md";
+import { FaRegHeart } from "react-icons/fa";
+import { IoGitCompareOutline } from "react-icons/io5";
+import { QtcBox } from "../QtyBox";
+import { MyContext } from "../../App";
+import { postData } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const ProductDetailsComponant = (props) => {
-    const [ProductActionIndex,setProductActionIndex] = useState(null);
-    const [quantity, setquantity] = useState(1);
-    const [selectedTabName, setSelectedTabName] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [tabError, setTabError] = useState(false);
-const navigate = useNavigate();
-    const context = useContext(MyContext);
+  const context = useContext(MyContext);
+  const navigate = useNavigate();
 
+  const [ProductActionIndex, setProductActionIndex] = useState(null);
+  const [quantity, setquantity] = useState(1);
+  const [selectedTabName, setSelectedTabName] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tabError, setTabError] = useState(false);
 
-const handleSelecteQty=(qty)=>{
-  setquantity(qty)
-}
-
-
-
-
-
-
-
-const addToCart = async (product, userId, quantity) => {
-
-  if (!userId) {
-    context?.openAlertBox("error", "আপনি প্রথমবার ব্যবহার করছেন, মোবাইল নাম্বার দিয়ে প্রবেশ করুন!");
-    setTimeout(() => {
-      context?.setOpenLoginPanel(true);
-    }, 800);
-    return { success: false };
-  }
-
-
-  const variationRequired =
-    props?.item?.size?.length ||
-    props?.item?.productWeight?.length ||
-    props?.item?.productRam?.length;
-
-  if (variationRequired && !selectedTabName) {
-    setTabError(true);
-    return { success: false };
-  }
-
-  // 3️⃣ Prepare Product Payload
-  const payload = {
-    productId: product?._id,
-    productTitle: product?.name,
-    image: product?.images?.[0],
-    rating: product?.rating,
-    price: product?.price,
-    oldprice: product?.oldPrice,
-    discount: product?.discount,
-    brand: product?.brand,
-    quantity: quantity,
-    subTotal: parseInt(product?.price * quantity),
-    countInStock: product?.countInStock,
-    weight: product?.productWeight?.length ? selectedTabName : "",
-    size: product?.size?.length ? selectedTabName : "",
-    Ram: product?.productRam?.length ? selectedTabName : "",
-    userId,
+  const handleSelecteQty = (qty) => {
+    setquantity(qty);
   };
 
-  setIsLoading(true);
+  const handleClickActiveTab = (index, name) => {
+    setProductActionIndex(index);
+    setSelectedTabName(name);
+    setTabError(false);
+  };
 
-  try {
-    const res = await postData("/cart/create", payload);
-    setIsLoading(false);
-
-    if (res?.error === false) {
-      context?.openAlertBox("success", res?.message);
-      context?.getCartItems();
-      return { success: true };
-    } else {
-      context?.openAlertBox("error", res?.message || "Failed to add cart");
+  // ================= ADD TO CART =================
+  const addToCart = async (product, userId, quantity) => {
+    if (!userId) {
+      context?.openAlertBox(
+        "error",
+        "আপনি প্রথমবার ব্যবহার করছেন, মোবাইল নাম্বার দিয়ে প্রবেশ করুন!"
+      );
+      setTimeout(() => {
+        context?.setOpenLoginPanel(true);
+      }, 800);
       return { success: false };
     }
 
-  } catch (err) {
-    setIsLoading(false);
-    context?.openAlertBox("error", "Something went wrong!");
-    return { success: false };
-  }
-};
+    const variationRequired =
+      product?.size?.length ||
+      product?.productWeight?.length ||
+      product?.productRam?.length;
 
-
-
-
-
-const handleClickActiveTab=(index, name)=>{
-setProductActionIndex(index)
-  setSelectedTabName(name)
-}
-    
-  return (
-    <>
-
-
-         <h1 className='text-[24px] font-[600] !mb-2'>{props?.item?.name}</h1>
-         <div className='flex items-center  gap-3 '>
-         <span className='text-gray-400 text-[13px]'>
-         Brands : <span className='font-[500] text-black opacity-75'>
-        {props?.item?.brand}</span>
-         
-         </span>
-         <Rating name="size-small" defaultValue={props?.item?.rating} size="small" readOnly/>
-         
-         <span className='text-[13px] cursor-pointer' onClick={props.gotoreviews}>Review ({props.reviewsCount})</span>
-         </div>
-         
-   <div className='flex items-center gap-4 !mt-4'>
-    <span className='oldPrice line-through text-gray-500 text-[20px] font-[500]'>&#2547; {props?.item?.oldPrice}</span>
-    <span className='Price text-pink-700 text-[20px] font-[600]'>&#2547; {props?.item?.price}</span>
-    
-    <span className='text-[14px]'>Available In stock: <span className='text-green-600 font-bold'>{props?.item?.countInStock}</span></span>
-    </div>
-    
-    <br/>
- 
-
-    {
-     props?.item?.productRam?.length !== 0 && 
-         <div className='flex items-center gap-3'>
-    <span className='text-[14px]'>RAME:</span>
-   <div className='flex items-center gap-1 actions'>
-   
-{  props?.item?.productRam?.map((item,index)=>{
-  
-  return(
-      <Button 
-      className={`${ProductActionIndex === index ? 
-        '!bg-[#ff5252] !text-white ' : ''}${tabError===true && '!border !border-[#ff5252]' }`} 
-     onClick={()=>handleClickActiveTab(index, item)}
-     >
-    {item}
-      </Button>
-  )
-})}
- 
-  
-   </div>
-    </div>
-      
+    if (variationRequired && !selectedTabName) {
+      setTabError(true);
+      context?.openAlertBox("error", "অনুগ্রহ করে একটি অপশন নির্বাচন করুন");
+      return { success: false };
     }
-    
-    {
-     props?.item?.productWeight?.length !== 0 && 
-         <div className='flex items-center gap-3'>
-    <span className='text-[14px]'>WEIGHT:</span>
-   <div className='flex items-center gap-1 actions'>
-   
-{  props?.item?.productWeight?.map((item,index)=>{
-  
-  return(
-      <Button 
-      className={`${ProductActionIndex === index ? '!bg-[#ff5252] !text-white ' : ''}${tabError===true && '!border !border-[#ff5252]' }`} 
-      onClick={()=>handleClickActiveTab(index, item)}>{item}
-      </Button>
-  )
-  })}
-    </div>
-    </div>  
-    }    
-    {
-     props?.item?.size?.length !== 0 && 
-    <div className='flex items-center gap-3'>
-    <span className='text-[14px]'>SIZE:</span>
-    <div className='flex items-center gap-1 actions'>
-    {props?.item?.size?.map((item, index)=>{
-  
-  return(
-      <Button 
-      className={`${ProductActionIndex === index ? '!bg-[#ff5252] !text-white ' : ''}${tabError===true && 
-        '!border !border-[#ff5252]' }`} 
-      onClick={()=>handleClickActiveTab(index, item)}>{item}
-      </Button>
-)
-})}
- 
-  
-   </div>
-    </div>
-      
+
+    const payload = {
+      productId: product?._id,
+      productTitle: product?.name,
+      image: product?.images?.[0],
+      rating: product?.rating,
+      price: product?.price,
+      oldprice: product?.oldPrice,
+      discount: product?.discount,
+      brand: product?.brand,
+      quantity: quantity,
+      subTotal: product?.price * quantity,
+      countInStock: product?.countInStock,
+      weight: product?.productWeight?.length ? selectedTabName : "",
+      size: product?.size?.length ? selectedTabName : "",
+      Ram: product?.productRam?.length ? selectedTabName : "",
+      userId,
+    };
+
+    try {
+      setIsLoading(true);
+      const res = await postData("/cart/create", payload);
+      setIsLoading(false);
+
+      // ✅ already in cart → success ধরা হচ্ছে
+      if (res?.message === "Item already in cart") {
+        context?.openAlertBox("info", "পণ্যটি ইতিমধ্যেই কার্টে আছে");
+        return { success: true, alreadyInCart: true };
+      }
+
+      if (res?.error === false) {
+        context?.openAlertBox("success", res?.message);
+        context?.getCartItems();
+        return { success: true };
+      }
+
+      context?.openAlertBox("error", res?.message || "Failed to add cart");
+      return { success: false };
+    } catch (error) {
+      setIsLoading(false);
+      context?.openAlertBox("error", "Something went wrong!");
+      return { success: false };
     }
-    
-    <p className='!text-[12px] !mt-4 !mb-2 font-[500]'>
-    Free shipping (Est. delivery Time 2-3 Days)</p>
-    
-  <div className="py-4 w-full">
-  {/* Row: Qty + Add to Cart */}
-  <div className="flex items-center gap-4 mb-4">
+  };
 
-    {/* Qty Box */}
-    <div className="w-[100px] ">
-    <QtcBox handleSelecteQty={handleSelecteQty} 
-    item={props?.item} />
-    </div>
-
-    {/* Add to Cart */}
-
-    <Button
-        className="btn-org btn-border !h-[40px] rounded-md flex 
-        items-center justify-center gap-2 
-        !text-[15px] font-[600] transition-all"
-        onClick={async () => {
-        const result = await addToCart(
-        props?.item,
-        context?.userData?._id,
-        quantity
-        );
-        }}
-        >
-        {isLoading ? (
-        <CircularProgress size={22} />
-        ) : (
-        <>
-        <MdOutlineShoppingCart className="text-[22px]" />
-        Add Cart
-        </>
-      )}
-      </Button>
-      </div>
-      {/* Checkout Button — Always Below */}
-      <button
-      className="btn-org flex gap-2 h-[40px] !text-[15px] 
-      !mt-3 font-[600] flex items-center justify-center rounded-md !min-w-[160px]"
-      onClick={async () => {
-      const result = await addToCart(
+  // ================= BUY NOW =================
+  const handleBuyNow = async () => {
+    const result = await addToCart(
       props?.item,
       context?.userData?._id,
       quantity
-      );
-      if (result?.success) navigate("/checkout");
-      }}
+    );
+
+    if (result?.success) {
+      navigate("/checkout");
+    }
+  };
+
+  return (
+    <>
+      <h1 className="text-[24px] font-[600] !mb-2">
+        {props?.item?.name}
+      </h1>
+
+      <div className="flex items-center gap-3">
+        <span className="text-gray-400 text-[13px]">
+          Brands :
+          <span className="font-[500] text-black opacity-75">
+            {props?.item?.brand}
+          </span>
+        </span>
+
+        <Rating
+          name="size-small"
+          defaultValue={props?.item?.rating}
+          size="small"
+          readOnly
+        />
+
+        <span
+          className="text-[13px] cursor-pointer"
+          onClick={props.gotoreviews}
+        >
+          Review ({props.reviewsCount})
+        </span>
+      </div>
+
+      <div className="flex items-center gap-4 !mt-4">
+        <span className="oldPrice line-through text-gray-500 text-[20px] font-[500]">
+          ৳ {props?.item?.oldPrice}
+        </span>
+        <span className="Price text-pink-700 text-[20px] font-[600]">
+          ৳ {props?.item?.price}
+        </span>
+        <span className="text-[14px]">
+          Available In stock :
+          <span className="text-green-600 font-bold">
+            {props?.item?.countInStock}
+          </span>
+        </span>
+      </div>
+
+      {/* ================= RAM ================= */}
+      {props?.item?.productRam?.length !== 0 && (
+        <div className="flex items-center gap-3 mt-4">
+          <span className="text-[14px]">RAM:</span>
+          <div className="flex gap-1 actions">
+            {props.item.productRam.map((item, index) => (
+              <Button
+                key={index}
+                className={`${ProductActionIndex === index ? "!bg-[#ff5252] !text-white" : ""
+                  } ${tabError ? "!border !border-[#ff5252]" : ""}`}
+                onClick={() => handleClickActiveTab(index, item)}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ================= WEIGHT ================= */}
+      {props?.item?.productWeight?.length !== 0 && (
+        <div className="flex items-center gap-3 mt-3">
+          <span className="text-[14px]">WEIGHT:</span>
+          <div className="flex gap-1 actions">
+            {props.item.productWeight.map((item, index) => (
+              <Button
+                key={index}
+                className={`${ProductActionIndex === index ? "!bg-[#ff5252] !text-white" : ""
+                  } ${tabError ? "!border !border-[#ff5252]" : ""}`}
+                onClick={() => handleClickActiveTab(index, item)}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ================= SIZE ================= */}
+      {props?.item?.size?.length !== 0 && (
+        <div className="flex items-center gap-3 mt-3">
+          <span className="text-[14px]">SIZE:</span>
+          <div className="flex gap-1 actions">
+            {props.item.size.map((item, index) => (
+              <Button
+                key={index}
+                className={`${ProductActionIndex === index ? "!bg-[#ff5252] !text-white" : ""
+                  } ${tabError ? "!border !border-[#ff5252]" : ""}`}
+                onClick={() => handleClickActiveTab(index, item)}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-[12px] mt-4 mb-2 font-[500]">
+        Free shipping (Est. delivery Time 2-3 Days)
+      </p>
+
+      {/* ================= QTY + ADD CART ================= */}
+      <div className="flex items-center gap-4 mt-4">
+        <div className="w-[100px]">
+          <QtcBox handleSelecteQty={handleSelecteQty} item={props?.item} />
+        </div>
+
+        <Button
+          className="btn-org btn-border !h-[40px] flex gap-2"
+          onClick={async () =>
+            await addToCart(
+              props?.item,
+              context?.userData?._id,
+              quantity
+            )
+          }
+        >
+          {isLoading ? (
+            <CircularProgress size={22} />
+          ) : (
+            <>
+              <MdOutlineShoppingCart className="text-[22px]" />
+              Add Cart
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* ================= BUY NOW ================= */}
+      <button
+        className="btn-org h-[40px] mt-3 font-[600] min-w-[160px]"
+        onClick={handleBuyNow}
       >
-      BUY NOW
+        BUY NOW
       </button>
+
+      <div className="flex items-center gap-4 mt-4">
+        <span className="flex items-center gap-2 cursor-pointer">
+          <FaRegHeart /> Add to WishList
+        </span>
+        <span className="flex items-center gap-2 cursor-pointer">
+          <IoGitCompareOutline /> Add to Compare
+        </span>
       </div>
-      <div className='flex items-center gap-4 !mt-4'>
-      <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-      FaRegHeart className='text-[18px]'/>Add to WishList</span>
-      <span className='flex items-center gap-2 text-[15px] font-[500]  link cursor-pointer'><
-      IoGitCompareOutline className='text-[18px]'/>Add to Compare</span>
-      </div>
-      </>
-      )
-      }
-      export default ProductDetailsComponant;
+    </>
+  );
+};
+
+export default ProductDetailsComponant;
