@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+*{margin: 0px;  box-sizing: border-box;}
+
+body{  
+font-family: "Montserrat", serif;
+  font-optical-sizing: auto;
+  background: #dfdede;
+  color: rgba(0,0,0,0.9);
+  overflow-x: hidden;
+  
+
+}
+p{font-size:12px; line-height:25px; margin-bottom:10px;}
+h1,h2,h3,h4,h5,h6{font-weight:600;}
+
+::-webkit-scrollbar{width:8px !important; height: 10px !important;}
+::-webkit-scrollbar-thumb{background: rgb(129, 127, 127) !important;}
+
+
+.container{width:95%; margin:auto;}
+.btn-lg{font-size: 14px !important; padding: 7px 20px !important;}
+.btn-sml{font-size: 12px !important; padding: 7px 20px !important;}
+
+.btn-org{background: #ff5252 !important; color: #fff !important; font-weight: 500 !important;  padding: 7px 20px !important;}
+.btn-org:hover{background: #000 !important;}
+
+.btn-org.btn-border{background: none !important; color: #ff5252 !important; border: 1px solid #ff5252 !important; font-weight: 500 !important; font-size: 12px !important;}
+.btn-orgs.btn-borders{background: none !important; color: #ff5252 !important; border: 1px solid #ff5252 !important;}
+.btn-org.btn-border:hover{background: #171717 !important; color: #fff !important; border: 1px solid #ff5252 !important;}
+
+
+.link:hover{color: #f58822;}
+.MuiBadge-badge{background-color: #ff5252 !important;}
+nav ul button{text-transform: capitalize !important; }
+nav ul button:hover{background: none !important;}
+.sliderHome{overflow: inherit !important;}
+
+.swiper-button-prev,.swiper-button-next{display: flex;  align-items: center; justify-content: center; 
+                                         background: #fff; border-radius: 100%; width: 35px !important; height: 35px !important; min-width: 45px !important;
+                                         box-shadow: 0 1px #0000001f, 0 1px #0000003d !important;}
+.swiper-button-prev:after,.swiper-button-next:after {font-size: 20px !important; color:
+                                                    #000}
+ 
+.smlBtn .swiper-button-prev,.smlBtn .swiper-button-next{display: flex;  align-items: center; justify-content: center; 
+  background: #fff; border-radius: 100%; width: 20px; height: 20px; min-width: 20px;
+                                         box-shadow: 0 1px #0000001f, 0 1px #0000003d !important;}
+
+.smlBtn .swiper-button-prev:after,.smlBtn .swiper-button-next:after{font-size: 12px !important; color:
+                                                    #000}   .swiper-button-prev:after,.swiper-button-next:after{font-size: 15px !important; color:
+                                                                 #000}
+
+
+
+.homeCatSlider .swiper-button-prev, .homeCatSlider .swiper-button-next{display: flex;  align-items: center; justify-content: center; 
+                                                      background: #fff; border-radius: 100%; width: 25px; height: 25px; min-width: 25px;
+                                                      box-shadow: 0 1px #0000001f, 0 1px #0000003d !important;}
+.homeCatSlider .swiper-button-prev:after, .homeCatSlider  .swiper-button-next:after{font-size: 14px !important; color:
+  
+                                                                 #000}
+.homeCatSlider .item{font-size: 13px !important; font-weight: 500;}
+.homeCatSlider .item img{box-shadow: 0 2px #0000001f, 0px 2px #0000003d !important;}
+.homeCatSlider .item:hover img{transform: scale(1.1); }
+
+@media only screen and (max-width: 1300px) {
+
+  }
+  @media only screen and (max-width: 856px) {
+    .CatMenu {
+width: 0% !important;
+font-size: 10px !important;
+  
+    }
+    
+    .FreeDel{
+      width: 25% !important;
+      font-size: 12px !important;
+    }
+        .FreeDel p{
+      
+      font-size: 10px !important;
+    }
+        
+        .Reginfo li .lgn{          
+          font-size: 12px !important;
+        margin-left: 20px;
+        }
+        
+        .sliderHome .swiper-slide .item img {width: 100% !important; height: 150px;}
+        .sliderHome .swiper-slide-active .info2 h4{font-size: 10px !important;}
+        .sliderHome .swiper-slide-active .info2 h3{font-size: 12px !important;}
+        .sliderHome .swiper-slide-active .info2 h2{font-size: 12px !important;}
+        .sliderHome .swiper-slide-active .info2 h3 span{font-size: 18px !important;}
+        .sliderHome .swiper-slide-active .info2 button{font-size: 8px !important; width: 50% !important; height: 20px;}
+        
+        .sliderHome .swiper-slide-active .info {width:65% !important;}
+        .sliderHome .swiper-slide-active .info h4{font-size: 10px !important;}
+        .sliderHome .swiper-slide-active .info h3{font-size: 12px !important;}
+        .sliderHome .swiper-slide-active .info h2{font-size: 12px !important;}
+        .sliderHome .swiper-slide-active .info h3 span{font-size: 18px !important;}
+        .sliderHome .swiper-slide-active .info button{font-size: 6px !important; width: 60% !important; height: 20px;}
+        
+        
+        .bannerBoxV2 { height: 30% !important;}
+    }
+  
+  
+  .MuiTabs-indicator{background-color: #ff5252 !important;}
+  .MuiTab-textColorPrimary.Mui-selected{color: #ff5252 !important;}
+  
+  
+  .footer form input::placeholder{font-size: 14px;}
+  .css-imrjgg-MuiButtonBase-root-MuiCheckbox-root.Mui-checked, 
+  .css-imrjgg-MuiButtonBase-root-MuiCheckbox-root.Muicheckbox-indeterminate{color:#ff5252 !important; }
+  .MuiFormControlLabel-label{font-size: 14px !important;}
+  
+.swiper-pagination-bullet-active{background: #ff5252 !important;}
+
+
+.sliderHome .swiper-slide-active .info{right: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info h4{right: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info h3{right: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info h2{right: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info .btn_{right: 0px !important; opacity: 1;}
+
+.sliderHome .info h4{transition-duration: 1.2s;}
+.sliderHome .info h2{transition-duration: 1.5s;}
+.sliderHome .info h3{transition-duration: 1.8s;}
+.sliderHome .info .btn_{transition-duration: 2.1s;}
+
+
+.sliderHome .swiper-slide-active .info2{left: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info2 h4{left: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info2 h3{left: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info2 h2{left: 0px !important; opacity: 1;}
+.sliderHome .swiper-slide-active .info2 .btn_{left: 0px !important; opacity: 1;}
+
+.sliderHome .info2 h4{transition-duration: 1.2s;}
+.sliderHome .info2 h2{transition-duration: 1.5s;}
+.sliderHome .info2 h3{transition-duration: 1.8s;}
+.sliderHome .info2 .btn_{transition-duration: 2.1s;}
+
+
+.MuiCheckbox-root{padding: 6px !important;}  
+
+.itemViewActions button.active svg{color:#ff5252 !important; opacity: 1; font-size: 25px !important;}
+
+
+.Mui-selected .MuiPaginationItem-page{background:#ff5252 !important; color:#fff !important;}
+.productslidezoom .swiper-slide{height:auto !important;}
+.productslidezoom .swiper-button-next{bottom: 0px !important; right: inherit !important; top: inherit !important;
+                               width:100% !important; height: 20px ! important; border-radius:0px !important;}
+                               .productslidezoom .swiper-button-next:hover{background:#ff5252 !important;}
+                               .productslidezoom .swiper-button-next:after{transform: rotate(90deg);  }                               
+.productslidezoom .swiper-button-prev{top: 20px !important; left: 0 !important; width:100% !important; 
+  height: 20px ! important; border-radius:0px !important;}
+.productslidezoom .swiper-button-prev:hover{background:#ff5252 !important;}
+.productslidezoom .swiper-button-prev:after{transform: rotate(90deg);  } 
+.productContent .actions Button{min-width:30px !important; height:30px !important; border: 2px 
+  solid rgba(0,0,0,0.2) !important;}
+.cartPanel .MuiPaper-root{width:400px; overflow: hidden;}
+.AddressPanel .MuiPaper-root{width:500px; overflow: hidden;}
+#Size-menu .MuiButtonBase-root{font-size:12px !important;}
+.otpBox input{border:1px solid rgba(0,0,0,0.3) !important; outline: none !important; border-radius:4px;}
+.otpBox input:focus{border:1px solid rgba(0,0,0,0.7) !important;}
+.otpPage .container{height:90vh; display:flex;}
+#account-menu .MuiPaper-root{width:200px !important;}
+.myAccountTabs li a{position: relative; display: block;}
+.myAccountTabs li a:before{content: ''; width: 3px; height: 50%;
+position: absolute; top: 50%; left: 0px; background: #ff5252; 
+transition: all 0.3s ease-in-out; opacity: 0;}
+.myAccountTabs li a.active::before{height: 100%; opacity: 1; top: 0px;}
+.myAccountTabs li a.active button svg{color: #ff5252 !important; opacity: 1 !important;}
+button .MuiCircularProgress-root{width:20px !important; height:20px !important;}
+.react-international-phone-input{width: 100% !important;}
+.react-international-phone-country-selector-button{width: 50px !important;}
+.react-international-phone-input-container{ width: 100% ; border: 1px solid
+rgba(0,0,0,0.2) !important;}
+.MuiDialog-paper{width: 700px !important; max-width: 700px !important;}
+.productDetailsModal .MuiDialog-paper{width: 1200px !important; max-width: 1200px !important;}
+header{box-shadow: 0px 1px 5px #0000001a !important;}
+.MuiCircularProgress-root{@apply !text-[#ff5252]}
+button.btn-org .MuiCircularProgress-root{@apply !text-[#ffffff]}
+.MuiButtonBase-root.MuiMenuItem-root.MuiMenuItem-gutters.selected{@apply !bg-[#ff5252] !text-[#ffffff]}
+.marquee {
+  width: 100%;
+  overflow: hidden; 
+  position: relative;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 40px;
+  animation: marquee-scroll 18s linear infinite;
+}
+.marquee-track span {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+/* hover pause */
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+/* REAL marquee animation */
+@keyframes marquee-scroll {
+  0% {
+  transform: translateX(0);
+  }
+  100% {
+  transform: translateX(-50%);
+  }
+}
+
+/* Small chat popup size */
+#tawkchat-container {
+  width: 300px !important;        /* popup width */
+  height: 350px !important;       /* popup height */
+  bottom: 20px !important;        /* distance from bottom */
+  right: 20px !important;         /* distance from right */
+  border-radius: 12px !important; /* rounded corners */
+  overflow: hidden;
+  z-index: 9999 !important;       /* অন্য element এর উপরে রাখবে */
+}
+
+/* iframe inside widget */
+#tawkchat-container iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 12px !important;
+}
+
+/* Optional: Powered by subtle */
+#tawkchat-container .tawk-branding {
+  font-size: 8px !important;
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+}
