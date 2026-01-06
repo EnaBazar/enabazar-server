@@ -111,7 +111,7 @@ const Home = () => {
         <div className="leftsec w-full lg:w-[60%]">
           <h2 className="text-[20px] font-[600]">Popular Products</h2>
           <p className="text-[14px] font-[400] mt-0 mb-0">
-          অফারটি মিস করতে না চান তাহলে ওডার করুন,এখন উপভোগ করুন
+          অফারটি মিস করতে না চান তাহলে ওডার করুন,এখন উপভোগ করুন 
           </p>
         </div>
 
