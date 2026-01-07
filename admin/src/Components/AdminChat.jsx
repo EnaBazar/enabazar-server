@@ -12,7 +12,7 @@ export default function AdminChat() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await fetch("http://localhost:5000/chat/admin/all");
+        const res = await fetch("https://api.goroabazar.com/chat/admin/all");
         const data = await res.json();
         if (data.success) {
           setMessages(data.chats);
@@ -55,7 +55,7 @@ export default function AdminChat() {
   const sendMessage = async () => {
     if (!msg.trim() || !selectedCustomer) return;
     try {
-      await fetch("http://localhost:5000/chat/send", {
+      await fetch("https://api.goroabazar.com/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

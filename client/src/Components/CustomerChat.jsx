@@ -10,7 +10,7 @@ export default function CustomerChat({ user }) {
   // Polling every 2s
   useEffect(() => {
     const fetchChats = async () => {
-      const res = await fetch(`http://localhost:5000/chat/customer/${user._id}`);
+      const res = await fetch(`https://api.goroabazar.com/chat/customer/${user._id}`);
       const data = await res.json();
       if (data.success) {
         if (messages.length < data.chats.length) audioRef.current.play();
@@ -28,7 +28,7 @@ export default function CustomerChat({ user }) {
 
   const sendMessage = async () => {
     if (!msg.trim()) return;
-    await fetch("http://localhost:5000/chat/send", {
+    await fetch("https://api.goroabazar.com/chat/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
