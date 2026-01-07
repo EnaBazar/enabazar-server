@@ -262,7 +262,7 @@ const Home = () => {
     1024: { slidesPerView: 3, spaceBetween: 25 },
     1280: { slidesPerView: 4, spaceBetween: 30 },
   }}
-  navigation={true}
+  navigation={false}
   loop={true}              // autoplay smooth করার জন্য recommended
   modules={[FreeMode, Navigation, Autoplay]}
   className="BlogSlider"
