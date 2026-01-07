@@ -28,6 +28,7 @@ import { fetchDataFromApi } from './utils/api';
 import Layout from './Components/Layout';   // নতুন Layout ইউজ করবো
 import BannerV2List from './Pages/Banners2/BannerV2List';
 import BannerV3List from './Pages/Banners3/BannerV3List';
+import AdminChat from './Components/AdminChat';
 
 const MyContext = createContext();
 
@@ -164,6 +165,7 @@ useEffect(() => {
     { path: "/bannerV2/list", element: <Layout><BannerV2List /></Layout> },
     { path: "/bannerV3/list", element: <Layout><BannerV3List/></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
+        { path: "/chat", element: <Layout><AdminChat /></Layout> },
   ]);
 
   return (

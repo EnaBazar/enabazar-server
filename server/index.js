@@ -17,6 +17,7 @@ import bannerV3Routes from './route/bannerV3.route.js';
 import blogRoutes from './route/blog.route.js';
 import orderRoutes from './route/order.route.js';
 import homeSlideRoutes from './route/homeSlide.route.js';
+import chatrouter from './route/chat.route.js';
 
 
 
@@ -52,8 +53,7 @@ app.use('/bannerV2', bannerV2Routes);
 app.use('/bannerV3', bannerV3Routes);
 app.use('/blog',blogRoutes)
 app.use('/order',orderRoutes)
-
-
+app.use("/chat", chatrouter);
 app.listen(PORT,()=>{
     
     console.log(`App is Running on port ${PORT} `)

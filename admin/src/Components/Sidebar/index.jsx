@@ -130,6 +130,19 @@ import { fetchDataFromApi } from '../../utils/api';
     </Link>
     </li> 
     
+
+
+
+     <li>
+    <Link to="/chat" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center 
+    !py-2 hover:!bg-[#dddddd]'>
+    <FiUsers className='text-[16px]'
+    /><span>Chats</span>
+    </Button>
+    </Link>
+    </li> 
     <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
     onClick={()=>isOpenSubMenu(2)}
