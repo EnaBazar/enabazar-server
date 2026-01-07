@@ -5,6 +5,10 @@ const chatSchema = new mongoose.Schema({
   customerName: { type: String, required: true },
   from: { type: String, enum: ["customer", "admin"], required: true },
   message: { type: String, required: true },
+  read: {
+      type: Boolean,
+      default: false // 👈 important
+    },
   createdAt: { type: Date, default: Date.now }
 });
 

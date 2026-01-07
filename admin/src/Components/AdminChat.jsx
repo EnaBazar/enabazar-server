@@ -4,37 +4,31 @@ export default function AdminChat() {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [unreadCount, setUnreadCount] = useState({});
+  const [userInteracted, setUserInteracted] = useState(false);
+
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
 
-  // Fetch chats every 2 seconds
+  /* -------------------- AUDIO -------------------- */
+  const playAudio = () => {
+    if (!userInteracted) return;
+    audioRef.current?.play().catch(() => {});
+  };
+
+  /* -------------------- FETCH ALL CHATS -------------------- */
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await fetch("https://api.goroabazar.com/chat/admin/all");
+        const res = await fetch(
+          "https://api.goroabazar.com/chat/admin/all"
+        );
         const data = await res.json();
+
         if (data.success) {
+          if (data.chats.length > messages.length) {
+            playAudio();
+          }
           setMessages(data.chats);
-
-          // Calculate unread count
-          const counts = { ...unreadCount }; // previous state
-
-          data.chats.forEach((m) => {
-            if (m.from === "customer") {
-              if (!selectedCustomer || selectedCustomer.id !== m.customerId) {
-                counts[m.customerId] = (counts[m.customerId] || 0) + 1;
-              }
-            }
-          });
-
-          // Reset selected customer's unread count
-          if (selectedCustomer) counts[selectedCustomer.id] = 0;
-
-          setUnreadCount(counts);
-
-          // Play notification if new message arrived
-          if (messages.length < data.chats.length) audioRef.current.play();
         }
       } catch (err) {
         console.log("Error fetching chats:", err);
@@ -44,16 +38,69 @@ export default function AdminChat() {
     fetchChats();
     const interval = setInterval(fetchChats, 2000);
     return () => clearInterval(interval);
-  }, [selectedCustomer]);
+  }, [userInteracted]); // ✅ no messages dependency
 
-  // Auto scroll to bottom
+  /* -------------------- SELECT CUSTOMER (MARK READ) -------------------- */
+  const handleSelectCustomer = async (customer) => {
+    setSelectedCustomer(customer);
+
+    try {
+      // backend read mark
+      await fetch(
+        `https://api.goroabazar.com/chat/read/${customer.id}`,
+        { method: "POST" }
+      );
+
+      // frontend sync
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.customerId === customer.id
+            ? { ...m, read: true }
+            : m
+        )
+      );
+    } catch (err) {
+      console.log("Read update failed:", err);
+    }
+  };
+
+  /* -------------------- CUSTOMERS + UNREAD COUNT -------------------- */
+  const customersMap = new Map();
+
+  messages.forEach((m) => {
+    if (!customersMap.has(m.customerId)) {
+      customersMap.set(m.customerId, {
+        id: m.customerId,
+        name: m.customerName,
+        unread: 0
+      });
+    }
+
+    if (
+      m.from === "customer" &&
+      m.read === false &&
+      (!selectedCustomer || selectedCustomer.id !== m.customerId)
+    ) {
+      customersMap.get(m.customerId).unread += 1;
+    }
+  });
+
+  const customers = Array.from(customersMap.values());
+
+  /* -------------------- FILTERED MESSAGES -------------------- */
+  const filteredMessages = selectedCustomer
+    ? messages.filter((m) => m.customerId === selectedCustomer.id)
+    : [];
+
+  /* -------------------- AUTO SCROLL -------------------- */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, selectedCustomer]);
+  }, [filteredMessages]);
 
-  // Send message
+  /* -------------------- SEND MESSAGE -------------------- */
   const sendMessage = async () => {
     if (!msg.trim() || !selectedCustomer) return;
+
     try {
       await fetch("https://api.goroabazar.com/chat/send", {
         method: "POST",
@@ -62,110 +109,100 @@ export default function AdminChat() {
           customerId: selectedCustomer.id,
           customerName: selectedCustomer.name,
           from: "admin",
-          message: msg,
-        }),
+          message: msg
+        })
       });
+
       setMsg("");
+
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     } catch (err) {
       console.log("Error sending message:", err);
     }
   };
 
-  // Unique customers
-  const customers = [
-    ...new Map(
-      messages.map((m) => [
-        m.customerId,
-        { id: m.customerId, name: m.customerName },
-      ])
-    ).values(),
-  ];
-
-  // Messages for selected customer
-  const filteredMessages = selectedCustomer
-    ? messages.filter((m) => m.customerId === selectedCustomer.id)
-    : [];
-
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
+    <div
+      className="p-4 max-w-4xl mx-auto"
+      onClick={() => setUserInteracted(true)}
+    >
+      {/* AUDIO */}
       <audio ref={audioRef} src="/notification.mp3" />
 
-      {/* Sidebar: Customer List */}
-      <div className="md:w-1/4 w-full md:h-full h-32 overflow-y-auto bg-white border-r">
-        <h2 className="font-bold text-lg p-4 border-b">Customers</h2>
-        {customers.length === 0 && (
-          <p className="p-4 text-gray-400">No customers yet</p>
-        )}
-        {customers.map((c) => (
-          <div
-            key={c.id}
-            onClick={() => setSelectedCustomer(c)}
-            className={`flex justify-between items-center cursor-pointer p-3 border-b hover:bg-gray-100 ${
-              selectedCustomer?.id === c.id ? "bg-blue-100" : ""
-            }`}
-          >
-            <span className="font-medium">{c.name}</span>
-            {unreadCount[c.id] > 0 && (
-              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                {unreadCount[c.id]}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Admin Chat Dashboard
+      </h2>
 
-      {/* Chat Box */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 p-4 overflow-y-auto">
-          {selectedCustomer ? (
-            filteredMessages.length > 0 ? (
-              filteredMessages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`mb-2 flex ${
-                    m.from === "admin" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`px-3 py-2 rounded-lg max-w-xs break-words ${
-                      m.from === "admin"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-800"
-                    }`}
-                  >
-                    {m.message}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400 text-center mt-20">No messages yet</p>
-            )
-          ) : (
-            <p className="text-gray-400 text-center mt-20">
-              Select a customer to view messages
-            </p>
-          )}
-          <div ref={messagesEndRef}></div>
+      <div className="flex flex-col md:flex-row gap-4">
+        {/* ---------------- CUSTOMER LIST ---------------- */}
+        <div className="md:w-1/4 border p-2 rounded overflow-y-auto h-56">
+          <h3 className="font-semibold mb-2">Customers</h3>
+
+          {customers.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => handleSelectCustomer(c)}
+              className={`w-full flex justify-between items-center px-2 py-1 mb-1 rounded text-left ${
+                selectedCustomer?.id === c.id
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200"
+              }`}
+            >
+              <span>{c.name}</span>
+              {c.unread > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 rounded-full">
+                  {c.unread}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
 
-        {/* Input Box */}
-        {selectedCustomer && (
-          <div className="p-4 border-t flex gap-2 bg-white">
+        {/* ---------------- CHAT WINDOW ---------------- */}
+        <div className="md:w-3/4 flex flex-col border rounded h-96">
+          <div className="flex-1 p-2 overflow-y-auto">
+            {filteredMessages.map((m, i) => (
+              <div
+                key={i}
+                className={`mb-1 flex ${
+                  m.from === "admin"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
+                <span
+                  className={`inline-block px-3 py-1 rounded ${
+                    m.from === "admin"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                >
+                  {m.message}
+                </span>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* ---------------- INPUT ---------------- */}
+          <div className="flex gap-2 p-2 border-t">
             <input
-              type="text"
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
               placeholder="Type message..."
-              className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+              className="flex-1 border rounded px-2 py-1"
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 rounded"
             >
               Send
             </button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

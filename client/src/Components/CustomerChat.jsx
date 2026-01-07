@@ -13,7 +13,6 @@ export default function CustomerChat({ user }) {
       const res = await fetch(`https://api.goroabazar.com/chat/customer/${user._id}`);
       const data = await res.json();
       if (data.success) {
-        if (messages.length < data.chats.length) audioRef.current.play();
         setMessages(data.chats);
       }
     };
@@ -21,6 +20,12 @@ export default function CustomerChat({ user }) {
     const interval = setInterval(fetchChats, 2000);
     return () => clearInterval(interval);
   }, [messages]);
+
+
+
+
+
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,6 +45,21 @@ export default function CustomerChat({ user }) {
     });
     setMsg("");
   };
+
+useEffect(() => {
+  if (!user._id || messages.length === 0) return;
+
+  fetch(
+    `https://api.goroabazar.com/chat/read/${user._id}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reader: "customer" })
+    }
+  );
+}, [user._id]);
+
+
 
   return (
     <>
