@@ -35,6 +35,7 @@ import OrderReceipt from './Pages/Orders/OrderReceipt ';
 
 
 
+
 const MyContext =createContext();
 const App =() => {
   const [openProductDetailsModel, setOpenProductDetailsModel] = useState({
@@ -334,6 +335,7 @@ return (
 <Route path={"/securePayment"} exact={true} element={<SecurePayment/>}/>
   
 </Routes>
+
 
 <Footer/>
 </MyContext.Provider>
