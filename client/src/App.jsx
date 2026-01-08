@@ -337,7 +337,8 @@ return (
   
 </Routes>
 
-<CustomerChat user={userData}/>
+{isLogin && userData && <CustomerChat user={userData} />}
+
 <Footer/>
 </MyContext.Provider>
 </BrowserRouter>

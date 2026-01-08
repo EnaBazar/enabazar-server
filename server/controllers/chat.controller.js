@@ -41,16 +41,17 @@ export const getAllChats = async (req, res) => {
 
 
 export const markChatsAsRead = async (req, res) => {
-  try {
-    const { customerId } = req.params;
+  const { customerId } = req.params; // এখন সঠিকভাবে customerId পাওয়া যাচ্ছে
 
-    await ChatModel.updateMany(
-      { customerId, from: "customer", read: false },
+  try {
+    await Chat.updateMany(
+      { customerId, read: false },
       { $set: { read: true } }
     );
-
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
+

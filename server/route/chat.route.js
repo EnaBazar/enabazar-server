@@ -12,5 +12,8 @@ chatrouter.get("/customer/:customerId", getCustomerChats);
 // Admin gets all chats
 chatrouter.get("/admin/all", getAllChats);
 
-chatrouter.post("/read/:user._id", markChatsAsRead);
+// Customer marks chats as read
+chatrouter.post("/read/:customerId", markChatsAsRead);
+
 export default chatrouter;
+
