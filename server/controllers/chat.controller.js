@@ -1,4 +1,5 @@
-import ChatModel from "../models/chat.model.js";
+
+import Chat from "../models/chat.model.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -40,18 +41,36 @@ export const getAllChats = async (req, res) => {
 };
 
 
+
 export const markChatsAsRead = async (req, res) => {
-  const { customerId } = req.params; // এখন সঠিকভাবে customerId পাওয়া যাচ্ছে
+  console.log("🔥 READ API HIT", req.params);
 
   try {
-    await Chat.updateMany(
-      { customerId, read: false },
-      { $set: { read: true } }
+    const { customerId } = req.params;
+
+    if (!customerId) {
+      return res.status(400).json({ success: false });
+    }
+
+    const result = await Chat.updateMany(
+      {
+        customerId: customerId,   // ✅ STRING MATCH
+        from: "admin",
+        read: false,
+      },
+      {
+        $set: { read: true },
+      }
     );
-    res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+
+    return res.json({
+      success: true,
+      modified: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("MARK READ ERROR 👉", error);
+    return res.status(500).json({ success: false });
   }
 };
+
 
