@@ -29,20 +29,13 @@ import 'react-lazy-load-image-component/src/effects/blur.css';
 import Rating from '@mui/material/Rating';
 import SearchBox from '../../Components/SearchBox';
 import Users from '../Users';
-
-
-
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-
 import pdfMake from "../../Fonts/pdfFonts.js";
 import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
-
-
 const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
-
 const columns = [
   { id: 'product', label: 'PRODUCT', minWidth: 150 },
   { id: 'category', label: 'CATEGORY', minWidth: 100 },
@@ -309,7 +302,6 @@ useEffect(() => {
 
     pdfMake.createPdf(docDefinition).download(`order-${order?._id}.pdf`);
   };
-
 
 const exportAllOrderDetailsPdf = (orders) => {
   const content = [];
@@ -796,11 +788,7 @@ const getChartData = async () => {
   }
 };
 
-
-
-
-
-  return ( 
+return ( 
         <> 
  <div className='w-full py-2 bg-[#f1faff] px-5 border border-[rgba(0,0,0,0.2)] flex items-center gap-8 mb-5 justify-between rounded-md'>
  <div className='info'>
@@ -814,7 +802,7 @@ const getChartData = async () => {
   onClick={()=>context.setIsOpenFullScreenPanel({
     open:true,
     model:"Add Product"
-     
+ 
    })}
   
   ><FaPlus/>Add Product</Button>
