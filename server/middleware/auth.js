@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 const auth = (req, res, next) => {
   try {
@@ -12,7 +12,7 @@ const auth = (req, res, next) => {
       return res.status(401).json({
         message: "Provide token",
         error: true,
-        success: false
+        success: false,
       });
     }
 
@@ -22,21 +22,21 @@ const auth = (req, res, next) => {
       return res.status(401).json({
         message: "Unauthorized access",
         error: true,
-        success: false
+        success: false,
       });
     }
 
-    req.userId = decode.id; // ✅ attach userId
+    req.userId = decode.id;
+    req.userRole = decode.role || "customer"; // optional role
     next();
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      message: "You are not logged in",
+    return res.status(401).json({
+      message: "Invalid or expired token",
       error: true,
-      success: false
+      success: false,
     });
   }
-}
+};
 
 export default auth;

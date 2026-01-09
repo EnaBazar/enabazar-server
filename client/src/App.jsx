@@ -32,7 +32,9 @@ import LegalNotice from './Pages/LagelNotice/lagelNotice';
 import HelpCenter from './Pages/HelpCenter/helpCenter';
 import SecurePayment from './Pages/SequrePayment/sequrePayment';
 import OrderReceipt from './Pages/Orders/OrderReceipt ';
+
 import CustomerChat from './Components/CustomerChat';
+
 
 
 
@@ -337,7 +339,7 @@ return (
   
 </Routes>
 
-{isLogin && userData && <CustomerChat user={userData} />}
+<CustomerChat user={userData}/>
 
 <Footer/>
 </MyContext.Provider>

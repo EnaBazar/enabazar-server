@@ -8,26 +8,6 @@ export const addAddressController = async (request, response) => {
     
      const { address_line, city, state,  addressType,deliverylocation,landmark, userId } = request.body;
      
-     
-
-     
-
-    
-  // if (
-        
-   // !address_line || city || state || pincode || country || mobile  
-        
- // ){
-     // return response.json({       
-           // message: "Please Provide All The Fields",
-           // error:false,
-          // success:true
-      // })  
-        
-  //  }
-    
-    
-    
     const address = new AddressModel({
         address_line, city, state, addressType,deliverylocation, landmark, userId    
         
@@ -42,9 +22,6 @@ export const addAddressController = async (request, response) => {
      }
      
  })
-    
-    
-    
     
      return response.status(200).json({  
             data: savedAddress,                                

@@ -1,76 +1,74 @@
+import ChatModel from "../models/chat.model.js";
+import mongoose from "mongoose";
 
-import Chat from "../models/chat.model.js";
-
+// ✅ Send Message
 export const sendMessage = async (req, res) => {
   try {
     const { customerId, customerName, from, message } = req.body;
+
+    if (!customerId || !from || !message) {
+      return res.status(400).json({ success: false, message: "Missing fields" });
+    }
 
     const chat = new ChatModel({
       customerId,
       customerName,
       from,
       message,
-      read: from === "admin" // admin message read=true
+      read: from === "admin",
     });
 
     await chat.save();
 
     return res.status(200).json({ success: true, chat });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Send chat error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
+// ✅ Get customer chats
 export const getCustomerChats = async (req, res) => {
   try {
     const { customerId } = req.params;
+
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.json({ success: true, chats: [] });
+    }
+
     const chats = await ChatModel.find({ customerId }).sort({ createdAt: 1 });
+
     return res.status(200).json({ success: true, chats });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Get customer chats error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
+// ✅ Get all chats (Admin)
 export const getAllChats = async (req, res) => {
   try {
     const chats = await ChatModel.find().sort({ createdAt: 1 });
     return res.status(200).json({ success: true, chats });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Get all chats error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-
-
+// ✅ Mark chats as read
 export const markChatsAsRead = async (req, res) => {
-  console.log("🔥 READ API HIT", req.params);
-
   try {
     const { customerId } = req.params;
 
-    if (!customerId) {
-      return res.status(400).json({ success: false });
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.json({ success: true });
     }
 
-    const result = await Chat.updateMany(
-      {
-        customerId: customerId,   // ✅ STRING MATCH
-        from: "admin",
-        read: false,
-      },
-      {
-        $set: { read: true },
-      }
-    );
-
-    return res.json({
-      success: true,
-      modified: result.modifiedCount,
-    });
+    await ChatModel.updateMany({ customerId, read: false }, { $set: { read: true } });
+    return res.json({ success: true });
   } catch (error) {
-    console.error("MARK READ ERROR 👉", error);
-    return res.status(500).json({ success: false });
+    console.error("Mark chats as read error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-

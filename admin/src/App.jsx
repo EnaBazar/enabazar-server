@@ -48,7 +48,7 @@ const [orderCount, setOrderCount] = useState(0);
     model: '',
     id: ""
   });
-console.log(isOpenFullScreenPanel)
+
 
 
   const openAlertBox = (status, msg) => {
@@ -165,7 +165,7 @@ useEffect(() => {
     { path: "/bannerV2/list", element: <Layout><BannerV2List /></Layout> },
     { path: "/bannerV3/list", element: <Layout><BannerV3List/></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
-        { path: "/chat", element: <Layout><AdminChat /></Layout> },
+ { path: "/chat", element: <Layout><AdminChat /></Layout> },
   ]);
 
   return (

@@ -1,156 +1,126 @@
 import { useEffect, useState, useRef } from "react";
+import { postData } from "../utils/api";
 
 export default function AdminChat() {
   const [messages, setMessages] = useState([]);
-  const [msg, setMsg] = useState("");
+  const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [showList, setShowList] = useState(true); // 📱 mobile toggle
 
   const messagesEndRef = useRef(null);
-  const audioRef = useRef(null);
 
-  /* -------------------- AUDIO -------------------- */
-  const playAudio = () => {
-    if (!userInteracted) return;
-    audioRef.current?.play().catch(() => {});
+  /* ---------------- FETCH ALL CHATS ---------------- */
+  const fetchChats = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/chat/admin/all");
+      const data = await res.json();
+      if (!data.success) return;
+
+      setMessages(data.chats || []);
+
+      const map = new Map();
+      data.chats.forEach((m) => {
+        if (!map.has(m.customerId)) {
+          map.set(m.customerId, {
+            id: m.customerId,
+            name: m.customerName,
+            unread: 0,
+          });
+        }
+        if (m.from === "customer" && !m.read) {
+          map.get(m.customerId).unread += 1;
+        }
+      });
+
+      setCustomers([...map.values()]);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  /* -------------------- FETCH ALL CHATS -------------------- */
   useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const res = await fetch(
-          "https://api.goroabazar.com/chat/admin/all"
-        );
-        const data = await res.json();
-
-        if (data.success) {
-          if (data.chats.length > messages.length) {
-            playAudio();
-          }
-          setMessages(data.chats);
-        }
-      } catch (err) {
-        console.log("Error fetching chats:", err);
-      }
-    };
-
     fetchChats();
     const interval = setInterval(fetchChats, 2000);
     return () => clearInterval(interval);
-  }, [userInteracted]); // ✅ no messages dependency
+  }, []);
 
-  /* -------------------- SELECT CUSTOMER (MARK READ) -------------------- */
+  /* ---------------- SELECT CUSTOMER ---------------- */
   const handleSelectCustomer = async (customer) => {
     setSelectedCustomer(customer);
+    setShowList(false); // 📱 hide list on mobile
 
-    try {
-      // backend read mark
-      await fetch(
-        `https://api.goroabazar.com/chat/read/${customer.id}`,
-        { method: "POST" }
-      );
+    await fetch(`http://localhost:5000/chat/read/${customer.id}`, {
+      method: "POST",
+    });
 
-      // frontend sync
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.customerId === customer.id
-            ? { ...m, read: true }
-            : m
-        )
-      );
-    } catch (err) {
-      console.log("Read update failed:", err);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.customerId === customer.id ? { ...m, read: true } : m
+      )
+    );
+  };
+
+  /* ---------------- SEND MESSAGE ---------------- */
+  const sendMessage = async () => {
+    if (!msg.trim() || !selectedCustomer) return;
+
+    const res = await postData("/chat/send", {
+      customerId: selectedCustomer.id,
+      customerName: selectedCustomer.name,
+      from: "admin",
+      message: msg,
+    });
+
+    if (res?.success) {
+      setMsg("");
+      fetchChats();
     }
   };
 
-  /* -------------------- CUSTOMERS + UNREAD COUNT -------------------- */
-  const customersMap = new Map();
-
-  messages.forEach((m) => {
-    if (!customersMap.has(m.customerId)) {
-      customersMap.set(m.customerId, {
-        id: m.customerId,
-        name: m.customerName,
-        unread: 0
-      });
-    }
-
-    if (
-      m.from === "customer" &&
-      m.read === false &&
-      (!selectedCustomer || selectedCustomer.id !== m.customerId)
-    ) {
-      customersMap.get(m.customerId).unread += 1;
-    }
-  });
-
-  const customers = Array.from(customersMap.values());
-
-  /* -------------------- FILTERED MESSAGES -------------------- */
+  /* ---------------- FILTERED MESSAGES ---------------- */
   const filteredMessages = selectedCustomer
     ? messages.filter((m) => m.customerId === selectedCustomer.id)
     : [];
 
-  /* -------------------- AUTO SCROLL -------------------- */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [filteredMessages]);
 
-  /* -------------------- SEND MESSAGE -------------------- */
-  const sendMessage = async () => {
-    if (!msg.trim() || !selectedCustomer) return;
-
-    try {
-      await fetch("https://api.goroabazar.com/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId: selectedCustomer.id,
-          customerName: selectedCustomer.name,
-          from: "admin",
-          message: msg
-        })
-      });
-
-      setMsg("");
-
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    } catch (err) {
-      console.log("Error sending message:", err);
-    }
-  };
+  const formatTime = (date) =>
+    new Date(date).toLocaleString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
 
   return (
-    <div
-      className="p-4 max-w-4xl mx-auto"
-      onClick={() => setUserInteracted(true)}
-    >
-      {/* AUDIO */}
-      <audio ref={audioRef} src="/notification.mp3" />
+    <div className="h-[calc(100vh-70px)] bg-gray-100 flex overflow-hidden">
+      {/* ---------------- CUSTOMER LIST ---------------- */}
+      <div
+        className={`bg-white border-r w-full md:w-1/4 absolute md:relative z-20 transition-all duration-300
+        ${showList ? "left-0" : "-left-full"} md:left-0`}
+      >
+        <div className="p-3 font-semibold border-b flex justify-between">
+          Customers
+          <button
+            className="md:hidden text-sm text-blue-600"
+            onClick={() => setShowList(false)}
+          >
+            Close
+          </button>
+        </div>
 
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Admin Chat Dashboard
-      </h2>
-
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* ---------------- CUSTOMER LIST ---------------- */}
-        <div className="md:w-1/4 border p-2 rounded overflow-y-auto h-56">
-          <h3 className="font-semibold mb-2">Customers</h3>
-
+        <div className="overflow-y-auto h-full">
           {customers.map((c) => (
             <button
               key={c.id}
               onClick={() => handleSelectCustomer(c)}
-              className={`w-full flex justify-between items-center px-2 py-1 mb-1 rounded text-left ${
-                selectedCustomer?.id === c.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200"
+              className={`w-full px-3 py-3 border-b flex justify-between items-center hover:bg-gray-100 ${
+                selectedCustomer?.id === c.id ? "bg-gray-200" : ""
               }`}
             >
-              <span>{c.name}</span>
+              <span className="font-medium">{c.name}</span>
               {c.unread > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 rounded-full">
                   {c.unread}
@@ -159,50 +129,70 @@ export default function AdminChat() {
             </button>
           ))}
         </div>
+      </div>
 
-        {/* ---------------- CHAT WINDOW ---------------- */}
-        <div className="md:w-3/4 flex flex-col border rounded h-96">
-          <div className="flex-1 p-2 overflow-y-auto">
-            {filteredMessages.map((m, i) => (
+      {/* ---------------- CHAT AREA ---------------- */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-white border-b p-3 flex items-center gap-2">
+          <button
+            className="md:hidden text-xl"
+            onClick={() => setShowList(true)}
+          >
+            ☰
+          </button>
+          <span className="font-semibold">
+            {selectedCustomer
+              ? selectedCustomer.name
+              : "Select a customer"}
+          </span>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {filteredMessages.map((m) => (
+            <div
+              key={m._id}
+              className={`flex ${
+                m.from === "admin" ? "justify-end" : "justify-start"
+              }`}
+            >
               <div
-                key={i}
-                className={`mb-1 flex ${
+                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow
+                ${
                   m.from === "admin"
-                    ? "justify-end"
-                    : "justify-start"
+                    ? "bg-blue-500 text-white rounded-br-sm"
+                    : "bg-white rounded-bl-sm"
                 }`}
               >
-                <span
-                  className={`inline-block px-3 py-1 rounded ${
-                    m.from === "admin"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  {m.message}
-                </span>
+                <p>{m.message}</p>
+                <p className="text-[10px] opacity-70 text-right mt-1">
+                  {formatTime(m.createdAt)}
+                </p>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
 
-          {/* ---------------- INPUT ---------------- */}
-          <div className="flex gap-2 p-2 border-t">
+        {/* Input */}
+        {selectedCustomer && (
+          <div className="bg-white p-3 border-t flex gap-2">
             <input
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
-              placeholder="Type message..."
-              className="flex-1 border rounded px-2 py-1"
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Type message…"
+              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-4 rounded"
+              className="bg-blue-600 text-white px-5 rounded-full text-sm"
             >
               Send
             </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
