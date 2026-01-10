@@ -6,10 +6,9 @@ export default function AdminChat() {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [msg, setMsg] = useState("");
-  const [showList, setShowList] = useState(true); // Mobile toggle
+  const [showList, setShowList] = useState(true); // 📱 mobile toggle
 
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
 
   /* ---------------- FETCH ALL CHATS ---------------- */
   const fetchChats = async () => {
@@ -49,7 +48,7 @@ export default function AdminChat() {
   /* ---------------- SELECT CUSTOMER ---------------- */
   const handleSelectCustomer = async (customer) => {
     setSelectedCustomer(customer);
-    setShowList(false); // hide list on mobile
+    setShowList(false); // 📱 hide list on mobile
 
     await fetch(`https://api.goroabazar.com/chat/read/${customer.id}`, {
       method: "POST",
@@ -76,7 +75,6 @@ export default function AdminChat() {
     if (res?.success) {
       setMsg("");
       fetchChats();
-      scrollToBottom(); // ensure auto scroll
     }
   };
 
@@ -85,16 +83,10 @@ export default function AdminChat() {
     ? messages.filter((m) => m.customerId === selectedCustomer.id)
     : [];
 
-  /* ---------------- AUTO SCROLL ---------------- */
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [filteredMessages]);
 
-  /* ---------------- FORMAT TIME ---------------- */
   const formatTime = (date) =>
     new Date(date).toLocaleString("en-US", {
       hour: "2-digit",
@@ -103,13 +95,13 @@ export default function AdminChat() {
     });
 
   return (
-    <div className="h-screen flex bg-gray-100 overflow-hidden">
+    <div className="h-[calc(100vh-70px)] bg-gray-100 flex overflow-hidden">
       {/* ---------------- CUSTOMER LIST ---------------- */}
       <div
-        className={`bg-white border-r w-full md:w-1/4 absolute md:relative z-20 transition-all duration-300
+        className={`bg-white border-r w-full h-[60px] md:w-1/4 absolute md:relative z-20 transition-all duration-300
         ${showList ? "left-0" : "-left-full"} md:left-0`}
       >
-        <div className="p-3 font-semibold border-b flex justify-between items-center">
+        <div className="p-3 font-semibold border-b flex justify-between">
           Customers
           <button
             className="md:hidden text-sm text-blue-600"
@@ -119,7 +111,7 @@ export default function AdminChat() {
           </button>
         </div>
 
-        <div className="overflow-y-auto h-[calc(100vh-50px)]">
+        <div className="overflow-y-auto h-full">
           {customers.map((c) => (
             <button
               key={c.id}
@@ -140,32 +132,34 @@ export default function AdminChat() {
       </div>
 
       {/* ---------------- CHAT AREA ---------------- */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b p-3 flex items-center gap-2 sticky top-0 z-10">
+        <div className="bg-white border-b p-3 flex items-center gap-2">
           <button
             className="md:hidden text-xl"
             onClick={() => setShowList(true)}
           >
             ☰
           </button>
-          <span className="font-semibold text-sm sm:text-base">
-            {selectedCustomer ? selectedCustomer.name : "Select a customer"}
+          <span className="font-semibold">
+            {selectedCustomer
+              ? selectedCustomer.name
+              : "Select a customer"}
           </span>
         </div>
 
         {/* Messages */}
-        <div
-          ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto p-4 space-y-3"
-        >
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredMessages.map((m) => (
             <div
               key={m._id}
-              className={`flex ${m.from === "admin" ? "justify-end" : "justify-start"}`}
+              className={`flex ${
+                m.from === "admin" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
-                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow break-words ${
+                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow
+                ${
                   m.from === "admin"
                     ? "bg-blue-500 text-white rounded-br-sm"
                     : "bg-white rounded-bl-sm"
@@ -183,7 +177,7 @@ export default function AdminChat() {
 
         {/* Input */}
         {selectedCustomer && (
-          <div className="bg-white p-3 border-t flex gap-2 sticky bottom-0 z-10">
+          <div className="bg-white p-3 border-t flex gap-2">
             <input
               value={msg}
               onChange={(e) => setMsg(e.target.value)}

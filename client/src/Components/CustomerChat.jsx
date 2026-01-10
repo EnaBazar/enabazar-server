@@ -6,35 +6,29 @@ export default function CustomerChat({ user }) {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
-  const [chatHeight, setChatHeight] = useState(window.innerHeight * 0.8);
   const context = useContext(MyContext);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
 
   const PRIMARY = "#FC8934";
+
+  // Get token
   const token = localStorage.getItem("accesstoken");
 
+  // Chat open handler
   const handleOpenChat = () => {
     if (!user || !user._id) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
-      window.location.href = "/login";
+      window.location.href = "/login"; // চাইলে remove করতে পারো
       return;
     }
     setOpen((prev) => !prev);
   };
 
-  // Adjust chat height on mobile keyboard open
-  useEffect(() => {
-    const handleResize = () => {
-      setChatHeight(window.innerHeight * 0.8); // 80% of visible viewport
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   // Fetch chats
   useEffect(() => {
     if (!open || !user?._id) return;
+
     const fetchChats = async () => {
       if (!user?._id || !token) return;
       try {
@@ -46,6 +40,7 @@ export default function CustomerChat({ user }) {
         console.error("Chat fetch error:", err);
       }
     };
+
     fetchChats();
     const interval = setInterval(fetchChats, 2000);
     return () => clearInterval(interval);
@@ -60,35 +55,49 @@ export default function CustomerChat({ user }) {
   useEffect(() => {
     if (!messages.length) return;
     const last = messages[messages.length - 1];
-    if (last.from === "admin") audioRef.current?.play();
+    if (last.from === "admin") {
+      audioRef.current?.play();
+    }
   }, [messages]);
 
   // Mark as read
   useEffect(() => {
     if (!open || !messages.length || !user?._id) return;
+
     const markRead = async () => {
       try {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
+
         await fetch(`https://api.goroabazar.com/chat/read/${user._id}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ reader: "customer" }),
         });
       } catch (err) {
         console.error("Mark as read error:", err);
       }
     };
+
     markRead();
   }, [open, messages.length, user?._id]);
 
   // Send message
   const sendMessage = async () => {
     if (!msg.trim() || !user?._id || !token) return;
+
     try {
       const res = await postData(
         `/chat/send`,
-        { customerId: user._id, customerName: user.name, from: "customer", message: msg },
+        {
+          customerId: user._id,
+          customerName: user.name,
+          from: "customer",
+          message: msg,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.success) setMsg("");
@@ -111,13 +120,10 @@ export default function CustomerChat({ user }) {
       </button>
 
       {open && user?._id && (
-        <div
-          className="fixed bottom-0 right-0 w-[90vw] max-w-[400px] bg-white shadow-xl rounded-t-xl flex flex-col z-[100] border"
-          style={{ height: chatHeight }}
-        >
+        <div className="fixed bottom-20 right-5 w-[90vw] max-w-[400px] h-[80vh] sm:w-80 sm:h-[480px] md:w-96 md:h-[500px] bg-white shadow-xl rounded-xl flex flex-col z-[100] border">
           {/* Header */}
           <div
-            className="p-3 text-white flex justify-between items-center"
+            className="p-3 text-white flex justify-between items-center rounded-t-xl"
             style={{ backgroundColor: PRIMARY }}
           >
             <span className="font-semibold text-sm sm:text-base">যে কোন প্রয়োজনে চ্যাট করুন!</span>
@@ -127,15 +133,21 @@ export default function CustomerChat({ user }) {
           {/* Messages */}
           <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-[#FFF7F2]">
             {messages.map((m) => (
-              <div key={m._id} className={m.from === "customer" ? "text-right" : "text-left"}>
+              <div
+                key={m._id}
+                className={m.from === "customer" ? "text-right" : "text-left"}
+              >
                 <span
                   className={`inline-block px-3 py-2 rounded-lg max-w-[75%] break-words text-sm sm:text-base ${
-                    m.from === "customer" ? "text-white rounded-br-none" : "bg-white text-gray-800 border rounded-bl-none"
+                    m.from === "customer"
+                      ? "text-white rounded-br-none"
+                      : "bg-white text-gray-800 border rounded-bl-none"
                   }`}
                   style={m.from === "customer" ? { backgroundColor: PRIMARY } : {}}
                 >
                   {m.message}
                 </span>
+
                 <div className="text-[10px] sm:text-xs text-gray-500 !mb-3">
                   {new Date(m.createdAt).toLocaleString("en-US", {
                     month: "short",
@@ -158,11 +170,12 @@ export default function CustomerChat({ user }) {
               onChange={(e) => setMsg(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Type a message..."
-              className="flex-1 border rounded-lg px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
+              className="flex-1 border rounded-lg px-3 py-2 
+              text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
             />
             <button
               onClick={sendMessage}
-              className="text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base"
+              className="text-white !px-3 !sm:px-4 !py-2 rounded-lg !text-sm !sm:text-base"
               style={{ backgroundColor: PRIMARY }}
             >
               Send
