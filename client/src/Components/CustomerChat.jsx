@@ -74,7 +74,7 @@ export default function CustomerChat({ user }) {
         const token = localStorage.getItem("accessToken");
         if (!token) return;
 
-        await fetch(`http://localhost:5000/chat/read/${user._id}`, {
+        await fetch(`https://api.goroabazar.com/chat/read/${user._id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

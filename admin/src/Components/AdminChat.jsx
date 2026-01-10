@@ -50,7 +50,7 @@ export default function AdminChat() {
     setSelectedCustomer(customer);
     setShowList(false); // 📱 hide list on mobile
 
-    await fetch(`http://localhost:5000/chat/read/${customer.id}`, {
+    await fetch(`https://api.goroabazar.com/chat/read/${customer.id}`, {
       method: "POST",
     });
 
