@@ -126,7 +126,6 @@ export default function CustomerChat({ user }) {
       }
     };
 
-    markRead();
   }, [open, messages.length, user?._id, token]);
 
   /* ---------------- SEND MESSAGE ---------------- */
@@ -142,6 +141,7 @@ export default function CustomerChat({ user }) {
           mobile: user.mobile,
           from: "customer",
           message: msg,
+          
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );

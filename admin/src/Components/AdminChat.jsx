@@ -6,7 +6,7 @@ export default function AdminChat() {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [msg, setMsg] = useState("");
-  const [showList, setShowList] = useState(true); // 📱 mobile toggle
+  const [showList, setShowList] = useState(true);
 
   const messagesEndRef = useRef(null);
 
@@ -19,17 +19,20 @@ export default function AdminChat() {
 
       setMessages(data.chats || []);
 
+      // Customers map with unread count
       const map = new Map();
       data.chats.forEach((m) => {
         if (!map.has(m.customerId)) {
           map.set(m.customerId, {
             id: m.customerId,
             name: m.customerName,
-            Mobile: m.Mobile,
+            mobile: m.mobile || "",
             unread: 0,
+            // Demo image (later will be dynamic)
+            image: "https://via.placeholder.com/40", 
           });
         }
-        if (m.from === "customer" && !m.read) {
+        if (m.from === "customer" && m.read === false) {
           map.get(m.customerId).unread += 1;
         }
       });
@@ -49,8 +52,9 @@ export default function AdminChat() {
   /* ---------------- SELECT CUSTOMER ---------------- */
   const handleSelectCustomer = async (customer) => {
     setSelectedCustomer(customer);
-    setShowList(false); // 📱 hide list on mobile
+    setShowList(false);
 
+    // Mark messages as read
     await fetch(`https://api.goroabazar.com/chat/read/${customer.id}`, {
       method: "POST",
     });
@@ -58,6 +62,12 @@ export default function AdminChat() {
     setMessages((prev) =>
       prev.map((m) =>
         m.customerId === customer.id ? { ...m, read: true } : m
+      )
+    );
+
+    setCustomers((prev) =>
+      prev.map((c) =>
+        c.id === customer.id ? { ...c, unread: 0 } : c
       )
     );
   };
@@ -69,7 +79,7 @@ export default function AdminChat() {
     const res = await postData("/chat/send", {
       customerId: selectedCustomer.id,
       customerName: selectedCustomer.name,
-         Mobile: selectedCustomer.Mobile,
+      mobile: selectedCustomer.mobile,
       from: "admin",
       message: msg,
     });
@@ -118,19 +128,26 @@ export default function AdminChat() {
             <button
               key={c.id}
               onClick={() => handleSelectCustomer(c)}
-              className={`w-full px-3 py-3 border-b flex justify-between items-center hover:bg-gray-100 ${
+              className={`w-full px-3 py-2 border-b flex items-center gap-2 hover:bg-gray-100 ${
                 selectedCustomer?.id === c.id ? "bg-gray-200" : ""
               }`}
             >
-              <span className="font-medium">{c.name}</span>
-              
+              {/* Demo image */}
+            <img
+  src="/user.png"
+  alt={c.name}
+  className="w-10 h-10 rounded-full object-cover"
+/>
+
+              <div className="flex flex-col text-left">
+                <span className="font-medium">{c.name}</span>
+                <span className="text-xs text-gray-500">Mobile: {c.mobile}</span>
+              </div>
               {c.unread > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 rounded-full">
+                <span className="bg-red-500 text-white text-xs px-2 rounded-full ml-auto">
                   {c.unread}
                 </span>
-
               )}
-                <span className="font-medium">{c.Mobile}</span>
             </button>
           ))}
         </div>
@@ -139,18 +156,24 @@ export default function AdminChat() {
       {/* ---------------- CHAT AREA ---------------- */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b p-3 flex items-center gap-2">
+        <div className=" p-3 flex items-center gap-2  shadow-lg bg-orange-400 rounded-md">
           <button
             className="md:hidden text-xl"
             onClick={() => setShowList(true)}
           >
-            ☰
+            <img
+  src="/user.png"
+  alt={selectedCustomer ? selectedCustomer.name : "Guest"}
+  className="w-10 h-10 rounded-full object-cover"
+/>
+
           </button>
-          <span className="font-semibold">
-            {selectedCustomer
-              ? selectedCustomer.name
-              : "Select a customer"}
+          <div className="flex flex-col">
+          <span className="flex flex-col font-semibold mb-1">
+            {selectedCustomer ? selectedCustomer.name : "Select a customer"}    
           </span>
+           <span className="text-xs text-white">Mobile: {selectedCustomer ? selectedCustomer.mobile :"No Mobile"}</span>
+        </div>
         </div>
 
         {/* Messages */}
@@ -158,13 +181,10 @@ export default function AdminChat() {
           {filteredMessages.map((m) => (
             <div
               key={m._id}
-              className={`flex ${
-                m.from === "admin" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${m.from === "admin" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow
-                ${
+                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow ${
                   m.from === "admin"
                     ? "bg-blue-500 text-white rounded-br-sm"
                     : "bg-white rounded-bl-sm"
@@ -192,7 +212,7 @@ export default function AdminChat() {
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-5 rounded-full text-sm"
+              className="bg-orange-400 text-white px-5 rounded-full text-sm"
             >
               Send
             </button>
