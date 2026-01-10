@@ -793,18 +793,16 @@ return (
  <div className='w-full py-2 bg-[#f1faff] px-5 border border-[rgba(0,0,0,0.2)] flex items-center gap-8 mb-5 justify-between rounded-md'>
  <div className='info'>
 <h1 className='text-[30px] font-bold leading-10 mb-3'>
-  স্বাগতম<br />
+স্বাগতম<br/>
 <span className='text-blue-500 !ml-auto'> {context?.userData?.name || "User"}</span> 
 </h1>
-  <p>Here`s what happning on your store today. See the statistics at once.</p>
+  <p>Here`s what happning on your store today.See the statistics at once.</p>
   <br/>
   <Button className='btn-blue !capitalize'
   onClick={()=>context.setIsOpenFullScreenPanel({
     open:true,
     model:"Add Product"
- 
    })}
-  
   ><FaPlus/>Add Product</Button>
  </div>
  <img src="/logo.png" className='w-[250px] hidden lg:block'/>

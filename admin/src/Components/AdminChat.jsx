@@ -13,7 +13,7 @@ export default function AdminChat() {
   /* ---------------- FETCH ALL CHATS ---------------- */
   const fetchChats = async () => {
     try {
-      const res = await fetch("http://localhost:5000/chat/admin/all");
+      const res = await fetch("https://api.goroabazar.com/chat/admin/all");
       const data = await res.json();
       if (!data.success) return;
 
