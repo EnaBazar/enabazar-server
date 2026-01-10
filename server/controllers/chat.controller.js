@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 // ✅ Send Message
 export const sendMessage = async (req, res) => {
   try {
-    const { customerId, customerName, from, message } = req.body;
+    const { customerId, customerName,mobile, from, message } = req.body;
 
     if (!customerId || !from || !message) {
       return res.status(400).json({ success: false, message: "Missing fields" });
@@ -13,6 +13,7 @@ export const sendMessage = async (req, res) => {
     const chat = new ChatModel({
       customerId,
       customerName,
+      mobile,
       from,
       message,
       read: from === "admin",

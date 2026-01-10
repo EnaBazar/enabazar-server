@@ -25,6 +25,7 @@ export default function AdminChat() {
           map.set(m.customerId, {
             id: m.customerId,
             name: m.customerName,
+            Mobile: m.Mobile,
             unread: 0,
           });
         }
@@ -68,6 +69,7 @@ export default function AdminChat() {
     const res = await postData("/chat/send", {
       customerId: selectedCustomer.id,
       customerName: selectedCustomer.name,
+         Mobile: selectedCustomer.Mobile,
       from: "admin",
       message: msg,
     });
@@ -121,11 +123,14 @@ export default function AdminChat() {
               }`}
             >
               <span className="font-medium">{c.name}</span>
+              
               {c.unread > 0 && (
                 <span className="bg-red-500 text-white text-xs px-2 rounded-full">
                   {c.unread}
                 </span>
+
               )}
+                <span className="font-medium">{c.Mobile}</span>
             </button>
           ))}
         </div>

@@ -6,9 +6,9 @@ export default function CustomerChat({ user }) {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const context = useContext(MyContext);
-
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const chatBoxRef = useRef(null);
@@ -18,6 +18,31 @@ export default function CustomerChat({ user }) {
 
   const token = localStorage.getItem("accesstoken");
 
+  /* ---------------- CHECK UNREAD ---------------- */
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const checkUnread = async () => {
+      try {
+        const res = await fetchDataFromApi(`/chat/customer/${user._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.success) {
+          const unreadExists = res.chats.some(
+            (c) => c.from === "admin" && !c.read
+          );
+          setHasUnread(unreadExists);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 3000);
+    return () => clearInterval(interval);
+  }, [user?._id, token]);
+
   /* ---------------- OPEN CHAT ---------------- */
   const handleOpenChat = () => {
     if (!user || !user._id) {
@@ -26,6 +51,7 @@ export default function CustomerChat({ user }) {
       return;
     }
     setOpen(true);
+    setHasUnread(false);
   };
 
   /* ---------------- CLICK OUTSIDE TO CLOSE ---------------- */
@@ -65,7 +91,7 @@ export default function CustomerChat({ user }) {
     fetchChats();
     const interval = setInterval(fetchChats, 2000);
     return () => clearInterval(interval);
-  }, [open, user?._id]);
+  }, [open, user?._id, token]);
 
   /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
@@ -91,6 +117,7 @@ export default function CustomerChat({ user }) {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ reader: "customer" }),
         });
@@ -100,7 +127,7 @@ export default function CustomerChat({ user }) {
     };
 
     markRead();
-  }, [open, messages.length, user?._id]);
+  }, [open, messages.length, user?._id, token]);
 
   /* ---------------- SEND MESSAGE ---------------- */
   const sendMessage = async () => {
@@ -112,6 +139,7 @@ export default function CustomerChat({ user }) {
         {
           customerId: user._id,
           customerName: user.name,
+          mobile: user.mobile,
           from: "customer",
           message: msg,
         },
@@ -128,21 +156,23 @@ export default function CustomerChat({ user }) {
     <>
       <audio ref={audioRef} src="/notification.mp3" />
 
-      {/* Floating Button */}
-      <button
-        onClick={handleOpenChat}
-        className="fixed bottom-16 right-5 w-14 h-14 rounded-full text-white text-[26px] shadow-lg z-[100]
-        flex items-center justify-center active:scale-95 transition"
-        style={{ backgroundColor: PRIMARY }}
-      >
-        💬
-      </button>
+      {/* Floating Button (only if unread) */}
+      {(hasUnread || !open) && (
+        <button
+          onClick={handleOpenChat}
+          className="fixed bottom-16 right-5 w-14 h-14 rounded-full text-white text-[26px] shadow-lg z-[100]
+          flex items-center justify-center active:scale-95 transition"
+          style={{ backgroundColor: PRIMARY }}
+        >
+          💬
+        </button>
+      )}
 
       {/* CHAT BOX */}
       {open && (
         <div
           ref={chatBoxRef}
-          className="fixed bottom-28 right-5 w-[90vw] max-w-[400px] h-[45vh]
+          className="fixed bottom-15 right-5 w-[90vw] max-w-[400px] h-[45vh]
           sm:w-80 sm:h-[480px] bg-white shadow-xl rounded-xl flex flex-col z-[100] border"
         >
           {/* Header */}
