@@ -9,6 +9,7 @@ export default function CustomerChat({ user }) {
   const context = useContext(MyContext);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
+  const chatRef = useRef(null); // Chat container ref
 
   const PRIMARY = "#FC8934";
 
@@ -19,11 +20,30 @@ export default function CustomerChat({ user }) {
   const handleOpenChat = () => {
     if (!user || !user._id) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
-      window.location.href = "/login"; // চাইলে remove করতে পারো
+      window.location.href = "/login";
       return;
     }
     setOpen((prev) => !prev);
   };
+
+  // Click outside to close
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event) => {
+      if (chatRef.current && !chatRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside); // mobile support
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [open]);
 
   // Fetch chats
   useEffect(() => {
@@ -120,14 +140,21 @@ export default function CustomerChat({ user }) {
       </button>
 
       {open && user?._id && (
-        <div className="fixed bottom-20 right-5 w-[90vw] max-w-[400px] h-[80vh] sm:w-80 sm:h-[480px] md:w-96 md:h-[500px] bg-white shadow-xl rounded-xl flex flex-col z-[100] border">
+        <div
+          ref={chatRef} // attach ref
+          className="fixed bottom-32 right-5 w-[90vw] max-w-[400px] h-[40vh] sm:w-80 sm:h-[480px] md:w-96 md:h-[500px] bg-white shadow-xl rounded-xl flex flex-col z-[100] border"
+        >
           {/* Header */}
           <div
             className="p-3 text-white flex justify-between items-center rounded-t-xl"
             style={{ backgroundColor: PRIMARY }}
           >
-            <span className="font-semibold text-sm sm:text-base">যে কোন প্রয়োজনে চ্যাট করুন!</span>
-            <button onClick={() => setOpen(false)} className="text-lg sm:text-xl">✕</button>
+            <span className="font-semibold text-sm sm:text-base">
+              যে কোন প্রয়োজনে চ্যাট করুন!
+            </span>
+            <button onClick={() => setOpen(false)} className="text-lg sm:text-xl">
+              ✕
+            </button>
           </div>
 
           {/* Messages */}
@@ -170,8 +197,7 @@ export default function CustomerChat({ user }) {
               onChange={(e) => setMsg(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Type a message..."
-              className="flex-1 border rounded-lg px-3 py-2 
-              text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
+              className="flex-1 border rounded-lg px-3 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
             />
             <button
               onClick={sendMessage}

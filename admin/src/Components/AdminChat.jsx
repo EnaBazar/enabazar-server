@@ -95,10 +95,10 @@ export default function AdminChat() {
     });
 
   return (
-    <div className="h-[calc(100vh-70px)] bg-gray-100 flex overflow-hidden">
+    <div className="h-[calc(100vh-100px)] bg-gray-100 flex overflow-hidden">
       {/* ---------------- CUSTOMER LIST ---------------- */}
       <div
-        className={`bg-white border-r w-full h-[60px] md:w-1/4 absolute md:relative z-20 transition-all duration-300
+        className={`bg-white border-r w-full md:w-1/4 absolute md:relative z-20 transition-all duration-300
         ${showList ? "left-0" : "-left-full"} md:left-0`}
       >
         <div className="p-3 font-semibold border-b flex justify-between">
