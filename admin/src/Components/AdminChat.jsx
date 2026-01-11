@@ -7,9 +7,14 @@ export default function AdminChat() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [msg, setMsg] = useState("");
   const [showList, setShowList] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
 
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
-
+  const notifyAudioRef = useRef(null);
+  const PRIMARY = "#FF8904";
+  const HEADER = "#075E54";
   /* ---------------- FETCH ALL CHATS ---------------- */
   const fetchChats = async () => {
     try {
@@ -28,11 +33,10 @@ export default function AdminChat() {
             name: m.customerName,
             mobile: m.mobile || "",
             unread: 0,
-            // Demo image (later will be dynamic)
-            image: "https://via.placeholder.com/40", 
+            image: m.avatar || "/user.png",
           });
         }
-        if (m.from === "customer" && m.read === false) {
+        if (m.from === "customer" && !m.read) {
           map.get(m.customerId).unread += 1;
         }
       });
@@ -59,6 +63,7 @@ export default function AdminChat() {
       method: "POST",
     });
 
+    // Update local state
     setMessages((prev) =>
       prev.map((m) =>
         m.customerId === customer.id ? { ...m, read: true } : m
@@ -72,7 +77,7 @@ export default function AdminChat() {
     );
   };
 
-  /* ---------------- SEND MESSAGE ---------------- */
+  /* ---------------- SEND TEXT ---------------- */
   const sendMessage = async () => {
     if (!msg.trim() || !selectedCustomer) return;
 
@@ -81,6 +86,7 @@ export default function AdminChat() {
       customerName: selectedCustomer.name,
       mobile: selectedCustomer.mobile,
       from: "admin",
+      type: "text",
       message: msg,
     });
 
@@ -90,6 +96,52 @@ export default function AdminChat() {
     }
   };
 
+  /* ---------------- SEND AUDIO ---------------- */
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        if (!selectedCustomer) return;
+
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          await postData("/chat/send", {
+            customerId: selectedCustomer.id,
+            customerName: selectedCustomer.name,
+            mobile: selectedCustomer.mobile,
+            from: "admin",
+            type: "audio",
+            audio: reader.result,
+          });
+          fetchChats();
+        };
+
+        reader.readAsDataURL(blob);
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mic error:", err);
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  };
+
   /* ---------------- FILTERED MESSAGES ---------------- */
   const filteredMessages = selectedCustomer
     ? messages.filter((m) => m.customerId === selectedCustomer.id)
@@ -97,6 +149,11 @@ export default function AdminChat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    // Notify sound for new customer messages
+    if (!filteredMessages.length) return;
+    const last = filteredMessages[filteredMessages.length - 1];
+    if (last.from === "customer") notifyAudioRef.current?.play();
   }, [filteredMessages]);
 
   const formatTime = (date) =>
@@ -106,8 +163,50 @@ export default function AdminChat() {
       hour12: true,
     });
 
+
+
+      const deleteMessage = async (id) => {
+        try {
+          const res = await fetchDataFromApi(`/chat/delete/${id}`, { method: "DELETE" });
+          if (res?.success) setMessages((prev) => prev.filter((m) => m._id !== id));
+        } catch (err) {
+          console.error("Delete error:", err);
+        }
+      };
+    
+      /* ================= TOGGLE AUDIO PLAY ================= */
+      const toggleAudio = (id) => {
+        const audio = audioRefs.current[id];
+        if (!audio) return;
+    
+        if (playingAudioId && playingAudioId !== id) {
+          const prevAudio = audioRefs.current[playingAudioId];
+          prevAudio?.pause();
+        }
+    
+        if (audio.paused) {
+          audio.play();
+          setPlayingAudioId(id);
+        } else {
+          audio.pause();
+          setPlayingAudioId(null);
+        }
+      };
+    
+      /* ================= FORMAT DATETIME ================= */
+      const formatDateTime = (date) => {
+        const d = new Date(date);
+        const day = d.getDate().toString().padStart(2, "0");
+        const month = (d.getMonth() + 1).toString().padStart(2, "0");
+        const year = d.getFullYear();
+        const hours = d.getHours().toString().padStart(2, "0");
+        const minutes = d.getMinutes().toString().padStart(2, "0");
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+      };
   return (
     <div className="h-[calc(100vh-100px)] bg-gray-100 flex overflow-hidden">
+      <audio ref={notifyAudioRef} src="/notification.mp3" />
+
       {/* ---------------- CUSTOMER LIST ---------------- */}
       <div
         className={`bg-white border-r w-full md:w-1/4 absolute md:relative z-20 transition-all duration-300
@@ -132,13 +231,11 @@ export default function AdminChat() {
                 selectedCustomer?.id === c.id ? "bg-gray-200" : ""
               }`}
             >
-              {/* Demo image */}
-            <img
-  src="/user.png"
-  alt={c.name}
-  className="w-10 h-10 rounded-full object-cover"
-/>
-
+              <img
+                src={c.image}
+                alt={c.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
               <div className="flex flex-col text-left">
                 <span className="font-medium">{c.name}</span>
                 <span className="text-xs text-gray-500">Mobile: {c.mobile}</span>
@@ -156,24 +253,25 @@ export default function AdminChat() {
       {/* ---------------- CHAT AREA ---------------- */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className=" p-3 flex items-center gap-2  shadow-lg bg-orange-400 rounded-md">
+        <div className="p-3 flex items-center gap-2 shadow-lg bg-orange-400 rounded-md">
           <button
             className="md:hidden text-xl"
             onClick={() => setShowList(true)}
           >
             <img
-  src="/user.png"
-  alt={selectedCustomer ? selectedCustomer.name : "Guest"}
-  className="w-10 h-10 rounded-full object-cover"
-/>
-
+              src="/user.png"
+              alt={selectedCustomer ? selectedCustomer.name : "Guest"}
+              className="w-10 h-10 rounded-full object-cover"
+            />
           </button>
           <div className="flex flex-col">
-          <span className="flex flex-col font-semibold mb-1">
-            {selectedCustomer ? selectedCustomer.name : "Select a customer"}    
-          </span>
-           <span className="text-xs text-white">Mobile: {selectedCustomer ? selectedCustomer.mobile :"No Mobile"}</span>
-        </div>
+            <span className="flex flex-col font-semibold mb-1">
+              {selectedCustomer ? selectedCustomer.name : "Select a customer"}
+            </span>
+            <span className="text-xs text-white">
+              Mobile: {selectedCustomer ? selectedCustomer.mobile : "No Mobile"}
+            </span>
+          </div>
         </div>
 
         {/* Messages */}
@@ -190,10 +288,20 @@ export default function AdminChat() {
                     : "bg-white rounded-bl-sm"
                 }`}
               >
-                <p>{m.message}</p>
-                <p className="text-[10px] opacity-70 text-right mt-1">
-                  {formatTime(m.createdAt)}
-                </p>
+                {m.type === "audio" ? (
+                  <audio controls src={m.audio} className="w-full" />
+                ) : (
+                  <p>{m.message}</p>
+                )}
+              <div className="flex justify-between items-center text-[11px] text-white-500 mt-2">
+                      <span>{formatDateTime(m.createdAt)}</span>
+                      <button
+                        onClick={() => deleteMessage(m._id)}
+                        className="text-red-500 ml-2"
+                      >
+                        Delete
+                      </button>
+                    </div>
               </div>
             </div>
           ))}
@@ -201,23 +309,44 @@ export default function AdminChat() {
         </div>
 
         {/* Input */}
-        {selectedCustomer && (
-          <div className="bg-white p-3 border-t flex gap-2">
-            <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type message…"
-              className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={sendMessage}
-              className="bg-orange-400 text-white px-5 rounded-full text-sm"
-            >
-              Send
-            </button>
-          </div>
-        )}
+      {selectedCustomer && (
+  <div className="bg-white p-3 border-t flex gap-2">
+    <input
+      value={msg}
+      onChange={(e) => setMsg(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+      placeholder="Type message…"
+      className="flex-1 border rounded-full w-[60%] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    {/* SEND BUTTON */}
+    <button
+      onClick={sendMessage}
+      onMouseDown={(e) => e.preventDefault()}   // prevent input focus on click
+      onTouchStart={(e) => e.preventDefault()}  // prevent input focus on touch
+      className="px-4 py-2 rounded-full text-white transition-transform duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
+      style={{ backgroundColor: PRIMARY }}
+    >
+      Send
+    </button>
+
+    {/* MIC BUTTON */}
+    <button
+      onMouseDown={(e) => e.preventDefault()}   // prevent input focus on click
+      onTouchStart={(e) => e.preventDefault()}  // prevent input focus on touch
+      onMouseDownCapture={startRecording}       // start recording
+      onMouseUpCapture={stopRecording}         // stop recording
+      onTouchStartCapture={startRecording}     // start recording
+      onTouchEndCapture={stopRecording}        // stop recording
+      className={`w-10 h-10 rounded-full text-white flex items-center justify-center ${
+        isRecording ? "bg-red-500 animate-pulse" : "bg-green-500"
+      }`}
+    >
+      🎤
+    </button>
+  </div>
+)}
+
       </div>
     </div>
   );

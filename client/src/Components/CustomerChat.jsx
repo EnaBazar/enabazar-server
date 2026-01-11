@@ -10,13 +10,14 @@ export default function CustomerChat({ user }) {
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [playingAudioId, setPlayingAudioId] = useState(null);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-
   const messagesEndRef = useRef(null);
   const chatBoxRef = useRef(null);
   const notifyAudioRef = useRef(null);
+  const audioRefs = useRef({});
 
   const token = localStorage.getItem("accesstoken");
 
@@ -34,9 +35,7 @@ export default function CustomerChat({ user }) {
     const checkUnread = async () => {
       const res = await fetchDataFromApi(`/chat/customer/${user._id}`);
       if (res?.success) {
-        const unread = res.chats.some(
-          (c) => c.from === "admin" && !c.read
-        );
+        const unread = res.chats.some((c) => c.from === "admin" && !c.read);
         setHasUnread(unread);
       }
     };
@@ -143,6 +142,68 @@ export default function CustomerChat({ user }) {
     setIsRecording(false);
   };
 
+  /* ================= DELETE MESSAGE ================= */
+  const deleteMessage = async (id) => {
+    try {
+      const res = await fetchDataFromApi(`/chat/delete/${id}`, { method: "DELETE" });
+      if (res?.success) setMessages((prev) => prev.filter((m) => m._id !== id));
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
+  };
+
+  /* ================= TOGGLE AUDIO PLAY ================= */
+  const toggleAudio = (id) => {
+    const audio = audioRefs.current[id];
+    if (!audio) return;
+
+    if (playingAudioId && playingAudioId !== id) {
+      const prevAudio = audioRefs.current[playingAudioId];
+      prevAudio?.pause();
+    }
+
+    if (audio.paused) {
+      audio.play();
+      setPlayingAudioId(id);
+    } else {
+      audio.pause();
+      setPlayingAudioId(null);
+    }
+  };
+
+  /* ================= FORMAT DATETIME ================= */
+  const formatDateTime = (date) => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
+
+
+
+   /* ================= CLOSE CHAT ON OUTSIDE CLICK/TOUCH ================= */
+  useEffect(() => {
+    if (!open) return;
+
+    const handleOutsideClick = (e) => {
+      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [open]);
+
+
   return (
     <>
       <audio ref={notifyAudioRef} src="/notification.mp3" />
@@ -179,28 +240,24 @@ export default function CustomerChat({ user }) {
           <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
             {messages.map((m) => {
               const isMe = m.from === "customer";
-              const time = new Date(m.createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-
               return (
                 <div
                   key={m._id}
-                  className={`flex gap-2 ${
-                    isMe ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}
                 >
                   {!isMe && (
-                    <img
-                      src={DEMO_ADMIN_IMAGE}
-                      className="w-8 h-8 rounded-full"
-                    />
+                    <img src={DEMO_ADMIN_IMAGE} className="w-8 h-8 rounded-full" />
                   )}
 
-                  <div className="max-w-[75%]">
+                  <div className="max-w-[75%] flex flex-col gap-1">
                     {m.type === "audio" ? (
-                      <audio controls src={m.audio} className="w-full" />
+                      <div className="flex items-center gap-2">
+                           {m.type === "audio" ? (
+                  <audio controls src={m.audio} className="w-full h-[30px] !bg-red" />
+                ) : (
+                  <p>{m.message}</p>
+                )}
+                      </div>
                     ) : (
                       <div
                         className={`px-3 py-2 rounded-lg text-sm ${
@@ -213,10 +270,16 @@ export default function CustomerChat({ user }) {
                         {m.message}
                       </div>
                     )}
-                    <div className="text-[11px] text-gray-500 mt-1 text-right">
-                      {time}
+                    <div className="flex justify-between items-center text-[11px] text-gray-500 !mb-3">
+                      <span>{formatDateTime(m.createdAt)}</span>
+                      <button
+                        onClick={() => deleteMessage(m._id)}
+                        className="text-red-700 text-[14px]  !ml-2"
+                      >
+                        Delete
+                      </button>
                     </div>
-                  </div>
+                  </div> 
 
                   {isMe && (
                     <img
@@ -231,36 +294,46 @@ export default function CustomerChat({ user }) {
           </div>
 
           {/* INPUT */}
-          <div className="p-2 border-t flex items-center gap-2">
-            <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendText()}
-              placeholder="Type a message"
-              className="flex-1 border rounded-full px-4 py-2 text-sm"
-            />
+        {/* INPUT */}
+<div className="p-2 border-t flex items-center gap-2">
+  <input
+    value={msg}
+    onChange={(e) => setMsg(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && sendText()}
+    placeholder="Type a message"
+    className="flex-1 border rounded-full px-4 py-2 text-sm w-[60%]"
+  />
 
-            <button
-              onClick={sendText}
-              className="px-4 py-2 rounded-full text-white"
-              style={{ backgroundColor: PRIMARY }}
-            >
-              Send
-            </button>
+  <button
+  onClick={sendText}
+  onMouseDown={(e) => e.preventDefault()} // prevent input focus
+  onTouchStart={(e) => e.preventDefault()} // prevent input focus on mobile
+  className="px-4 py-2 rounded-full text-white transition-transform duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
+  style={{ backgroundColor: PRIMARY }}
+>
+  Send
+</button>
 
-            {/* MIC */}
-            <button
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              className={`w-10 h-10 rounded-full text-white ${
-                isRecording ? "bg-red-500" : "bg-green-500"
-              }`}
-            >
-              🎤
-            </button>
-          </div>
+  {/* MIC */}
+  <button
+    onMouseDown={(e) => {
+      e.preventDefault(); // prevent input focus
+      startRecording();
+    }}
+    onMouseUp={stopRecording}
+    onTouchStart={(e) => {
+      e.preventDefault(); // prevent input focus
+      startRecording();
+    }}
+    onTouchEnd={stopRecording}
+    className={`w-10 h-10 rounded-full text-white ${
+      isRecording ? "bg-red-500" : "bg-green-500"
+    }`}
+  >
+    🎤
+  </button>
+</div>
+
 
           <div className="text-[9px] p-2 text-right text-gray-400">
             Powered by Enabazar

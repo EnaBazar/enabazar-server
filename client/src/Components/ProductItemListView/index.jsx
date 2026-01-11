@@ -304,39 +304,22 @@ const ProductItem =(props) =>{
         ৳ {props?.item?.price}
       </span>
     </div>
+<Link to={`/product/${props?.item?._id}`}>
+            <Button
+              type="button"   // ✅ Fix
+              className="w-full btn-orgs btn-borders text-black py-2 rounded-lg 
+              shadow-md flex items-center justify-center gap-2"
+              size="small"
+             
+            >
+              <MdOutlineShoppingCart className="text-[14px] font-[500]" /> Order Now
+            </Button>
 
-    {/* Add to Cart */}
-    <div className="mt-4">
-      {!isAdded ? (
-        <Button
-          type="button"
-          className="w-full btn-orgs btn-borders py-2 rounded-lg shadow-sm flex items-center justify-center gap-2 text-sm"
-          onClick={() =>
-            addToCart(props?.item, context?.userData?._id, quantity)
-          }
-        >
-          <MdOutlineShoppingCart className="text-[14px]" /> Add to Cart
-        </Button>
-      ) : (
-        <div className="flex items-center justify-between rounded-md gap-2 border border-[rgba(0,0,0,0.1)]">
-          <Button
-            type="button"
-            className="!min-w-[30px] !w-[30px] !h-[30px] !bg-gray-400 !rounded-none"
-            onClick={minusQty}
-          >
-            <FaMinus className="text-white" />
-          </Button>
-          <span className="text-sm">{quantity}</span>
-          <Button
-            type="button"
-            className="!min-w-[30px] !w-[30px] !h-[30px] !bg-red-400 !rounded-none"
-            onClick={addQty}
-          >
-            <FaPlus className="text-white" />
-          </Button>
-        </div>
-      )}
-    </div>
+
+            </Link>
+
+  
+    
   </div>
 </div>
 

@@ -86,16 +86,7 @@ const Footer = () => {
 
     {/* Products & Company */}
     <div className="lg:w-2/5 flex flex-row justify-between gap-4">
-      <div>
-        <h2 className="font-semibold text-lg mb-3 text-[#FC8934]">Products</h2>
-        <ul className="flex flex-col gap-1">
-          {["Price drop","New Products","Best Sales","Contact Us","Site Map","Stores"].map((item, idx) => (
-            <li key={idx}>
-              <Link className="text-sm hover:text-[#FC8934]" to="/">{item}</Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+     
       <div>
         <h2 className="font-semibold text-lg mb-3 text-[#FC8934]">Our Company</h2>
         <ul className="flex flex-col gap-1">
