@@ -7,18 +7,16 @@ export default function CustomerChat({ user }) {
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-
   const context = useContext(MyContext);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const chatBoxRef = useRef(null);
-
   const PRIMARY = "#FC8934";
   const WHATSAPP_GREEN = "#25D366";
-
   const token = localStorage.getItem("accesstoken");
 
   /* ---------------- CHECK UNREAD ---------------- */
+
   useEffect(() => {
     if (!user?._id) return;
 
@@ -45,7 +43,7 @@ export default function CustomerChat({ user }) {
 
   /* ---------------- OPEN CHAT ---------------- */
   const handleOpenChat = () => {
-    if (!user || !user._id) {
+    if (!user || !user._id , !token) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
       window.location.href = "/login";
       return;
@@ -88,9 +86,9 @@ export default function CustomerChat({ user }) {
       }
     };
 
-    fetchChats();
-    const interval = setInterval(fetchChats, 2000);
-    return () => clearInterval(interval);
+  fetchChats();
+  const interval = setInterval(fetchChats, 2000);
+  return () => clearInterval(interval);
   }, [open, user?._id, token]);
 
   /* ---------------- AUTO SCROLL ---------------- */
@@ -154,16 +152,15 @@ export default function CustomerChat({ user }) {
 
   return (
     <>
-      <audio ref={audioRef} src="/notification.mp3" />
-
-      {/* Floating Button (only if unread) */}
+      <audio ref={audioRef} src="/notification.mp3"/>
+      {/* Floating Button (only if unread)*/}
       {(hasUnread || !open) && (
-        <button
-          onClick={handleOpenChat}
-          className="fixed bottom-16 right-5 w-14 h-14 rounded-full text-white text-[26px] shadow-lg z-[100]
-          flex items-center justify-center active:scale-95 transition"
-          style={{ backgroundColor: PRIMARY }}
-        >
+      <button
+      onClick={handleOpenChat}
+      className="fixed bottom-16 right-5 w-14 h-14 rounded-full text-white text-[26px] shadow-lg z-[100]
+      flex items-center justify-center active:scale-95 transition"
+      style={{ backgroundColor: PRIMARY }}
+      >
           💬
         </button>
       )}
