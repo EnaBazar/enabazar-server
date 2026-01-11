@@ -96,12 +96,13 @@ window.scrollTo(0,0)
     if(res?.error !== true){
   setIsLoading(false)
   context.openAlertBox("success",res?.message);
-
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
   setFormFields({
     mobile: "",
     password: ""
   })
-
+/
   localStorage.setItem("accesstoken",res?.data?.accesstoken)     
   localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
 

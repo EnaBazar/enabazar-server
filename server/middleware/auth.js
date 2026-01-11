@@ -10,7 +10,7 @@ const auth = (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({
-        message: "Provide token",
+        message: "Provide token", 
         error: true,
         success: false,
       });
