@@ -12,22 +12,31 @@ const AdsBannerSliderV2 = ({ data = [] }) => {
 
   return (
     <div className="py-5 w-full">
-      <Swiper
-        loop={true}
-        autoHeight={true} // ✅ slide height auto adjust
-        autoplay={{ delay: 2500, disableOnInteraction: false }}
-        breakpoints={{
-          0: { slidesPerView: 1, spaceBetween: 5 },
-          480: { slidesPerView: 1, spaceBetween: 5 },
-          768: { slidesPerView: 2, spaceBetween: 15 },
-          1024: { slidesPerView: 3, spaceBetween: 20 },
-          1280: { slidesPerView: 3, spaceBetween: 20 },
-        }}
-        navigation={context?.windowWidth < 992 ? false : true}
-        pagination={{ clickable: true }}
-        modules={[Navigation, Pagination, Autoplay]}
-        className="mySwiper smlBtn"
-      >
+  <Swiper
+  loop={true}
+  autoHeight={true}
+  autoplay={{ delay: 2500, disableOnInteraction: false }}
+
+  /* 🔥 MOBILE SCROLL FIX */
+  touchStartPreventDefault={true}
+  touchMoveStopPropagation={true}
+  simulateTouch={true}
+  resistanceRatio={0}
+  grabCursor={true}
+
+  breakpoints={{
+    0: { slidesPerView: 1, spaceBetween: 5 },
+    480: { slidesPerView: 1, spaceBetween: 5 },
+    768: { slidesPerView: 2, spaceBetween: 15 },
+    1024: { slidesPerView: 3, spaceBetween: 20 },
+    1280: { slidesPerView: 3, spaceBetween: 20 },
+  }}
+  navigation={context?.windowWidth < 992 ? false : true}
+  pagination={{ clickable: true }}
+  modules={[Navigation, Pagination, Autoplay]}
+  className="mySwiper smlBtn"
+>
+
         {data.length > 0 ? (
           data.map((item, index) => (
             <SwiperSlide

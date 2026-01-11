@@ -3,164 +3,158 @@ import { fetchDataFromApi, postData } from "../utils/api";
 import { MyContext } from "../App";
 
 export default function CustomerChat({ user }) {
+  const context = useContext(MyContext);
+
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const context = useContext(MyContext);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
   const messagesEndRef = useRef(null);
-  const audioRef = useRef(null);
   const chatBoxRef = useRef(null);
-  const PRIMARY = "#FC8934";
-  const WHATSAPP_GREEN = "#25D366";
+  const notifyAudioRef = useRef(null);
+
   const token = localStorage.getItem("accesstoken");
 
-  /* ---------------- CHECK UNREAD ---------------- */
+  const PRIMARY = "#25D366";
+  const HEADER = "#075E54";
 
+  const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
+  const DEMO_ADMIN_IMAGE =
+    "https://cdn-icons-png.flaticon.com/512/1995/1995550.png";
+
+  /* ================= CHECK UNREAD ================= */
   useEffect(() => {
     if (!user?._id) return;
 
     const checkUnread = async () => {
-      try {
-        const res = await fetchDataFromApi(`/chat/customer/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.success) {
-          const unreadExists = res.chats.some(
-            (c) => c.from === "admin" && !c.read
-          );
-          setHasUnread(unreadExists);
-        }
-      } catch (err) {
-        console.error(err);
+      const res = await fetchDataFromApi(`/chat/customer/${user._id}`);
+      if (res?.success) {
+        const unread = res.chats.some(
+          (c) => c.from === "admin" && !c.read
+        );
+        setHasUnread(unread);
       }
     };
 
     checkUnread();
-    const interval = setInterval(checkUnread, 3000);
-    return () => clearInterval(interval);
-  }, [user?._id, token]);
+    const i = setInterval(checkUnread, 3000);
+    return () => clearInterval(i);
+  }, [user?._id]);
 
-  /* ---------------- OPEN CHAT ---------------- */
+  /* ================= OPEN CHAT ================= */
   const handleOpenChat = () => {
-    if (!user || !user._id , !token) {
+    if (!user?._id || !token) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
-      window.location.href = "/login";
+      context.setOpenLoginPanel(true);
       return;
     }
     setOpen(true);
     setHasUnread(false);
   };
 
-  /* ---------------- CLICK OUTSIDE TO CLOSE ---------------- */
-  useEffect(() => {
-    if (!open) return;
-
-    const handleClickOutside = (e) => {
-      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [open]);
-
-  /* ---------------- FETCH CHATS ---------------- */
+  /* ================= FETCH CHATS ================= */
   useEffect(() => {
     if (!open || !user?._id) return;
 
-    const fetchChats = async () => {
-      try {
-        const res = await fetchDataFromApi(`/chat/customer/${user._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.success) setMessages(res.chats || []);
-      } catch (err) {
-        console.error("Chat fetch error:", err);
-      }
+    const loadChats = async () => {
+      const res = await fetchDataFromApi(`/chat/customer/${user._id}`);
+      if (res?.success) setMessages(res.chats || []);
     };
 
-  fetchChats();
-  const interval = setInterval(fetchChats, 2000);
-  return () => clearInterval(interval);
-  }, [open, user?._id, token]);
+    loadChats();
+    const i = setInterval(loadChats, 2000);
+    return () => clearInterval(i);
+  }, [open, user?._id]);
 
-  /* ---------------- AUTO SCROLL ---------------- */
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* ---------------- NOTIFICATION SOUND ---------------- */
+  /* ================= NOTIFY SOUND ================= */
   useEffect(() => {
     if (!messages.length) return;
     const last = messages[messages.length - 1];
-    if (last.from === "admin") {
-      audioRef.current?.play();
-    }
+    if (last.from === "admin") notifyAudioRef.current?.play();
   }, [messages]);
 
-  /* ---------------- MARK AS READ ---------------- */
-  useEffect(() => {
-    if (!open || !messages.length || !user?._id) return;
+  /* ================= SEND TEXT ================= */
+  const sendText = async () => {
+    if (!msg.trim()) return;
 
-    const markRead = async () => {
-      try {
-        await fetch(`https://api.goroabazar.com/chat/read/${user._id}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ reader: "customer" }),
-        });
-      } catch (err) {
-        console.error("Read error:", err);
-      }
-    };
+    await postData("/chat/send", {
+      customerId: user._id,
+      customerName: user.name,
+      mobile: user.mobile,
+      from: "customer",
+      type: "text",
+      message: msg,
+    });
 
-  }, [open, messages.length, user?._id, token]);
+    setMsg("");
+  };
 
-  /* ---------------- SEND MESSAGE ---------------- */
-  const sendMessage = async () => {
-    if (!msg.trim() || !user?._id) return;
-
+  /* ================= START RECORD ================= */
+  const startRecording = async () => {
     try {
-      const res = await postData(
-        `/chat/send`,
-        {
-          customerId: user._id,
-          customerName: user.name,
-          mobile: user.mobile,
-          from: "customer",
-          message: msg,
-          
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
 
-      if (res.success) setMsg("");
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          await postData("/chat/send", {
+            customerId: user._id,
+            customerName: user.name,
+            mobile: user.mobile,
+            from: "customer",
+            type: "audio",
+            audio: reader.result,
+          });
+        };
+
+        reader.readAsDataURL(blob);
+      };
+
+      recorder.start();
+      setIsRecording(true);
     } catch (err) {
-      console.error("Send error:", err);
+      console.error("Mic error:", err);
     }
+  };
+
+  /* ================= STOP RECORD ================= */
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
   };
 
   return (
     <>
-      <audio ref={audioRef} src="/notification.mp3"/>
-      {/* Floating Button (only if unread)*/}
+      <audio ref={notifyAudioRef} src="/notification.mp3" />
+
+      {/* Floating Button */}
       {(hasUnread || !open) && (
-      <button
-      onClick={handleOpenChat}
-      className="fixed bottom-16 right-5 w-14 h-14 rounded-full text-white text-[26px] shadow-lg z-[100]
-      flex items-center justify-center active:scale-95 transition"
-      style={{ backgroundColor: PRIMARY }}
-      >
+        <button
+          onClick={handleOpenChat}
+          className="fixed bottom-16 right-5 w-16 h-16 rounded-full text-white text-3xl shadow-lg z-[100]
+          flex items-center justify-center active:scale-95"
+          style={{ backgroundColor: PRIMARY }}
+        >
           💬
         </button>
       )}
@@ -169,78 +163,108 @@ export default function CustomerChat({ user }) {
       {open && (
         <div
           ref={chatBoxRef}
-          className="fixed bottom-15 right-5 w-[90vw] max-w-[400px] h-[45vh]
-          sm:w-80 sm:h-[480px] bg-white shadow-xl rounded-xl flex flex-col z-[100] border"
+          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] h-[70vh]
+          bg-white shadow-xl rounded-xl flex flex-col z-[100]"
         >
-          {/* Header */}
+          {/* HEADER */}
           <div
-            className="p-3 text-white flex justify-between items-center rounded-t-xl"
-            style={{ backgroundColor: PRIMARY }}
+            className="p-3 flex justify-between items-center text-white text-sm font-semibold"
+            style={{ backgroundColor: HEADER }}
           >
-            <span className="font-semibold text-sm">
-              যে কোন প্রয়োজনে চ্যাট করুন!
-            </span>
+            <span>Live Chat Support</span>
             <button onClick={() => setOpen(false)}>✕</button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 p-3 overflow-y-auto space-y-2 bg-[#FFF7F2]">
-            {messages.map((m) => (
-              <div
-                key={m._id}
-                className={m.from === "customer" ? "text-right" : "text-left"}
-              >
-                <span
-                  className={`inline-block px-3 py-2 rounded-lg max-w-[75%] break-words text-sm
-                  ${
-                    m.from === "customer"
-                      ? "text-white rounded-br-none"
-                      : "bg-white text-gray-800 border rounded-bl-none"
-                  }`}
-                  style={
-                    m.from === "customer"
-                      ? { backgroundColor: PRIMARY }
-                      : {}
-                  }
-                >
-                  {m.message}
-                </span>
+          {/* MESSAGES */}
+          <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
+            {messages.map((m) => {
+              const isMe = m.from === "customer";
+              const time = new Date(m.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
 
-                <div className="text-[10px] text-gray-500 mb-2">
-                  {new Date(m.createdAt).toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+              return (
+                <div
+                  key={m._id}
+                  className={`flex gap-2 ${
+                    isMe ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {!isMe && (
+                    <img
+                      src={DEMO_ADMIN_IMAGE}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  )}
+
+                  <div className="max-w-[75%]">
+                    {m.type === "audio" ? (
+                      <audio controls src={m.audio} className="w-full" />
+                    ) : (
+                      <div
+                        className={`px-3 py-2 rounded-lg text-sm ${
+                          isMe
+                            ? "text-white rounded-br-none"
+                            : "bg-white border rounded-bl-none"
+                        }`}
+                        style={isMe ? { backgroundColor: PRIMARY } : {}}
+                      >
+                        {m.message}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-gray-500 mt-1 text-right">
+                      {time}
+                    </div>
+                  </div>
+
+                  {isMe && (
+                    <img
+                      src={user?.avatar || DEMO_USER_IMAGE}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-2 border-t flex gap-2 bg-white">
+          {/* INPUT */}
+          <div className="p-2 border-t flex items-center gap-2">
             <input
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type a message..."
-              className="flex-1 border rounded-lg px-3 py-2 text-sm
-              focus:outline-none focus:ring-2 focus:ring-[#25D366]"
+              onKeyDown={(e) => e.key === "Enter" && sendText()}
+              placeholder="Type a message"
+              className="flex-1 border rounded-full px-4 py-2 text-sm"
             />
+
             <button
-              onClick={sendMessage}
-              className="text-white px-4 py-2 rounded-lg text-sm
-              hover:opacity-90 active:scale-95 transition"
-              style={{ backgroundColor: WHATSAPP_GREEN }}
+              onClick={sendText}
+              className="px-4 py-2 rounded-full text-white"
+              style={{ backgroundColor: PRIMARY }}
             >
               Send
             </button>
+
+            {/* MIC */}
+            <button
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+              className={`w-10 h-10 rounded-full text-white ${
+                isRecording ? "bg-red-500" : "bg-green-500"
+              }`}
+            >
+              🎤
+            </button>
           </div>
 
-          <span className="text-[9px] p-2 text-end text-gray-500">
-            Powered by Enabazar's
-          </span>
+          <div className="text-[9px] p-2 text-right text-gray-400">
+            Powered by Enabazar
+          </div>
         </div>
       )}
     </>
