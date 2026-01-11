@@ -34,7 +34,9 @@ const ProductDetailsComponant = (props) => {
 
   // ================= JWT LOGIN CHECK =================
   const checkLogin = () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accesstoken");
+   
+
     if (!token) {
       context?.openAlertBox("error", "অনুগ্রহ করে আগে লগইন করুন");
       context?.setOpenLoginPanel(true);
