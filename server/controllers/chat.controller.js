@@ -1,13 +1,37 @@
 import ChatModel from "../models/chat.model.js";
 import mongoose from "mongoose";
 
-// ✅ Send Message
+
+
 export const sendMessage = async (req, res) => {
   try {
-    const { customerId, customerName,mobile, from, message } = req.body;
+    const {
+      customerId,
+      customerName,
+      mobile,
+      from,
+      type,
+      message,
+      audio,
+    } = req.body;
 
-    if (!customerId || !from || !message) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
+    if (!customerId || !from || !type) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
+    }
+
+    // ❗ Validation
+    if (type === "text" && !message) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Text message required" });
+    }
+
+    if (type === "audio" && !audio) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Audio required" });
     }
 
     const chat = new ChatModel({
@@ -15,18 +39,27 @@ export const sendMessage = async (req, res) => {
       customerName,
       mobile,
       from,
-      message,
+      type,
+      message: type === "text" ? message : "",
+      audio: type === "audio" ? audio : "",
       read: from === "admin",
     });
 
     await chat.save();
 
-    return res.status(200).json({ success: true, chat });
+    return res.status(200).json({
+      success: true,
+      chat,
+    });
   } catch (error) {
     console.error("Send chat error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error" });
   }
 };
+
+
 
 // ✅ Get customer chats
 export const getCustomerChats = async (req, res) => {

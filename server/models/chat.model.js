@@ -4,15 +4,34 @@ const ChatSchema = new mongoose.Schema(
   {
     customerId: { type: String, required: true },
     customerName: String,
-      mobile: {
+    mobile: String,
+
+    from: {
       type: String,
-      trim: true,
+      enum: ["admin", "customer"],
+      required: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["text", "audio"],
+      default: "text",
+    },
+
+    message: {
+      type: String,
       default: "",
     },
 
-    from: { type: String, enum: ["admin", "customer"], required: true },
-    message: { type: String, required: true },
-    read: { type: Boolean, default: false },
+    audio: {
+      type: String, // base64 or audio URL
+      default: "",
+    },
+
+    read: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
