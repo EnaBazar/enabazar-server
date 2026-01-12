@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useContext } from "react";
 import { MyContext } from "../App";
 import io from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; // তোমার সার্ভারের URL
+const SOCKET_URL = "https://api.goroabazar.com"; // তোমার সার্ভারের URL
 let socket;
 
 export default function CustomerChat({ user }) {
@@ -55,7 +55,7 @@ export default function CustomerChat({ user }) {
     if (!user?._id || !open) return;
 
     const fetchChats = async () => {
-      const res = await fetch(`http://localhost:5000/chat/customer/${user._id}`, {
+      const res = await fetch(`https://api.goroabazar.com/chat/customer/${user._id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

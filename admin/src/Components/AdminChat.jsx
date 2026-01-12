@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; // সার্ভার URL
+const SOCKET_URL = "https://api.goroabazar.com"; // সার্ভার URL
 let socket;
 
 export default function AdminChat() {
