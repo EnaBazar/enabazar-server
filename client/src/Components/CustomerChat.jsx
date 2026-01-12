@@ -1,6 +1,9 @@
 import { useEffect, useState, useRef, useContext } from "react";
-import { fetchDataFromApi, postData } from "../utils/api";
 import { MyContext } from "../App";
+import io from "socket.io-client";
+
+const SOCKET_URL = "http://localhost:5000"; // তোমার সার্ভারের URL
+let socket;
 
 export default function CustomerChat({ user }) {
   const context = useContext(MyContext);
@@ -23,29 +26,53 @@ export default function CustomerChat({ user }) {
 
   const PRIMARY = "#25D366";
   const HEADER = "#075E54";
-
   const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
   const DEMO_ADMIN_IMAGE =
     "https://cdn-icons-png.flaticon.com/512/1995/1995550.png";
 
-  /* ================= CHECK UNREAD ================= */
+  /* ================== SOCKET SETUP ================== */
   useEffect(() => {
     if (!user?._id) return;
 
-    const checkUnread = async () => {
-      const res = await fetchDataFromApi(`/chat/customer/${user._id}`);
-      if (res?.success) {
-        const unread = res.chats.some((c) => c.from === "admin" && !c.read);
-        setHasUnread(unread);
-      }
-    };
+    socket = io(SOCKET_URL);
 
-    checkUnread();
-    const i = setInterval(checkUnread, 3000);
-    return () => clearInterval(i);
+    // join customer room
+    socket.emit("join", user._id);
+
+    // listen for new messages
+    socket.on("newMessage", (chat) => {
+      setMessages((prev) => [...prev, chat]);
+      if (chat.from === "admin") notifyAudioRef.current?.play();
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [user?._id]);
 
-  /* ================= OPEN CHAT ================= */
+  /* ================== FETCH INITIAL MESSAGES ================== */
+  useEffect(() => {
+    if (!user?._id || !open) return;
+
+    const fetchChats = async () => {
+      const res = await fetch(`http://localhost:5000/chat/customer/${user._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (data?.success) setMessages(data.chats || []);
+    };
+
+    fetchChats();
+  }, [user?._id, open, token]);
+
+  /* ================== AUTO SCROLL ================== */
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* ================== OPEN CHAT ================== */
   const handleOpenChat = () => {
     if (!user?._id || !token) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
@@ -56,54 +83,31 @@ export default function CustomerChat({ user }) {
     setHasUnread(false);
   };
 
-  /* ================= FETCH CHATS ================= */
-  useEffect(() => {
-    if (!open || !user?._id) return;
-
-    const loadChats = async () => {
-      const res = await fetchDataFromApi(`/chat/customer/${user._id}`);
-      if (res?.success) setMessages(res.chats || []);
-    };
-
-    loadChats();
-    const i = setInterval(loadChats, 2000);
-    return () => clearInterval(i);
-  }, [open, user?._id]);
-
-  /* ================= AUTO SCROLL ================= */
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  /* ================= NOTIFY SOUND ================= */
-  useEffect(() => {
-    if (!messages.length) return;
-    const last = messages[messages.length - 1];
-    if (last.from === "admin") notifyAudioRef.current?.play();
-  }, [messages]);
-
-  /* ================= SEND TEXT ================= */
-  const sendText = async () => {
+  /* ================== SEND TEXT ================== */
+  const sendText = () => {
     if (!msg.trim()) return;
 
-    await postData("/chat/send", {
+    const chatData = {
       customerId: user._id,
       customerName: user.name,
       mobile: user.mobile,
       from: "customer",
       type: "text",
       message: msg,
-    });
+    };
 
+    // send to socket
+    socket.emit("sendMessage", chatData);
+
+    setMessages((prev) => [...prev]);
     setMsg("");
   };
 
-  /* ================= START RECORD ================= */
+  /* ================== AUDIO RECORDING ================== */
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
@@ -111,21 +115,21 @@ export default function CustomerChat({ user }) {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
-      recorder.onstop = async () => {
+      recorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         const reader = new FileReader();
-
-        reader.onloadend = async () => {
-          await postData("/chat/send", {
+        reader.onloadend = () => {
+          const chatData = {
             customerId: user._id,
             customerName: user.name,
             mobile: user.mobile,
             from: "customer",
             type: "audio",
             audio: reader.result,
-          });
+          };
+          socket.emit("sendMessage", chatData);
+          setMessages((prev) => [...prev]);
         };
-
         reader.readAsDataURL(blob);
       };
 
@@ -136,42 +140,28 @@ export default function CustomerChat({ user }) {
     }
   };
 
-  /* ================= STOP RECORD ================= */
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
 
-  /* ================= DELETE MESSAGE ================= */
-  const deleteMessage = async (id) => {
-    try {
-      const res = await fetchDataFromApi(`/chat/delete/${id}`, { method: "DELETE" });
-      if (res?.success) setMessages((prev) => prev.filter((m) => m._id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
-  };
+  /* ================== CLOSE CHAT ON OUTSIDE CLICK ================== */
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsideClick = (e) => {
+      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [open]);
 
-  /* ================= TOGGLE AUDIO PLAY ================= */
-  const toggleAudio = (id) => {
-    const audio = audioRefs.current[id];
-    if (!audio) return;
-
-    if (playingAudioId && playingAudioId !== id) {
-      const prevAudio = audioRefs.current[playingAudioId];
-      prevAudio?.pause();
-    }
-
-    if (audio.paused) {
-      audio.play();
-      setPlayingAudioId(id);
-    } else {
-      audio.pause();
-      setPlayingAudioId(null);
-    }
-  };
-
-  /* ================= FORMAT DATETIME ================= */
+  /* ================== FORMAT DATETIME ================== */
   const formatDateTime = (date) => {
     const d = new Date(date);
     const day = d.getDate().toString().padStart(2, "0");
@@ -181,28 +171,6 @@ export default function CustomerChat({ user }) {
     const minutes = d.getMinutes().toString().padStart(2, "0");
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
-
-
-
-   /* ================= CLOSE CHAT ON OUTSIDE CLICK/TOUCH ================= */
-  useEffect(() => {
-    if (!open) return;
-
-    const handleOutsideClick = (e) => {
-      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("touchstart", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("touchstart", handleOutsideClick);
-    };
-  }, [open]);
-
 
   return (
     <>
@@ -238,27 +206,19 @@ export default function CustomerChat({ user }) {
 
           {/* MESSAGES */}
           <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
-            {messages.map((m) => {
+            {messages.map((m, idx) => {
               const isMe = m.from === "customer";
               return (
                 <div
-                  key={m._id}
+                  key={idx}
                   className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}
                 >
                   {!isMe && (
                     <img src={DEMO_ADMIN_IMAGE} className="w-8 h-8 rounded-full" />
                   )}
 
-                  <div className="max-w-[75%] flex flex-col gap-1">
-                    {m.type === "audio" ? (
-                      <div className="flex items-center gap-2">
-                           {m.type === "audio" ? (
-                  <audio controls src={m.audio} className="w-full h-[30px] !bg-red" />
-                ) : (
-                  <p>{m.message}</p>
-                )}
-                      </div>
-                    ) : (
+                  <div className="max-w-[70%] flex flex-col gap-1">
+                    {m.type === "text" ? (
                       <div
                         className={`px-3 py-2 rounded-lg text-sm ${
                           isMe
@@ -269,17 +229,18 @@ export default function CustomerChat({ user }) {
                       >
                         {m.message}
                       </div>
+                    ) : (
+                      <audio
+                        ref={(el) => (audioRefs.current[idx] = el) }
+                        src={m.audio}
+                        controls
+                        
+                      />
                     )}
                     <div className="flex justify-between items-center text-[11px] text-gray-500 !mb-3">
-                      <span>{formatDateTime(m.createdAt)}</span>
-                      <button
-                        onClick={() => deleteMessage(m._id)}
-                        className="text-red-700 text-[14px]  !ml-2"
-                      >
-                        Delete
-                      </button>
+                      <span>{formatDateTime(m.createdAt || new Date())}</span>
                     </div>
-                  </div> 
+                  </div>
 
                   {isMe && (
                     <img
@@ -294,48 +255,62 @@ export default function CustomerChat({ user }) {
           </div>
 
           {/* INPUT */}
-        {/* INPUT */}
-<div className="p-2 border-t flex items-center gap-2">
-  <input
-    value={msg}
-    onChange={(e) => setMsg(e.target.value)}
-    onKeyDown={(e) => e.key === "Enter" && sendText()}
-    placeholder="Type a message"
-    className="flex-1 border rounded-full px-4 py-2 text-sm w-[60%]"
-  />
-
-  <button
-  onClick={sendText}
-  onMouseDown={(e) => e.preventDefault()} // prevent input focus
-  onTouchStart={(e) => e.preventDefault()} // prevent input focus on mobile
-  className="px-4 py-2 rounded-full text-white transition-transform duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
-  style={{ backgroundColor: PRIMARY }}
+         <div className="flex flex md:flex-row gap-2 !mt-2">
+              <input
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendText()}
+                placeholder="Type a message"
+                className="flex-1 px-4 py-2 rounded-full border w-[56%]"
+              />
+              <div className="flex  gap-2">
+                <button
+  onMouseDown={(e) => {
+    e.preventDefault();      // input focus আটকাবে
+    e.stopPropagation();
+  }}
+  onTouchStart={(e) => {
+    e.preventDefault();      // mobile keyboard / text select আটকাবে
+    e.stopPropagation();
+  }}
+  onClick={sendText}         // আসল কাজ এখানেই হবে
+  className="px-4 py-2 rounded-full text-white bg-green-500 active:scale-95"
 >
   Send
 </button>
 
-  {/* MIC */}
-  <button
-    onMouseDown={(e) => {
-      e.preventDefault(); // prevent input focus
-      startRecording();
-    }}
-    onMouseUp={stopRecording}
-    onTouchStart={(e) => {
-      e.preventDefault(); // prevent input focus
-      startRecording();
-    }}
-    onTouchEnd={stopRecording}
-    className={`w-10 h-10 rounded-full text-white ${
-      isRecording ? "bg-red-500" : "bg-green-500"
-    }`}
-  >
-    🎤
-  </button>
-</div>
+              <button
+  onMouseDown={(e) => {
+    e.preventDefault(); // prevent text input selection
+    e.stopPropagation(); // stop event bubbling
+    startRecording();
+  }}
+  onMouseUp={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    stopRecording();
+  }}
+  onTouchStart={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startRecording();
+  }}
+  onTouchEnd={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    stopRecording();
+  }}
+  className={`w-10 h-10 rounded-full text-white ${
+    isRecording ? "bg-red-500" : "bg-green-500"
+  }`}
+>
+  🎤
+</button>
 
+              </div>
+            </div>
 
-          <div className="text-[9px] p-2 text-right text-gray-400">
+          <div className="text-[9px] p-2 text-right text-gray-400 ">
             Powered by Enabazar
           </div>
         </div>

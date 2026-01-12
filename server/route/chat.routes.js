@@ -7,14 +7,14 @@ import {
 } from "../controllers/chat.controller.js";
 import auth from "../middleware/auth.js";
 
-const chatrouter = express.Router();
+const router = express.Router();
 
-// ✅ Protected routes
-chatrouter.post("/send", auth, sendMessage);
-chatrouter.get("/customer/:customerId", auth, getCustomerChats);
-chatrouter.post("/read/:customerId", markChatsAsRead);
+// Customer routes (protected)
+router.post("/send", auth, sendMessage);
+router.get("/customer/:customerId", auth, getCustomerChats);
+router.post("/read/:customerId", auth, markChatsAsRead);
 
-// Admin only route (optional)
-chatrouter.get("/admin/all",getAllChats);
+// Admin routes (optional: protected by admin auth)
+router.get("/admin/all", auth, getAllChats);
 
-export default chatrouter;
+export default router;

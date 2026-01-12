@@ -1,107 +1,123 @@
 import { useEffect, useState, useRef } from "react";
-import { postData } from "../utils/api";
+import io from "socket.io-client";
+
+const SOCKET_URL = "http://localhost:5000"; // সার্ভার URL
+let socket;
 
 export default function AdminChat() {
-  const [messages, setMessages] = useState([]);
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]); // Customer list
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
-  const [showList, setShowList] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
+  const audioRefs = useRef({});
+  const chatBoxRef = useRef(null);
   const notifyAudioRef = useRef(null);
-  const PRIMARY = "#FF8904";
-  const HEADER = "#075E54";
-  /* ---------------- FETCH ALL CHATS ---------------- */
-  const fetchChats = async () => {
-    try {
-      const res = await fetch("https://api.goroabazar.com/chat/admin/all");
-      const data = await res.json();
-      if (!data.success) return;
 
-      setMessages(data.chats || []);
+  const token = localStorage.getItem("accesstoken");
 
-      // Customers map with unread count
-      const map = new Map();
-      data.chats.forEach((m) => {
-        if (!map.has(m.customerId)) {
-          map.set(m.customerId, {
-            id: m.customerId,
-            name: m.customerName,
-            mobile: m.mobile || "",
-            unread: 0,
-            image: m.avatar || "/user.png",
-          });
-        }
-        if (m.from === "customer" && !m.read) {
-          map.get(m.customerId).unread += 1;
-        }
-      });
+  const PRIMARY = "#25D366";
 
-      setCustomers([...map.values()]);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  /* ================== SOCKET SETUP ================== */
   useEffect(() => {
-    fetchChats();
-    const interval = setInterval(fetchChats, 2000);
-    return () => clearInterval(interval);
-  }, []);
+    socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-  /* ---------------- SELECT CUSTOMER ---------------- */
-  const handleSelectCustomer = async (customer) => {
-    setSelectedCustomer(customer);
-    setShowList(false);
+    // Admin joins room
+    socket.emit("join", "admin");
 
-    // Mark messages as read
-    await fetch(`https://api.goroabazar.com/chat/read/${customer.id}`, {
-      method: "POST",
+    // Listen for new messages
+    socket.on("newMessage", (chat) => {
+      if (selectedCustomer?._id === chat.customerId) {
+        setMessages((prev) => [...prev, chat]);
+        notifyAudioRef.current?.play();
+      } else {
+        // mark unread
+        setCustomers((prev) =>
+          prev.map((c) =>
+            c._id === chat.customerId ? { ...c, hasUnread: true } : c
+          )
+        );
+      }
     });
 
-    // Update local state
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.customerId === customer.id ? { ...m, read: true } : m
-      )
-    );
+    return () => {
+      socket.disconnect();
+    };
+  }, [selectedCustomer]);
 
+  /* ================== FETCH CUSTOMER LIST ================== */
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const res = await fetch(`${SOCKET_URL}/chat/admin/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        const uniqueCustomers = Array.from(
+          new Map(data.chats.map((c) => [c.customerId, c])).values()
+        ).map((c) => ({
+          _id: c.customerId,
+          name: c.customerName,
+          hasUnread: false,
+        }));
+        setCustomers(uniqueCustomers);
+      }
+    };
+    fetchCustomers();
+  }, [token]);
+
+  /* ================== SELECT CUSTOMER ================== */
+  const selectCustomer = async (customer) => {
+    setSelectedCustomer(customer);
     setCustomers((prev) =>
       prev.map((c) =>
-        c.id === customer.id ? { ...c, unread: 0 } : c
+        c._id === customer._id ? { ...c, hasUnread: false } : c
       )
     );
+
+    const res = await fetch(`${SOCKET_URL}/chat/customer/${customer._id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.success) setMessages(data.chats || []);
+
+    socket.emit("join", customer._id);
+
+    await fetch(`${SOCKET_URL}/chat/read/${customer._id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
   };
 
-  /* ---------------- SEND TEXT ---------------- */
-  const sendMessage = async () => {
+  /* ================== SEND TEXT ================== */
+  const sendText = () => {
     if (!msg.trim() || !selectedCustomer) return;
-
-    const res = await postData("/chat/send", {
-      customerId: selectedCustomer.id,
+    const chatData = {
+      customerId: selectedCustomer._id,
       customerName: selectedCustomer.name,
-      mobile: selectedCustomer.mobile,
       from: "admin",
       type: "text",
       message: msg,
-    });
-
-    if (res?.success) {
-      setMsg("");
-      fetchChats();
-    }
+    };
+    socket.emit("sendMessage", chatData);
+    setMessages((prev) => [...prev, chatData]);
+    setMsg("");
   };
 
-  /* ---------------- SEND AUDIO ---------------- */
+  /* ================== AUTO SCROLL ================== */
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* ================== AUDIO RECORDING ================== */
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
 
@@ -109,24 +125,20 @@ export default function AdminChat() {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
-      recorder.onstop = async () => {
-        if (!selectedCustomer) return;
-
+      recorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         const reader = new FileReader();
-
-        reader.onloadend = async () => {
-          await postData("/chat/send", {
-            customerId: selectedCustomer.id,
+        reader.onloadend = () => {
+          const chatData = {
+            customerId: selectedCustomer._id,
             customerName: selectedCustomer.name,
-            mobile: selectedCustomer.mobile,
             from: "admin",
             type: "audio",
             audio: reader.result,
-          });
-          fetchChats();
+          };
+          socket.emit("sendMessage", chatData);
+          setMessages((prev) => [...prev, chatData]);
         };
-
         reader.readAsDataURL(blob);
       };
 
@@ -142,211 +154,162 @@ export default function AdminChat() {
     setIsRecording(false);
   };
 
-  /* ---------------- FILTERED MESSAGES ---------------- */
-  const filteredMessages = selectedCustomer
-    ? messages.filter((m) => m.customerId === selectedCustomer.id)
-    : [];
+  /* ================== FORMAT DATE ================== */
+  const formatDateTime = (date) => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
 
+  /* ================== OUTSIDE CLICK CLOSE ================== */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!selectedCustomer) return;
 
-    // Notify sound for new customer messages
-    if (!filteredMessages.length) return;
-    const last = filteredMessages[filteredMessages.length - 1];
-    if (last.from === "customer") notifyAudioRef.current?.play();
-  }, [filteredMessages]);
+    const handleOutsideClick = (e) => {
+      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
+        setSelectedCustomer(null);
+      }
+    };
 
-  const formatTime = (date) =>
-    new Date(date).toLocaleString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("touchstart", handleOutsideClick, { passive: false });
 
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("touchstart", handleOutsideClick);
+    };
+  }, [selectedCustomer]);
 
-
-      const deleteMessage = async (id) => {
-        try {
-          const res = await fetchDataFromApi(`/chat/delete/${id}`, { method: "DELETE" });
-          if (res?.success) setMessages((prev) => prev.filter((m) => m._id !== id));
-        } catch (err) {
-          console.error("Delete error:", err);
-        }
-      };
-    
-      /* ================= TOGGLE AUDIO PLAY ================= */
-      const toggleAudio = (id) => {
-        const audio = audioRefs.current[id];
-        if (!audio) return;
-    
-        if (playingAudioId && playingAudioId !== id) {
-          const prevAudio = audioRefs.current[playingAudioId];
-          prevAudio?.pause();
-        }
-    
-        if (audio.paused) {
-          audio.play();
-          setPlayingAudioId(id);
-        } else {
-          audio.pause();
-          setPlayingAudioId(null);
-        }
-      };
-    
-      /* ================= FORMAT DATETIME ================= */
-      const formatDateTime = (date) => {
-        const d = new Date(date);
-        const day = d.getDate().toString().padStart(2, "0");
-        const month = (d.getMonth() + 1).toString().padStart(2, "0");
-        const year = d.getFullYear();
-        const hours = d.getHours().toString().padStart(2, "0");
-        const minutes = d.getMinutes().toString().padStart(2, "0");
-        return `${day}-${month}-${year} ${hours}:${minutes}`;
-      };
   return (
-    <div className="h-[calc(100vh-100px)] bg-gray-100 flex overflow-hidden">
+    <div className="flex flex-col md:flex-row h-[90vh] gap-2 p-2 md:p-4">
       <audio ref={notifyAudioRef} src="/notification.mp3" />
 
-      {/* ---------------- CUSTOMER LIST ---------------- */}
-      <div
-        className={`bg-white border-r w-full md:w-1/4 absolute md:relative z-20 transition-all duration-300
-        ${showList ? "left-0" : "-left-full"} md:left-0`}
-      >
-        <div className="p-3 font-semibold border-b flex justify-between">
-          Customers
-          <button
-            className="md:hidden text-sm text-blue-600"
-            onClick={() => setShowList(false)}
+      {/* CUSTOMER LIST */}
+      <div className="md:w-1/3 border rounded p-2 bg-white h-[30vh] md:h-auto overflow-y-auto">
+        <h3 className="text-lg font-bold mb-2">Customers</h3>
+        {customers.map((c) => (
+          <div
+            key={c._id}
+            className={`p-2 rounded mb-1 cursor-pointer flex justify-between items-center ${
+              selectedCustomer?._id === c._id ? "bg-green-100" : "hover:bg-gray-100"
+            }`}
+            onClick={() => selectCustomer(c)}
           >
-            Close
-          </button>
-        </div>
-
-        <div className="overflow-y-auto h-full">
-          {customers.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => handleSelectCustomer(c)}
-              className={`w-full px-3 py-2 border-b flex items-center gap-2 hover:bg-gray-100 ${
-                selectedCustomer?.id === c.id ? "bg-gray-200" : ""
-              }`}
-            >
-              <img
-                src={c.image}
-                alt={c.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <div className="flex flex-col text-left">
-                <span className="font-medium">{c.name}</span>
-                <span className="text-xs text-gray-500">Mobile: {c.mobile}</span>
-              </div>
-              {c.unread > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 rounded-full ml-auto">
-                  {c.unread}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+            <span>{c.name || c._id}</span>
+            {c.hasUnread && <span className="text-red-500 font-bold">●</span>}
+          </div>
+        ))}
       </div>
 
-      {/* ---------------- CHAT AREA ---------------- */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="p-3 flex items-center gap-2 shadow-lg bg-orange-400 rounded-md">
-          <button
-            className="md:hidden text-xl"
-            onClick={() => setShowList(true)}
-          >
-            <img
-              src="/user.png"
-              alt={selectedCustomer ? selectedCustomer.name : "Guest"}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          </button>
-          <div className="flex flex-col">
-            <span className="flex flex-col font-semibold mb-1">
-              {selectedCustomer ? selectedCustomer.name : "Select a customer"}
-            </span>
-            <span className="text-xs text-white">
-              Mobile: {selectedCustomer ? selectedCustomer.mobile : "No Mobile"}
-            </span>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {filteredMessages.map((m) => (
-            <div
-              key={m._id}
-              className={`flex ${m.from === "admin" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm shadow ${
-                  m.from === "admin"
-                    ? "bg-blue-500 text-white rounded-br-sm"
-                    : "bg-white rounded-bl-sm"
-                }`}
-              >
-                {m.type === "audio" ? (
-                  <audio controls src={m.audio} className="w-full" />
-                ) : (
-                  <p>{m.message}</p>
-                )}
-              <div className="flex justify-between items-center text-[11px] text-white-500 mt-2">
-                      <span>{formatDateTime(m.createdAt)}</span>
-                      <button
-                        onClick={() => deleteMessage(m._id)}
-                        className="text-red-500 ml-2"
-                      >
-                        Delete
-                      </button>
+      {/* CHAT BOX */}
+      <div
+        ref={chatBoxRef}
+        className="flex-1 flex flex-col bg-[#ECE5DD] rounded p-2 min-h-[60vh] md:min-h-[70vh]"
+      >
+        {selectedCustomer ? (
+          <>
+            <div className="flex-1 overflow-y-auto p-2">
+              {messages.map((m, idx) => {
+                const isAdmin = m.from === "admin";
+                return (
+                  <div
+                    key={idx}
+                    className={`flex gap-2 ${isAdmin ? "justify-end" : "justify-start"} mb-2`}
+                  >
+                    <div className="max-w-[70%] flex flex-col gap-1">
+                      {m.type === "text" ? (
+                        <div
+                          className={`px-3 py-2 rounded-lg text-sm ${
+                            isAdmin
+                              ? "text-white rounded-br-none"
+                              : "bg-white border rounded-bl-none"
+                          }`}
+                          style={isAdmin ? { backgroundColor: PRIMARY } : {}}
+                        >
+                          {m.message}
+                        </div>
+                      ) : (
+                        <audio
+                          ref={(el) => (audioRefs.current[idx] = el)}
+                          src={m.audio}
+                          controls
+                        />
+                      )}
+                      <div className="text-[10px] text-gray-500 text-right">
+                        {formatDateTime(m.createdAt || new Date())}
+                      </div>
                     </div>
+                  </div>
+                );
+              })}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* INPUT */}
+            <div className="flex flex md:flex-row gap-2 mt-2">
+              <input
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendText()}
+                placeholder="Type a message"
+                className="flex-1 px-4 py-2 rounded-full border w-[56%]"
+              />
+              <div className="flex  gap-2">
+                <button
+  onMouseDown={(e) => {
+    e.preventDefault();      // input focus আটকাবে
+    e.stopPropagation();
+  }}
+  onTouchStart={(e) => {
+    e.preventDefault();      // mobile keyboard / text select আটকাবে
+    e.stopPropagation();
+  }}
+  onClick={sendText}         // আসল কাজ এখানেই হবে
+  className="px-4 py-2 rounded-full text-white bg-green-500 active:scale-95"
+>
+  Send
+</button>
+
+              <button
+  onMouseDown={(e) => {
+    e.preventDefault(); // prevent text input selection
+    e.stopPropagation(); // stop event bubbling
+    startRecording();
+  }}
+  onMouseUp={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    stopRecording();
+  }}
+  onTouchStart={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startRecording();
+  }}
+  onTouchEnd={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    stopRecording();
+  }}
+  className={`w-10 h-10 rounded-full text-white ${
+    isRecording ? "bg-red-500" : "bg-green-500"
+  }`}
+>
+  🎤
+</button>
+
               </div>
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-      {selectedCustomer && (
-  <div className="bg-white p-3 border-t flex gap-2">
-    <input
-      value={msg}
-      onChange={(e) => setMsg(e.target.value)}
-      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-      placeholder="Type message…"
-      className="flex-1 border rounded-full w-[60%] px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-
-    {/* SEND BUTTON */}
-    <button
-      onClick={sendMessage}
-      onMouseDown={(e) => e.preventDefault()}   // prevent input focus on click
-      onTouchStart={(e) => e.preventDefault()}  // prevent input focus on touch
-      className="px-4 py-2 rounded-full text-white transition-transform duration-200 hover:opacity-90 hover:scale-105 active:scale-95"
-      style={{ backgroundColor: PRIMARY }}
-    >
-      Send
-    </button>
-
-    {/* MIC BUTTON */}
-    <button
-      onMouseDown={(e) => e.preventDefault()}   // prevent input focus on click
-      onTouchStart={(e) => e.preventDefault()}  // prevent input focus on touch
-      onMouseDownCapture={startRecording}       // start recording
-      onMouseUpCapture={stopRecording}         // stop recording
-      onTouchStartCapture={startRecording}     // start recording
-      onTouchEndCapture={stopRecording}        // stop recording
-      className={`w-10 h-10 rounded-full text-white flex items-center justify-center ${
-        isRecording ? "bg-red-500 animate-pulse" : "bg-green-500"
-      }`}
-    >
-      🎤
-    </button>
-  </div>
-)}
-
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            Select a customer to start chat
+          </div>
+        )}
       </div>
     </div>
   );

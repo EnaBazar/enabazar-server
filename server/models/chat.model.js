@@ -2,7 +2,12 @@ import mongoose from "mongoose";
 
 const ChatSchema = new mongoose.Schema(
   {
-    customerId: { type: String, required: true },
+    customerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
+
     customerName: String,
     mobile: String,
 
@@ -18,15 +23,8 @@ const ChatSchema = new mongoose.Schema(
       default: "text",
     },
 
-    message: {
-      type: String,
-      default: "",
-    },
-
-    audio: {
-      type: String, // base64 or audio URL
-      default: "",
-    },
+    message: String,
+    audio: String,
 
     read: {
       type: Boolean,
