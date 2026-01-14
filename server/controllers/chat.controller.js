@@ -22,8 +22,8 @@ export const sendMessage = async (req, res) => {
       customerId,
       customerName,
       mobile,
+      avatar,
       from,
-      type,
       message: type === "text" ? message : "",
       audio: type === "audio" ? audio : "",
       read: from === "admin", // Admin messages are marked read

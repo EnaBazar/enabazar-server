@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
       // ✅ admin এ পাঠাও
       io.to("admin").emit("newMessage", chat);
 
-      console.log("Message sent & saved");
+      console.log(chat);
 
     } catch (err) {
       console.error("Socket error:", err);

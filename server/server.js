@@ -54,6 +54,7 @@ io.on("connection", (socket) => {
         customerId: data.customerId,
         customerName: data.customerName,
         mobile: data.mobile,
+
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",

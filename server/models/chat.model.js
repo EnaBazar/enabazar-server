@@ -10,7 +10,9 @@ const ChatSchema = new mongoose.Schema(
 
     customerName: String,
     mobile: String,
-
+    image: String,
+      
+     
     from: {
       type: String,
       enum: ["admin", "customer"],
@@ -19,7 +21,7 @@ const ChatSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["text", "audio"],
+      enum: ["text", "audio","image"],
       default: "text",
     },
 
