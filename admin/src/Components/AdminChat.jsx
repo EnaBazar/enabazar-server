@@ -195,117 +195,166 @@ export default function AdminChat() {
   }, [selectedCustomer]);
 
   return (
-    <div className="flex flex-col  md:flex-row !h-[80vh] gap-2 p-2 md:p-4">
-      <audio ref={notifyAudioRef} src="/notification.mp3" />
+    <div className="flex h-[90vh] bg-gray-100 p-2 md:p-4 gap-2">
+  <audio ref={notifyAudioRef} src="/notification.mp3" />
 
-      {/* CUSTOMER LIST */}
-      <div className="md:w-1/3 fixed top-10  border-t shadow-md w-[90vw] z-100   border rounded h-[20vh] p-2 bg-white overflow-y-auto">
-        <h3 className="text-lg font-bold mb-2">Customers</h3>
-        {customers.map((c) => (
-          <div
-            key={c._id}
-            className={`p-2 rounded mb-1 cursor-pointer flex justify-between ${
+  {/* ================= CUSTOMER LIST ================= */}
+  <div
+    className={`
+      md:w-1/3 w-full bg-white rounded-xl shadow
+      flex flex-col overflow-hidden
+      ${selectedCustomer ? "hidden md:flex" : "flex"}
+    `}
+  >
+    {/* Header */}
+    <div className="px-4 py-3 border-b font-semibold text-gray-700">
+      Customers
+    </div>
+
+    {/* List */}
+    <div className="flex-1 overflow-y-auto">
+      {customers.map((c) => (
+        <div
+          key={c._id}
+          onClick={() => selectCustomer(c)}
+          className={`px-4 py-3 cursor-pointer flex justify-between items-center
+            border-b last:border-b-0
+            ${
               selectedCustomer?._id === c._id
-                ? "bg-green-100"
-                : "hover:bg-gray-100"
-            }`}
-            onClick={() => selectCustomer(c)}
-          >
-            <span>{c.name || c._id}</span>
-            {c.hasUnread && <span className="text-red-500 font-bold">●</span>}
+                ? "bg-green-50"
+                : "hover:bg-gray-50"
+            }
+          `}
+        >
+          <div className="flex flex-col">
+            <span className="font-medium text-sm text-gray-800">
+              {c.name || c._id}
+            </span>
+            {c.hasUnread && (
+              <span className="text-xs text-red-500">New message</span>
+            )}
           </div>
-        ))}
-      </div>
 
-      {/* CHAT BOX */}
-      <div
-        ref={chatBoxRef}
-        className="flex-1 flex flex-col bg-[#ECE5DD] h-[70vh] rounded p-2"
+          {c.hasUnread && (
+            <span className="w-2 h-2 rounded-full bg-red-500" />
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* ================= CHAT AREA ================= */}
+  <div
+    ref={chatBoxRef}
+    className={`
+      flex-1 bg-[#ECE5DD] rounded-xl shadow
+      flex flex-col overflow-hidden
+      ${selectedCustomer ? "flex" : "hidden md:flex"}
+    `}
+  >
+    {/* Chat Header */}
+    <div className="flex items-center gap-3 px-4 py-3 bg-white border-b">
+      <button
+        className="md:hidden text-green-600 text-lg"
+        onClick={() => setSelectedCustomer(null)}
       >
-        {selectedCustomer ? (
-          <>
-            <div className="flex-1 overflow-y-auto p-1">
-              {messages.map((m, idx) => {
-                const isAdmin = m.from === "admin";
-                return (
-                  <div
-                    key={idx}
-                    className={`flex ${
-                      isAdmin ? "justify-end" : "justify-start"
-                    } mb-2`}
-                  >
-                    <div className="max-w-[70%]">
-                      {m.type === "text" ? (
-                        <div
-                          className={`px-3 py-2 rounded-lg text-sm ${
-                            isAdmin
-                              ? "text-white rounded-br-none"
-                              : "bg-white border rounded-bl-none"
-                          }`}
-                          style={isAdmin ? { backgroundColor: PRIMARY } : {}}
-                        >
-                          {m.message}
-                        </div>
-                      ) : (
-                        <audio src={m.audio} controls 
-                        className="w-[60vw]"
-                        
-                        />
-                      )}
-                      <div className="text-[10px] text-gray-500 text-right">
-                        {formatDateTime(m.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
+        ←
+      </button>
 
-            {/* INPUT */}
-            <div className="flex flex fixed bottom-0 left-0 md:flex-row gap-2 !mt-2 p-2 bg-white border-t shadow-md z-50">
-              <input
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendText()}
-                placeholder="Type a message"
-                className="flex-1 px-4 py-2 !bg-white rounded-full border w-[56%]"
-              />
-
-              <button
-                onClick={sendText}
-                className="px-4 py-2 rounded-full text-white bg-green-500"
-              >
-                Send
-              </button>
-
-             
-
-<button
-  onMouseDown={startRecording}
-  onMouseUp={stopRecording}
-  onTouchStart={startRecording}
-  onTouchEnd={stopRecording}
-  className={`relative w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-200
-    ${isRecording ? "bg-red-500 scale-110" : "bg-green-500 hover:bg-green-600"}
-  `}
->
-  {/* 🔴 Recording pulse ring */}
-  {isRecording && (
-    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-  )}
-
-  <MicrophoneIcon className="w-6 h-6 relative z-10" />
-</button>
-
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
-            Select a customer to start chat
-          </div>
-        )}
+      <div className="flex flex-col">
+        <span className="font-semibold text-gray-800">
+          {selectedCustomer?.name || "Chat"}
+        </span>
+        <span className="text-xs text-gray-400">
+          Admin Support
+        </span>
       </div>
     </div>
+
+    {/* Messages */}
+    <div className="flex-1 overflow-y-auto px-3 py-2">
+      {selectedCustomer ? (
+        messages.map((m, idx) => {
+          const isAdmin = m.from === "admin";
+          return (
+            <div
+              key={idx}
+              className={`flex mb-2 ${
+                isAdmin ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div className="max-w-[75%]">
+                {m.type === "text" ? (
+                  <div
+                    className={`px-3 py-2 rounded-xl text-sm shadow-sm
+                      ${
+                        isAdmin
+                          ? "bg-green-500 text-white rounded-br-none"
+                          : "bg-white rounded-bl-none"
+                      }
+                    `}
+                  >
+                    {m.message}
+                  </div>
+                ) : (
+                  <audio
+                    src={m.audio}
+                    controls
+                    className="w-[65vw] md:w-[260px]"
+                  />
+                )}
+
+                <div className="text-[10px] text-gray-500 text-right mt-1">
+                  {formatDateTime(m.createdAt)}
+                </div>
+              </div>
+            </div>
+          );
+        })
+      ) : (
+        <div className="h-full flex items-center justify-center text-gray-400">
+          Select a customer to start chat
+        </div>
+      )}
+      <div ref={messagesEndRef} />
+    </div>
+
+    {/* Input Bar */}
+    {selectedCustomer && (
+      <div className="px-3 py-2 bg-white border-t flex gap-2 items-center">
+        <input
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendText()}
+          placeholder="Type a message"
+          className="flex-1 px-4 py-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+        />
+
+        <button
+          onClick={sendText}
+          className="px-4 py-2 rounded-full bg-green-500 text-white text-sm"
+        >
+          Send
+        </button>
+
+        <button
+          onMouseDown={startRecording}
+          onMouseUp={stopRecording}
+          onTouchStart={startRecording}
+          onTouchEnd={stopRecording}
+          className={`relative w-11 h-11 rounded-full flex items-center justify-center text-white
+            ${isRecording ? "bg-red-500 scale-110" : "bg-green-500"}
+          `}
+        >
+          {isRecording && (
+            <span className="absolute inset-0 rounded-full bg-red-400 animate-ping" />
+          )}
+          <MicrophoneIcon className="w-5 h-5 relative z-10" />
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+
   );
 }
