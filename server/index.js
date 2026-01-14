@@ -38,6 +38,7 @@ const io = new Server(server, {
     origin: "*", // পরে চাইলে specific domain দিবে
     methods: ["GET", "POST"],
   },
+    path: "/socket.io"
 });
 
 // socket instance globally available
