@@ -29,9 +29,15 @@ export default function AdminChat() {
     socket.emit("join", "admin");
 
     socket.on("newMessage", (chat) => {
-      if (selectedCustomer?._id === chat.customerId) {
+        if (chat.from === "admin") return;
+      if ( selectedCustomer && selectedCustomer?._id === chat.customerId) {
         setMessages((prev) => [...prev,chat]);
         notifyAudioRef.current?.play();
+
+         fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
       } else {
         setCustomers((prev) =>
           prev.map((c) =>
@@ -72,7 +78,7 @@ export default function AdminChat() {
 
     setCustomers((prev) =>
       prev.map((c) =>
-        c._id === customer._id ? { ...c, hasUnread: false } : c
+        c._id === customer._id ? { ...c, hasUnread: true } : c
       )
     );
 
@@ -104,7 +110,7 @@ export default function AdminChat() {
     };
 
     socket.emit("sendMessage", chatData);
-    setMessages((prev) => [...prev]); // ✅ FIX
+    setMessages((prev) => [...prev,chatData]); // ✅ FIX
     setMsg("");
   };
 
@@ -189,11 +195,11 @@ export default function AdminChat() {
   }, [selectedCustomer]);
 
   return (
-    <div className="flex flex-col md:flex-row h-[90vh] gap-2 p-2 md:p-4">
+    <div className="flex flex-col  md:flex-row !h-[80vh] gap-2 p-2 md:p-4">
       <audio ref={notifyAudioRef} src="/notification.mp3" />
 
       {/* CUSTOMER LIST */}
-      <div className="md:w-1/3 border rounded p-2 bg-white overflow-y-auto">
+      <div className="md:w-1/3 fixed top-10  border-t shadow-md w-[90vw] z-100   border rounded h-[20vh] p-2 bg-white overflow-y-auto">
         <h3 className="text-lg font-bold mb-2">Customers</h3>
         {customers.map((c) => (
           <div
@@ -214,11 +220,11 @@ export default function AdminChat() {
       {/* CHAT BOX */}
       <div
         ref={chatBoxRef}
-        className="flex-1 flex flex-col bg-[#ECE5DD] rounded p-2"
+        className="flex-1 flex flex-col bg-[#ECE5DD] h-[70vh] rounded p-2"
       >
         {selectedCustomer ? (
           <>
-            <div className="flex-1 overflow-y-auto p-2">
+            <div className="flex-1 overflow-y-auto p-1">
               {messages.map((m, idx) => {
                 const isAdmin = m.from === "admin";
                 return (
@@ -241,7 +247,10 @@ export default function AdminChat() {
                           {m.message}
                         </div>
                       ) : (
-                        <audio src={m.audio} controls />
+                        <audio src={m.audio} controls 
+                        className="w-[60vw]"
+                        
+                        />
                       )}
                       <div className="text-[10px] text-gray-500 text-right">
                         {formatDateTime(m.createdAt)}
@@ -254,13 +263,13 @@ export default function AdminChat() {
             </div>
 
             {/* INPUT */}
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex fixed bottom-0 left-0 md:flex-row gap-2 !mt-2 p-2 bg-white border-t shadow-md z-50">
               <input
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendText()}
                 placeholder="Type a message"
-                className="flex-1 px-4 py-2 rounded-full border"
+                className="flex-1 px-4 py-2 !bg-white rounded-full border w-[56%]"
               />
 
               <button
