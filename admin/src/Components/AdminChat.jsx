@@ -146,7 +146,7 @@ export default function AdminChat() {
           };
 
           socket.emit("sendMessage", chatData);
-          setMessages((prev) => [...prev]); // ✅ FIX
+          setMessages((prev) => [...prev,chatData]); // ✅ FIX
         };
 
         reader.readAsDataURL(blob);
@@ -327,7 +327,7 @@ export default function AdminChat() {
           onChange={(e) => setMsg(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendText()}
           placeholder="Type a message"
-          className="flex-1 px-4 py-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          className="flex-1 px-4 py-2 rounded-full border w-[56%] text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
         />
 
         <button
