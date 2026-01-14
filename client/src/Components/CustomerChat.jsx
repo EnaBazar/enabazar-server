@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useContext } from "react";
 import { MyContext } from "../App";
 import io from "socket.io-client";
+ import { MicrophoneIcon } from "@heroicons/react/24/solid";
+
 
 const SOCKET_URL = "https://api.goroabazar.com"; // তোমার সার্ভারের URL
 let socket;
@@ -255,7 +257,7 @@ export default function CustomerChat({ user }) {
           </div>
 
           {/* INPUT */}
-         <div className="flex flex md:flex-row gap-2 !mt-2">
+         <div className="flex flex md:flex-row gap-2 !mt-2 p-2">
               <input
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
@@ -279,32 +281,21 @@ export default function CustomerChat({ user }) {
   Send
 </button>
 
-              <button
-  onMouseDown={(e) => {
-    e.preventDefault(); // prevent text input selection
-    e.stopPropagation(); // stop event bubbling
-    startRecording();
-  }}
-  onMouseUp={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    stopRecording();
-  }}
-  onTouchStart={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    startRecording();
-  }}
-  onTouchEnd={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    stopRecording();
-  }}
-  className={`w-10 h-10 rounded-full text-white ${
-    isRecording ? "bg-red-500" : "bg-green-500"
-  }`}
+<button
+  onMouseDown={startRecording}
+  onMouseUp={stopRecording}
+  onTouchStart={startRecording}
+  onTouchEnd={stopRecording}
+  className={`relative w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-200
+    ${isRecording ? "bg-red-500 scale-110" : "bg-green-500 hover:bg-green-600"}
+  `}
 >
-  🎤
+  {/* 🔴 Recording pulse ring */}
+  {isRecording && (
+    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+  )}
+
+  <MicrophoneIcon className="w-6 h-6 relative z-10" />
 </button>
 
               </div>

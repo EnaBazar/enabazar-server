@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
-
+ import { MicrophoneIcon } from "@heroicons/react/24/solid";
 const SOCKET_URL = "https://api.goroabazar.com";
 let socket;
 
@@ -30,7 +30,7 @@ export default function AdminChat() {
 
     socket.on("newMessage", (chat) => {
       if (selectedCustomer?._id === chat.customerId) {
-        setMessages((prev) => [...prev, chat]);
+        setMessages((prev) => [...prev,chat]);
         notifyAudioRef.current?.play();
       } else {
         setCustomers((prev) =>
@@ -42,7 +42,7 @@ export default function AdminChat() {
     });
 
     return () => socket.disconnect();
-  }, []);
+  }, [selectedCustomer]);
 
   /* ================= FETCH CUSTOMERS ================= */
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function AdminChat() {
     };
 
     socket.emit("sendMessage", chatData);
-    setMessages((prev) => [...prev, chatData]); // ✅ FIX
+    setMessages((prev) => [...prev]); // ✅ FIX
     setMsg("");
   };
 
@@ -140,7 +140,7 @@ export default function AdminChat() {
           };
 
           socket.emit("sendMessage", chatData);
-          setMessages((prev) => [...prev, chatData]); // ✅ FIX
+          setMessages((prev) => [...prev]); // ✅ FIX
         };
 
         reader.readAsDataURL(blob);
@@ -270,17 +270,25 @@ export default function AdminChat() {
                 Send
               </button>
 
-              <button
-                onMouseDown={startRecording}
-                onMouseUp={stopRecording}
-                onTouchStart={startRecording}
-                onTouchEnd={stopRecording}
-                className={`w-10 h-10 rounded-full text-white ${
-                  isRecording ? "bg-red-500" : "bg-green-500"
-                }`}
-              >
-                🎤
-              </button>
+             
+
+<button
+  onMouseDown={startRecording}
+  onMouseUp={stopRecording}
+  onTouchStart={startRecording}
+  onTouchEnd={stopRecording}
+  className={`relative w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-200
+    ${isRecording ? "bg-red-500 scale-110" : "bg-green-500 hover:bg-green-600"}
+  `}
+>
+  {/* 🔴 Recording pulse ring */}
+  {isRecording && (
+    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+  )}
+
+  <MicrophoneIcon className="w-6 h-6 relative z-10" />
+</button>
+
             </div>
           </>
         ) : (
