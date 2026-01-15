@@ -19,7 +19,7 @@ io.on("connection", (socket) => {
       }
 
       // ✅ DB save (admin + customer দুজনেরই)
-      const chatbd = await chat.create({
+      const chat = await chat.create({
         customerId: data.customerId,
         customerName: data.customerName,
         from: data.from,          // "admin" | "customer"
@@ -30,12 +30,12 @@ io.on("connection", (socket) => {
       });
 
       // ✅ customer এ পাঠাও
-      io.to(data.customerId).emit("newMessage", chatbd);
+      io.to(data.customerId).emit("newMessage", chat);
 
       // ✅ admin এ পাঠাও
-      io.to("admin").emit("newMessage", chatbd);
+      io.to("admin").emit("newMessage", chat);
 
-      console.log(chatbd);
+      console.log(chat);
 
     } catch (err) {
       console.error("Socket error:", err);
