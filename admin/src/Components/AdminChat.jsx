@@ -11,91 +11,118 @@ export default function AdminChat() {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(true);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
-  const audioRefs = useRef({});
-  const chatBoxRef = useRef(null);
   const notifyAudioRef = useRef(null);
+const [token, setToken] = useState(null);
 
-  const token = localStorage.getItem("accesstoken");
-  const PRIMARY = "#25D366";
 
-  /* ================= SOCKET SETUP ================= */
+
+
+  /* ================= LOAD TOKEN (REFRESH SAFE) ================= */
   useEffect(() => {
-    socket = io(SOCKET_URL);
+    const savedToken = localStorage.getItem("accesstoken");
+    if (savedToken) setToken(savedToken);
+  }, []);
 
-    socket.emit("join", "admin"); // join admin room
+  /* ================= FETCH CUSTOMERS (REUSABLE) ================= */
+  const fetchCustomers = async () => {
+    if (!token) return;
+
+    setLoadingCustomers(true);
+
+    try {
+      const res = await fetch(`${SOCKET_URL}/chat/admin/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const map = {};
+
+        data.chats.forEach((chat) => {
+          if (!map[chat.customerId]) {
+            map[chat.customerId] = {
+              _id: chat.customerId,
+              name: chat.customerName,
+              mobile: chat.mobile,
+              hasUnread: false,
+            };
+          }
+
+          if (chat.from === "customer" && chat.read === false) {
+            map[chat.customerId].hasUnread = true;
+          }
+        });
+
+        setCustomers(Object.values(map));
+      }
+    } catch (err) {
+      console.error("Fetch customers error:", err);
+    }
+
+    setLoadingCustomers(false);
+  };
+
+  /* ================= INITIAL FETCH ================= */
+  useEffect(() => {
+    fetchCustomers();
+  }, [token]);
+
+  /* ================= SOCKET (AUTO RECONNECT + REFRESH) ================= */
+  useEffect(() => {
+    if (!token) return;
+
+    socket = io(SOCKET_URL, { reconnection: true });
+
+    socket.emit("join", "admin");
+
+    socket.on("connect", () => {
+      console.log("🟢 Socket connected");
+      fetchCustomers(); // 🔁 AUTO REFRESH
+    });
 
     socket.on("newMessage", (chat) => {
       if (chat.from === "admin") return;
 
-      // Update customer list unread status
-      setCustomers((prev) => {
-        const customerExists = prev.find((c) => c._id === chat.customerId);
-        if (customerExists) {
-          return prev.map((c) =>
-            c._id === chat.customerId ? { ...c, read: false } : c
-          );
-        } else {
-          return [
-            ...prev,
-            {
-              _id: chat.customerId,
-              name: chat.customerName,
-              mobile: chat.mobile,
-              read: false,
-            },
-          ];
-        }
-      });
-
-      // Append message if selected customer matches
-      if (selectedCustomer && selectedCustomer._id === chat.customerId) {
+      if (selectedCustomer?._id === chat.customerId) {
         setMessages((prev) => [...prev, chat]);
         notifyAudioRef.current?.play();
 
-        // Mark messages read in backend
         fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        // Mark read locally
+      } else {
         setCustomers((prev) =>
           prev.map((c) =>
-            c._id === chat.customerId ? { ...c, read: true } : c
+            c._id === chat.customerId
+              ? { ...c, hasUnread: true }
+              : c
           )
         );
-      } else {
-        notifyAudioRef.current?.play();
       }
     });
 
-    return () => socket.disconnect();
-  }, [selectedCustomer]);
-
-  /* ================= FETCH CUSTOMERS ================= */
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      const res = await fetch(`${SOCKET_URL}/chat/admin/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.success) {
-        const uniqueCustomers = Array.from(
-          new Map(data.chats.map((c) => [c.customerId, c])).values()
-        ).map((c) => ({
-          _id: c.customerId,
-          name: c.customerName,
-          mobile: c.mobile,
-          read: true,
-        }));
-        setCustomers(uniqueCustomers);
-      }
+    return () => {
+      socket.disconnect();
     };
-    fetchCustomers();
+  }, [token, selectedCustomer]);
+
+  /* ================= NETWORK RECONNECT ================= */
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("🌐 Network back online");
+      fetchCustomers();
+    };
+
+    window.addEventListener("online", handleOnline);
+
+    return () => window.removeEventListener("online", handleOnline);
   }, [token]);
 
   /* ================= SELECT CUSTOMER ================= */
@@ -104,13 +131,15 @@ export default function AdminChat() {
 
     setCustomers((prev) =>
       prev.map((c) =>
-        c._id === customer._id ? { ...c, read: true } : c
+        c._id === customer._id ? { ...c, hasUnread: false } : c
       )
     );
 
-    const res = await fetch(`${SOCKET_URL}/chat/customer/${customer._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${SOCKET_URL}/chat/customer/${customer._id}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
     const data = await res.json();
     if (data.success) setMessages(data.chats || []);
 
@@ -122,7 +151,7 @@ export default function AdminChat() {
     });
   };
 
-  /* ================= SEND TEXT ================= */
+  /* ================= SEND MESSAGE ================= */
   const sendText = () => {
     if (!msg.trim() || !selectedCustomer) return;
 
@@ -145,211 +174,157 @@ export default function AdminChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* ================= AUDIO RECORD ================= */
+  /* ================= AUDIO ================= */
   const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = recorder;
+    audioChunksRef.current = [];
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
+    recorder.ondataavailable = (e) => {
+      if (e.data.size) audioChunksRef.current.push(e.data);
+    };
 
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const reader = new FileReader();
+    recorder.onstop = () => {
+      const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+      const reader = new FileReader();
 
-        reader.onloadend = () => {
-          const chatData = {
-            customerId: selectedCustomer._id,
-            customerName: selectedCustomer.name,
-            from: "admin",
-            type: "audio",
-            audio: reader.result,
-            createdAt: new Date(),
-          };
-
-          socket.emit("sendMessage", chatData);
-          setMessages((prev) => [...prev, chatData]);
+      reader.onloadend = () => {
+        const chatData = {
+          customerId: selectedCustomer._id,
+          customerName: selectedCustomer.name,
+          from: "admin",
+          type: "audio",
+          audio: reader.result,
+          createdAt: new Date(),
         };
 
-        reader.readAsDataURL(blob);
+        socket.emit("sendMessage", chatData);
+        setMessages((prev) => [...prev, chatData]);
       };
 
-      recorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Mic error:", err);
-    }
+      reader.readAsDataURL(blob);
+    };
+
+    recorder.start();
+    setIsRecording(true);
   };
 
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
-
-  /* ================= FORMAT DATE ================= */
-  const formatDateTime = (date) => {
-    const d = new Date(date);
-    return `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${d.getFullYear()} ${d
-      .getHours()
-      .toString()
-      .padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
-  };
-
-  /* ================= OUTSIDE CLICK ================= */
-  useEffect(() => {
-    if (!selectedCustomer) return;
-
-    const handleOutsideClick = (e) => {
-      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
-        setSelectedCustomer(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("touchstart", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("touchstart", handleOutsideClick);
-    };
-  }, [selectedCustomer]);
-
+  /* ================= UI ================= */
   return (
-    <div className="flex h-[90vh] bg-gray-100 p-2 md:p-4 gap-2">
+    <div className="flex h-[100dvh] bg-gray-100">
       <audio ref={notifyAudioRef} src="/notification.mp3" />
 
-      {/* ================= CUSTOMER LIST ================= */}
+      {/* ========== CUSTOMER LIST ========== */}
       <div
-        className={`md:w-1/3 w-full bg-white rounded-xl shadow flex flex-col overflow-hidden ${
-          selectedCustomer ? "hidden md:flex" : "flex"
-        }`}
+        className={`w-full md:w-1/3 bg-white border-r
+        ${selectedCustomer ? "hidden md:flex" : "flex"}
+        flex-col`}
       >
-        <div className="px-4 py-3 border-b font-semibold text-gray-700">
-          Customers
-        </div>
+        <div className="p-4 font-semibold border-b">Customers</div>
 
         <div className="flex-1 overflow-y-auto">
-          {customers.map((c) => (
-            <div
-              key={c._id}
-              onClick={() => selectCustomer(c)}
-              className={`px-4 py-3 cursor-pointer flex justify-between items-center
-                border-b last:border-b-0
-                ${
-                  selectedCustomer?._id === c._id
-                    ? "bg-green-50"
-                    : "hover:bg-gray-50"
-                }
-              `}
-            >
-              <div className="flex flex-col">
-                <span className="font-medium text-sm text-gray-800">
-                  {c.name || c._id}
-                </span>
+          {loadingCustomers ? (
+            <div className="p-4 text-center text-gray-400">
+              Loading customers...
+            </div>
+          ) : customers.length === 0 ? (
+            <div className="p-4 text-center text-gray-400">
+              No customers
+            </div>
+          ) : (
+            customers.map((c) => (
+              <div
+                key={c._id}
+                onClick={() => selectCustomer(c)}
+                className="px-4 py-3 border-b cursor-pointer hover:bg-gray-50 flex justify-between"
+              >
+                <div>
+                  <div className="font-medium text-sm">{c.name}</div>
+                  {c.hasUnread && (
+                    <span className="text-xs text-red-500">
+                      New message
+                    </span>
+                  )}
+                </div>
 
-                {!c.read && (
-                  <span className="text-xs text-red-500">New message</span>
+                {c.hasUnread && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full mt-2" />
                 )}
               </div>
-
-              {!c.read && (
-                <span className="w-2 h-2 rounded-full bg-red-500" />
-              )}
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
-      {/* ================= CHAT AREA ================= */}
+      {/* ========== CHAT AREA ========== */}
       <div
-        ref={chatBoxRef}
-        className={`flex-1 bg-[#ECE5DD] rounded-xl shadow flex flex-col overflow-hidden ${
-          selectedCustomer ? "flex" : "hidden md:flex"
-        }`}
+        className={`flex-1 flex flex-col
+        ${selectedCustomer ? "flex" : "hidden md:flex"}`}
       >
-        {/* Chat Header */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-white border-b mt-5">
+        {/* Header */}
+        <div className="flex items-center gap-3 p-3 bg-white border-b">
           <button
             className="md:hidden text-green-600 text-lg"
             onClick={() => setSelectedCustomer(null)}
           >
             ←
           </button>
-
-          <div className="flex flex-col">
-            <span className="font-semibold text-gray-800">
+          <div>
+            <div className="font-semibold">
               {selectedCustomer?.name || "Chat"}
-            </span>
-            <span className="text-xs text-gray-400">
-              {selectedCustomer?.mobile || "00881*********"}
-            </span>
+            </div>
+            <div className="text-xs text-gray-400">
+              {selectedCustomer?.mobile}
+            </div>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-3 py-2 mt-2">
-          {selectedCustomer ? (
-            messages.map((m, idx) => {
-              const isAdmin = m.from === "admin";
-              return (
-                <div
-                  key={idx}
-                  className={`flex mb-2 ${
-                    isAdmin ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div className="max-w-[75%]">
-                    {m.type === "text" ? (
-                      <div
-                        className={`px-3 py-2 rounded-xl text-sm shadow-sm ${
-                          isAdmin
-                            ? "bg-green-500 text-white rounded-br-none"
-                            : "bg-white rounded-bl-none"
-                        }`}
-                      >
-                        {m.message}
-                      </div>
-                    ) : (
-                      <audio
-                        src={m.audio}
-                        controls
-                        className="w-[65vw] md:w-[260px]"
-                      />
-                    )}
-                    <div className="text-[10px] text-gray-500 text-right mt-1">
-                      {formatDateTime(m.createdAt)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
-              Select a customer to start chat
+        <div className="flex-1 overflow-y-auto p-3 bg-[#ECE5DD]">
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={`flex mb-2 ${
+                m.from === "admin" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`px-3 py-2 rounded-xl text-sm max-w-[75%]
+                ${
+                  m.from === "admin"
+                    ? "bg-green-500 text-white rounded-br-none"
+                    : "bg-white rounded-bl-none"
+                }`}
+              >
+                {m.type === "text" ? (
+                  m.message
+                ) : (
+                  <audio src={m.audio} controls />
+                )}
+              </div>
             </div>
-          )}
+          ))}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar */}
+        {/* Input */}
         {selectedCustomer && (
-          <div className="px-3 py-2 bg-white border-t flex gap-2 items-center">
+          <div className="p-2 bg-white flex gap-2 items-center">
             <input
               value={msg}
               onChange={(e) => setMsg(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendText()}
-              placeholder="Type a message"
-              className="flex-1 px-4 py-2 rounded-full border w-[56%] text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+              placeholder="Type message"
+              className="flex-1 border rounded-full px-4 py-2 text-sm"
             />
             <button
               onClick={sendText}
-              className="px-4 py-2 rounded-full bg-green-500 text-white text-sm"
+              className="bg-green-500 text-white px-4 py-2 rounded-full text-sm"
             >
               Send
             </button>
@@ -358,14 +333,11 @@ export default function AdminChat() {
               onMouseUp={stopRecording}
               onTouchStart={startRecording}
               onTouchEnd={stopRecording}
-              className={`relative w-11 h-11 rounded-full flex items-center justify-center text-white ${
-                isRecording ? "bg-red-500 scale-110" : "bg-green-500"
+              className={`w-11 h-11 rounded-full flex items-center justify-center text-white ${
+                isRecording ? "bg-red-500" : "bg-green-500"
               }`}
             >
-              {isRecording && (
-                <span className="absolute inset-0 rounded-full bg-red-400 animate-ping" />
-              )}
-              <MicrophoneIcon className="w-5 h-5 relative z-10" />
+              <MicrophoneIcon className="w-5 h-5" />
             </button>
           </div>
         )}

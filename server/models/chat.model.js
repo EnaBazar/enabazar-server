@@ -10,7 +10,7 @@ const ChatSchema = new mongoose.Schema(
 
     customerName: String,
     mobile: String,
-    image: String,
+
       
      
     from: {

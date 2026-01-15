@@ -128,6 +128,7 @@ export default function CustomerChat({ user }) {
             from: "customer",
             type: "audio",
             audio: reader.result,
+            
           };
           socket.emit("sendMessage", chatData);
           setMessages((prev) => [...prev]);

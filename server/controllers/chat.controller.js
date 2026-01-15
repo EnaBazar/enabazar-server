@@ -22,7 +22,7 @@ export const sendMessage = async (req, res) => {
       customerId,
       customerName,
       mobile,
-      avatar,
+    
       from,
       message: type === "text" ? message : "",
       audio: type === "audio" ? audio : "",

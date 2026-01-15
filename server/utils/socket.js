@@ -8,7 +8,7 @@ io.on("connection", (socket) => {
   });
 
   /* ===== SEND MESSAGE ===== */
-  socket.on("sendMessage", async (data) => {
+  socket.on("sendMessages", async (data) => {
     try {
       console.log("Incoming:", data);
 
@@ -19,7 +19,7 @@ io.on("connection", (socket) => {
       }
 
       // ✅ DB save (admin + customer দুজনেরই)
-      const chat = await chat.create({
+      const chatbd = await chat.create({
         customerId: data.customerId,
         customerName: data.customerName,
         from: data.from,          // "admin" | "customer"
@@ -30,12 +30,12 @@ io.on("connection", (socket) => {
       });
 
       // ✅ customer এ পাঠাও
-      io.to(data.customerId).emit("newMessage", chat);
+      io.to(data.customerId).emit("newMessage", chatbd);
 
       // ✅ admin এ পাঠাও
-      io.to("admin").emit("newMessage", chat);
+      io.to("admin").emit("newMessage", chatbd);
 
-      console.log(chat);
+      console.log(chatbd);
 
     } catch (err) {
       console.error("Socket error:", err);
