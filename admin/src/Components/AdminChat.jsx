@@ -271,12 +271,12 @@ export default function AdminChat() {
               <div
                 className={`px-3 py-2 rounded-xl text-sm max-w-[75%] ${
                   m.from === "admin"
-                    ? "bg-x-500 text-white rounded-br-none"
+                    ? "bg-green-500 text-white rounded-br-none"
                     : "bg-white rounded-bl-none"
                 }`}
               >
                 {m.type === "text" ? m.message : <audio src={m.audio} controls  className="w-[56vw]"/>}
-                <div className="text-[10px] text-gray-500 text-right mt-1">
+                <div className="text-[10px] text-white-500 text-right mt-1">
                   {formatDateTime(m.createdAt)}
                 </div>
               </div>
