@@ -16,12 +16,17 @@ export default function AdminChat() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const notifyAudioRef = useRef(null);
+const socketRef = useRef(null);
 
   /* Load token */
   useEffect(() => {
     const savedToken = localStorage.getItem("accesstoken");
+  
     if (savedToken) setToken(savedToken);
-  }, []);
+    
+  }, []); 
+
+
 
   /* Fetch initial customer list */
   const fetchCustomers = async () => {
@@ -53,9 +58,8 @@ export default function AdminChat() {
     }
   };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, [token]);
+
+
 
   /* ================= SOCKET SETUP ================= */
   useEffect(() => {
@@ -65,14 +69,14 @@ export default function AdminChat() {
     socket.emit("join", "admin");
 
     socket.on("newMessage", async (chat) => {
-      if (chat.from === "admin") return;
-
+    
+    fetchCustomers();
       // Update customer list: add new customer if not exists
       setCustomers((prev) => {
         const exists = prev.find((c) => c._id === chat.customerId);
         if (exists) {
           return prev.map((c) =>
-            c._id === chat.customerId ? { ...c, hasUnread: true } : c
+            c._id === chat.customerId ? { ...c, hasUnread: false } : c
           );
         } else {
           return [
@@ -147,7 +151,7 @@ export default function AdminChat() {
     };
 
     socket.emit("sendMessage", chatData);
-    setMessages((prev) => [...prev, chatData]);
+    setMessages((prev) => [...prev]);
     setMsg("");
   };
 
@@ -176,7 +180,7 @@ export default function AdminChat() {
             createdAt: new Date(),
           };
           socket.emit("sendMessage", chatData);
-          setMessages((prev) => [...prev, chatData]);
+          setMessages((prev) => [...prev]);
         };
         reader.readAsDataURL(blob);
       };
@@ -210,113 +214,144 @@ export default function AdminChat() {
       .padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
   };
 
+    useEffect(() => {
+        fetchCustomers();
+    const interval = setInterval(fetchCustomers, 500);
+    return () => clearInterval(interval);
+  }, [token]);
   /* ================= UI ================= */
   return (
-    <div className="flex h-[100dvh] bg-gray-100">
-      <audio ref={notifyAudioRef} src="/notification.mp3" />
+   <div className="h-[100dvh] bg-gray-100 flex overflow-hidden">
+  <audio ref={notifyAudioRef} src="/notification.mp3" />
 
-      {/* Customer List */}
-      <div
-        className={`md:w-1/3 w-full bg-white rounded-xl shadow flex flex-col ${
-          selectedCustomer ? "hidden md:flex" : "flex"
-        }`}
-      >
-        <div className="p-4 font-semibold border-b">Customers</div>
-        <div className="flex-1 overflow-y-auto">
-          {customers.map((c) => (
-            <div
-              key={c._id}
-              onClick={() => selectCustomer(c)}
-              className="px-4 py-3 border-b cursor-pointer hover:bg-gray-50 flex justify-between"
-            >
-              <div>
-                <div className="font-medium text-sm">{c.name}</div>
-                {c.hasUnread && (
-                  <span className="text-xs text-red-500">New message</span>
-                )}
-              </div>
-              {c.hasUnread && <span className="w-2 h-2 bg-red-500 rounded-full mt-2" />}
-            </div>
-          ))}
-        </div>
-      </div>
+  {/* ================= CUSTOMER LIST (FIXED) ================= */}
+  <aside
+    className={`bg-white w-full md:w-[320px] border-r flex flex-col
+      ${selectedCustomer ? "hidden md:flex" : "flex"}
+    `}
+  >
+    <div className="h-14 px-4 flex items-center font-semibold border-b shrink-0">
+      Customers
+    </div>
 
-      {/* Chat Area */}
-      <div
-        className={`flex-1 flex flex-col ${
-          selectedCustomer ? "flex" : "hidden md:flex"
-        }`}
-      >
-        <div className="flex items-center gap-3 p-3 bg-white border-b">
-          <button
-            className="md:hidden text-green-600 text-lg"
-            onClick={() => setSelectedCustomer(null)}
-          >
-            ←
-          </button>
-          <div>
-            <div className="font-semibold">{selectedCustomer?.name || "Chat"}</div>
-            <div className="text-xs text-gray-400">{selectedCustomer?.mobile}</div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-3 bg-[#ECE5DD]">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex mb-2 ${
-                m.from === "admin" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`px-3 py-2 rounded-xl text-sm max-w-[75%] ${
-                  m.from === "admin"
-                    ? "bg-green-500 text-white rounded-br-none"
-                    : "bg-white rounded-bl-none"
-                }`}
-              >
-                {m.type === "text" ? m.message : <audio src={m.audio} controls  className="w-[56vw]"/>}
-                <div className="text-[10px] text-white-500 text-right mt-1">
-                  {formatDateTime(m.createdAt)}
-                </div>
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {selectedCustomer && (
-          <div className="p-2 bg-white flex gap-2 items-center">
-            <input
-              value={msg}
-              onChange={(e) => setMsg(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendText()}
-              placeholder="Type message"
-              className="flex-1 border rounded-full px-4 py-2 text-sm"
-            />
-            <button
-              onClick={sendText}
-              className="bg-green-500 text-white px-4 py-2 rounded-full text-sm"
-            >
-              Send
-            </button>
-         <button
-          onMouseDown={startRecording}
-          onMouseUp={stopRecording}
-          onTouchStart={startRecording}
-          onTouchEnd={stopRecording}
-          className={`relative w-11 h-11 rounded-full flex items-center justify-center text-white
-            ${isRecording ? "bg-red-500 scale-110" : "bg-green-500"}
-          `}
+    <div className="flex-1 overflow-y-auto">
+      {customers.map((c) => (
+        <div
+          key={c._id}
+          onClick={() => selectCustomer(c)}
+          className="px-4 py-3 border-b cursor-pointer hover:bg-gray-50 flex justify-between items-center"
         >
-          {isRecording && (
-            <span className="absolute inset-0 rounded-full bg-red-400 animate-ping" />
-          )}
-          <MicrophoneIcon className="w-5 h-5 relative z-10" />
-        </button>
+          <div>
+            <div className="font-medium text-sm">{c.name}</div>
+            {c.hasUnread && (
+              <span className="text-xs text-red-500">New message</span>
+            )}
           </div>
-        )}
+          {c.hasUnread && (
+            <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
+          )}
+        </div>
+      ))}
+    </div>
+  </aside>
+
+
+{/* ================= CHAT AREA ================= */}
+<section
+  className={`flex-1 flex flex-col overflow-hidden bg-[#ECE5DD]
+    ${selectedCustomer ? "flex" : "hidden md:flex"}
+  `}
+>
+  {/* ===== CHAT HEADER (FIXED) ===== */}
+  <div className="h-15 bg-white  border-b flex items-center gap-3 px-2 shrink-0 mt-15 z-100">
+    <button
+      className="md:hidden text-green-600 text-lg"
+      onClick={() => setSelectedCustomer(null)}
+    >
+      ←
+    </button>
+
+    <div>
+      <div className="font-semibold text-sm">
+        {selectedCustomer?.name || "Chat"}
+      </div>
+      <div className="text-xs text-gray-400">
+        {selectedCustomer?.mobile}
       </div>
     </div>
+  </div>
+
+  {/* ===== MESSAGES (ONLY THIS SCROLLS) ===== */}
+  <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+    {messages.map((m, i) => (
+      <div
+        key={i}
+        className={`flex ${
+          m.from === "admin" ? "justify-end" : "justify-start"
+        }`}
+      >
+        <div
+          className={`px-3 py-2 rounded-xl text-sm max-w-[75%]
+            ${
+              m.from === "admin"
+                ? "bg-green-500 text-white rounded-br-none"
+                : "bg-white rounded-bl-none"
+            }
+          `}
+        >
+          {m.type === "text" ? (
+            m.message
+          ) : (
+            <audio src={m.audio} controls className="w-[220px]" />
+          )}
+
+          <div className="text-[10px] text-right opacity-70 mt-1">
+            {formatDateTime(m.createdAt)}
+          </div>
+        </div>
+      </div>
+    ))}
+    <div ref={messagesEndRef} />
+  </div>
+
+  {/* ===== INPUT BOX (FIXED) ===== */}
+  {selectedCustomer && (
+    <div className="h-16 bg-white border-t px-2 flex items-center gap-2 shrink-0 z-10">
+      <input
+        value={msg}
+        onChange={(e) => setMsg(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && sendText()}
+        placeholder="Type a message"
+        className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-400 w-[56%]"
+      />
+
+      <button
+        onClick={sendText}
+        className="bg-green-500 text-white px-4 py-2 rounded-full text-sm"
+      >
+        Send
+      </button>
+
+      <button
+        onMouseDown={startRecording}
+        onMouseUp={stopRecording}
+        onTouchStart={startRecording}
+        onTouchEnd={stopRecording}
+        className={`relative w-11 h-11 rounded-full flex items-center justify-center text-white
+          ${isRecording ? "bg-red-500 scale-110" : "bg-gray-500 hover:bg-gray-600"}
+        `}
+      >
+        {isRecording && (
+          <span className="absolute inset-0 rounded-full bg-red-400 animate-ping" />
+        )}
+        <MicrophoneIcon className="w-5 h-5 relative z-10" />
+      </button>
+    </div>
+  )}
+</section>
+
+
+</div>
+
   );
 }

@@ -288,7 +288,7 @@ export default function CustomerChat({ user }) {
   onTouchStart={startRecording}
   onTouchEnd={stopRecording}
   className={`relative w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-200
-    ${isRecording ? "bg-red-500 scale-110" : "bg-green-500 hover:bg-green-600"}
+    ${isRecording ? "bg-red-500 scale-110" : "bg-gray-500 hover:bg-gray-600"}
   `}
 >
   {/* 🔴 Recording pulse ring */}
