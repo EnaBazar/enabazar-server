@@ -12,6 +12,7 @@ import { FaAngleDown } from 'react-icons/fa6';
 import { Collapse } from 'react-collapse';
 import { MyContext } from '../../App';
 import { fetchDataFromApi } from '../../utils/api';
+import { useEffect } from 'react';
 
 
 
@@ -37,7 +38,7 @@ import { fetchDataFromApi } from '../../utils/api';
      }
   
    })
-   
+
 
 
       const logout=()=>{
@@ -132,17 +133,26 @@ import { fetchDataFromApi } from '../../utils/api';
     
 
 
+<li>
+  <Link to="/chat">
+    <Button className="w-full !capitalize !justify-start gap-3 relative">
+      <FiUsers className="text-[16px]" />
+      <span>Chats</span>
 
-     <li>
-    <Link to="/chat" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
-    <Button className='w-full !capitalize !justify-start gap-3 
-    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center 
-    !py-2 hover:!bg-[#dddddd]'>
-    <FiUsers className='text-[16px]'
-    /><span>Chats</span>
+      {context.chatUnreadCount > 0 && (
+        <span
+          className="absolute right-3 top-2 min-w-[18px] h-[18px]
+          bg-red-600 text-white text-[10px] rounded-full
+          flex items-center justify-center px-1"
+        >
+          {context.chatUnreadCount}
+        </span>
+      )}
     </Button>
-    </Link>
-    </li> 
+  </Link>
+</li>
+
+  
     <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
     onClick={()=>isOpenSubMenu(2)}

@@ -40,8 +40,8 @@ function App() {
   const [catData, setCatData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 const [orderCount, setOrderCount] = useState(0);
-
-
+ const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [autoreload, setAutoreload] = useState([]);
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
@@ -138,7 +138,10 @@ useEffect(() => {
     setWindowWidth,
     windowWidth,
     setOrderCount,
-    orderCount
+    orderCount,
+    chatUnreadCount,
+     setChatUnreadCount,
+  
     
  
   };

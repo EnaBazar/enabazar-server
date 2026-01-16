@@ -26,7 +26,7 @@ export default function CustomerChat({ user }) {
 
   const token = localStorage.getItem("accesstoken");
 
-  const PRIMARY = "#25D366";
+  const PRIMARY = "#FC8934";
   const HEADER = "#075E54";
   const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
   const DEMO_ADMIN_IMAGE =
@@ -195,13 +195,13 @@ export default function CustomerChat({ user }) {
       {open && (
         <div
           ref={chatBoxRef}
-          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] h-[70vh]
+          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] h-[80vh]
           bg-white shadow-xl rounded-xl flex flex-col z-[100]"
         >
           {/* HEADER */}
           <div
             className="p-3 flex justify-between items-center text-white text-sm font-semibold"
-            style={{ backgroundColor: HEADER }}
+            style={{ backgroundColor: PRIMARY }}
           >
             <span>Live Chat Support</span>
             <button onClick={() => setOpen(false)}>✕</button>
@@ -226,7 +226,7 @@ export default function CustomerChat({ user }) {
                         className={`px-3 py-2 rounded-lg text-sm ${
                           isMe
                             ? "text-white rounded-br-none"
-                            : "bg-white border rounded-bl-none"
+                            : "bg-gray-400 border rounded-bl-none"
                         }`}
                         style={isMe ? { backgroundColor: PRIMARY } : {}}
                       >
@@ -277,7 +277,7 @@ export default function CustomerChat({ user }) {
     e.stopPropagation();
   }}
   onClick={sendText}         // আসল কাজ এখানেই হবে
-  className="px-4 py-2 rounded-full text-white bg-green-500 active:scale-95"
+  className="px-4 py-2 rounded-full text-white bg-[#FC8934] active:scale-95"
 >
   Send
 </button>

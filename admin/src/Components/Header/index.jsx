@@ -124,14 +124,31 @@ const logout = () => {
         
         {/* Sidebar Toggle */}
         <div className='part1'>
+          
           <Button
             className='!w-[40px] !h-[40px] !rounded-full !min-w-[40px]
             flex items-center justify-center !text-[rgba(0,0,0,0.8)]'
             onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}
           >
-            <RiMenu2Line className='text-[18px]' />
+            <RiMenu2Line className='text-[18px]' 
+     
+            />
+           <div>
+      {context.chatUnreadCount > 0 &&  (
+        <span 
+          className="absolute  left-8 top-3 min-w-[20px] h-[20px]
+          bg-red-600 text-white text-[12px] rounded-full
+          flex items-center justify-center px-1"
+        > 
+         
+          {context.chatUnreadCount}
+        </span>
+      )}
+      </div>
           </Button>
+   
         </div>
+
 
         {/* Right Side */}
         <div className='part2 w-[40%] flex items-center justify-end gap-4'>
