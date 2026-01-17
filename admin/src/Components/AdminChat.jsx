@@ -299,7 +299,7 @@ export default function AdminChat() {
               }`}
             >
               <div
-                className={`px-3 py-2 rounded-xl text-sm max-w-[75%]
+                className={`px-3 py-2 rounded-xl text-sm 
                   ${
                     m.from === "admin"
                       ? "bg-gray-500 text-white rounded-br-none"
