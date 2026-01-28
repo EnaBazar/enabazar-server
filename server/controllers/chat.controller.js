@@ -3,17 +3,41 @@ import mongoose from "mongoose";
 
 
 // Send message (text/audio)
-import ChatModel from "../models/chat.model.js";
-import cloudinary from "../config/cloudinary.js";
-import multer from "multer";
+export const sendMessage = async (req, res) => {
+  try {
+    const { customerId, customerName, mobile, from, type, message, audio } = req.body;
 
-// multer memory storage
-const upload = multer({ storage: multer.memoryStorage() });
-export const audioUploadMiddleware = upload.single("audio");
+    if (!customerId || !from || !type) {
+      return res.status(400).json({ success: false, message: "Missing fields" });
+    }
 
+    if (type === "text" && (!message || message.trim() === "")) {
+      return res.status(400).json({ success: false, message: "Text message required" });
+    }
 
-// ================= SEND MESSAGE =================
+    if (type === "audio" && (!audio || audio.trim() === "")) {
+      return res.status(400).json({ success: false, message: "Audio required" });
+    }
 
+    const chat = new ChatModel({
+      customerId,
+      customerName,
+      mobile,
+    
+      from,
+      message: type === "text" ? message : "",
+      audio: type === "audio" ? audio : "",
+      read: from === "admin", // Admin messages are marked read
+    });
+
+    await chat.save();
+
+    return res.status(200).json({ success: true, chat });
+  } catch (error) {
+    console.error("Send chat error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 // Get customer chats
 export const getCustomerChats = async (req, res) => {
