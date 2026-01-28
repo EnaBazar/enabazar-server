@@ -2,18 +2,6 @@ import ChatModel from "../models/chat.model.js";
 import mongoose from "mongoose";
 
 
-
-// multer memory storage
-
-
-
-cloudinary.config({
-     
-    cloud_name: process.env.cloudinary_Config_Cloud_Name,
-    api_key: process.env.cloudinary_Config_api_key,
-    api_secret: process.env.cloudinary_Config_api_secret,
-    secure: true,
-});
 // Send message (text/audio)
 export const sendMessage = async (req, res) => {
   try {
