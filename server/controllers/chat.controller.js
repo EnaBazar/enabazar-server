@@ -1,7 +1,5 @@
 import ChatModel from "../models/chat.model.js";
 import mongoose from "mongoose";
-
-import cloudinary from "../config/cloudinary.js";
 import multer from "multer";
 
 // multer memory storage
