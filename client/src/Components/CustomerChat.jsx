@@ -117,30 +117,24 @@ export default function CustomerChat({ user }) {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
-     recorder.onstop = async () => {
-  const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-  const formData = new FormData();
-  formData.append("audio", blob);
-  formData.append("customerId", user._id);
-  formData.append("customerName", user.name);
-  formData.append("mobile", user.mobile);
-
-  const res = await fetch("https://api.goroabazar.com/chat/audio", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  const data = await res.json();
-
-  if (data.success) {
-    socket.emit("sendMessage", data.chatData);
-  }
-};
-
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const chatData = {
+            customerId: user._id,
+            customerName: user.name,
+            mobile: user.mobile,
+            from: "customer",
+            type: "audio",
+            audio: reader.result,
+            
+          };
+          socket.emit("sendMessage", chatData);
+          setMessages((prev) => [...prev]);
+        };
+        reader.readAsDataURL(blob);
+      };
 
       recorder.start();
       setIsRecording(true);

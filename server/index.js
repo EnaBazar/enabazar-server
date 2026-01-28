@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
 import DbCon from "./libs/db.js";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
-import cors from "cors";
 
 // Routes
 import AuthRoutes from "./route/auth.routes.js";
@@ -22,71 +22,40 @@ import blogRoutes from "./route/blog.route.js";
 import orderRoutes from "./route/order.route.js";
 import homeSlideRoutes from "./route/homeSlide.route.js";
 import chatrouter from "./route/chat.routes.js";
-import voiceRouter from "./route/voice.route.js"; // নতুন voice route
 
 dotenv.config();
 DbCon();
 
 const PORT = process.env.PORT || 5000;
+
 const app = express();
-
-/* ================== ALLOWED ORIGINS ================== */
-const allowedOrigins = [
-  "https://goroabazar.com",
-  "https://www.goroabazar.com",
-  "http://localhost:3000",
-  "http://localhost:5173",
-];
-
-/* ================== CORS MIDDLEWARE ================== */
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin || "*");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    if (req.method === "OPTIONS") return res.sendStatus(204); // preflight
-    next();
-  } else {
-    res.status(403).send("CORS not allowed");
-  }
-});
-
-app.use(express.json({ limit: "10mb" }));
-app.use(cookieParser());
-app.use(morgan("combined"));
-app.use(helmet());
 
 /* ================== HTTP + SOCKET SERVER ================== */
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    origin: "*", // পরে চাইলে specific domain দিবে
+    methods: ["GET", "POST"],
   },
-  path: "/socket.io",
+    path: "/socket.io"
 });
 
-// globally available socket instance
+// socket instance globally available
 app.set("io", io);
 
 /* ================== SOCKET LOGIC ================== */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
+  // customerId / room join
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
       console.log("➡️ Joined room:", customerId);
     }
   });
-
+// send message
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -95,6 +64,7 @@ io.on("connection", (socket) => {
         customerId: data.customerId,
         customerName: data.customerName,
         mobile: data.mobile,
+
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",
@@ -104,6 +74,7 @@ io.on("connection", (socket) => {
 
       await chat.save();
 
+      // Emit to this room
       io.to(data.customerId).emit("newMessage", chat);
     } catch (err) {
       console.error("Socket sendMessage error:", err);
@@ -114,6 +85,13 @@ io.on("connection", (socket) => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
+
+/* ================== MIDDLEWARE ================== */
+app.use(cors({ origin: "*" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(cookieParser());
+app.use(morgan("combined"));
+app.use(helmet());
 
 /* ================== ROUTES ================== */
 app.use("/auth", AuthRoutes);
@@ -129,7 +107,6 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
-app.use("/chat", voiceRouter); // Cloudinary voice route
 
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
