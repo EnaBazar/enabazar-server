@@ -27,18 +27,51 @@ dotenv.config();
 DbCon();
 
 const PORT = process.env.PORT || 5000;
-
 const app = express();
+
+/* ================== ALLOWED ORIGINS ================== */
+const allowedOrigins = [
+  "https://goroabazar.com",
+  "https://www.goroabazar.com",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
+/* ================== MIDDLEWARE ================== */
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow server-to-server / postman
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// 🔥 preflight (VERY IMPORTANT)
+app.options("*", cors());
+
+app.use(express.json({ limit: "10mb" }));
+app.use(cookieParser());
+app.use(morgan("combined"));
+app.use(helmet());
 
 /* ================== HTTP + SOCKET SERVER ================== */
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // পরে চাইলে specific domain দিবে
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
-    path: "/socket.io"
+  path: "/socket.io",
 });
 
 // socket instance globally available
@@ -48,14 +81,13 @@ app.set("io", io);
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
-  // customerId / room join
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
       console.log("➡️ Joined room:", customerId);
     }
   });
-// send message
+
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -64,7 +96,6 @@ io.on("connection", (socket) => {
         customerId: data.customerId,
         customerName: data.customerName,
         mobile: data.mobile,
-
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",
@@ -74,7 +105,6 @@ io.on("connection", (socket) => {
 
       await chat.save();
 
-      // Emit to this room
       io.to(data.customerId).emit("newMessage", chat);
     } catch (err) {
       console.error("Socket sendMessage error:", err);
@@ -85,13 +115,6 @@ io.on("connection", (socket) => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
-
-/* ================== MIDDLEWARE ================== */
-app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "10mb" }));
-app.use(cookieParser());
-app.use(morgan("combined"));
-app.use(helmet());
 
 /* ================== ROUTES ================== */
 app.use("/auth", AuthRoutes);
