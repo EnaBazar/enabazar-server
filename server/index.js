@@ -3,10 +3,10 @@ import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
 import DbCon from "./libs/db.js";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
-import cors from "cors";
 
 // Routes
 import AuthRoutes from "./route/auth.routes.js";
@@ -22,7 +22,6 @@ import blogRoutes from "./route/blog.route.js";
 import orderRoutes from "./route/order.route.js";
 import homeSlideRoutes from "./route/homeSlide.route.js";
 import chatrouter from "./route/chat.routes.js";
-import voiceRouter from "./route/voice.route.js"; // নতুন voice route
 
 dotenv.config();
 DbCon();
@@ -38,25 +37,27 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
-/* ================== CORS MIDDLEWARE ================== */
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (!origin || allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin || "*");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    if (req.method === "OPTIONS") return res.sendStatus(204); // preflight
-    next();
-  } else {
-    res.status(403).send("CORS not allowed");
-  }
-});
+/* ================== MIDDLEWARE ================== */
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow server-to-server / Postman requests
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-app.use(express.json({ limit: "10mb" }));
+// Preflight handler
+app.options("*", cors());
+
+app.use(express.json({ limit: "15mb" })); // voice files need bigger limit
 app.use(cookieParser());
 app.use(morgan("combined"));
 app.use(helmet());
@@ -73,13 +74,13 @@ const io = new Server(server, {
   path: "/socket.io",
 });
 
-// globally available socket instance
 app.set("io", io);
 
 /* ================== SOCKET LOGIC ================== */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
+  // Join room by customerId
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
@@ -87,6 +88,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Handle sendMessage (text/audio)
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -104,6 +106,7 @@ io.on("connection", (socket) => {
 
       await chat.save();
 
+      // Emit to the specific room
       io.to(data.customerId).emit("newMessage", chat);
     } catch (err) {
       console.error("Socket sendMessage error:", err);
@@ -129,7 +132,11 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
-app.use("/chat", voiceRouter); // Cloudinary voice route
+
+/* ================== HEALTH CHECK ================== */
+app.get("/", (req, res) => {
+  res.send("🟢 API is running");
+});
 
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
