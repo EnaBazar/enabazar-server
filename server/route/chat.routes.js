@@ -14,15 +14,7 @@ const router = express.Router();
 router.post("/send", auth, sendMessage);
 
 // ================= AUDIO MESSAGE =================
-router.post(
-  "/send-audio",
-  auth,
-  audioUploadMiddleware, // ✅ multer
-  (req, res) => {
-    req.body.type = "audio"; // force audio type
-    sendMessage(req, res);
-  }
-);
+
 
 // ================= CUSTOMER =================
 router.get("/customer/:customerId", auth, getCustomerChats);
