@@ -5,6 +5,8 @@ import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
 
+const upload = multer({ storage: multer.memoryStorage() });
+export const audioUploadMiddleware = upload.single("audio");
 
 
 //cloudinary configaration

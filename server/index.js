@@ -22,7 +22,7 @@ import blogRoutes from "./route/blog.route.js";
 import orderRoutes from "./route/order.route.js";
 import homeSlideRoutes from "./route/homeSlide.route.js";
 import chatrouter from "./route/chat.routes.js";
-
+import voiceRouter from "./route/voice.route.js"; // নতুন voice route
 
 dotenv.config();
 DbCon();
@@ -129,7 +129,7 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
-
+app.use("/chat", voiceRouter); // Cloudinary voice route
 
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
