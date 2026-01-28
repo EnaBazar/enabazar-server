@@ -6,8 +6,7 @@ import fs from 'fs';
 import multer from "multer";
 
 // multer memory storage
-const upload = multer({ storage: multer.memoryStorage() });
-export const audioUploadMiddleware = upload.single("audio");
+
 
 
 cloudinary.config({
