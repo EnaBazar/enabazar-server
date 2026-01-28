@@ -2,55 +2,96 @@ import ChatModel from "../models/chat.model.js";
 import mongoose from "mongoose";
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Send message (text/audio)
+import ChatModel from "../models/chat.model.js";
+import cloudinary from "../config/cloudinary.js";
+import multer from "multer";
+
+// multer memory storage
+const upload = multer({ storage: multer.memoryStorage() });
+export const audioUploadMiddleware = upload.single("audio");
+
+
+// ================= SEND MESSAGE =================
 export const sendMessage = async (req, res) => {
   try {
-    const { customerId, customerName, mobile, from, type, message, audio } = req.body;
+    const {
+      customerId,
+      customerName,
+      mobile,
+      from,
+      type,
+      message,
+    } = req.body;
 
     if (!customerId || !from || !type) {
       return res.status(400).json({ success: false, message: "Missing fields" });
     }
 
-    if (type === "text" && (!message || message.trim() === "")) {
-      return res.status(400).json({ success: false, message: "Text message required" });
+    // ================= TEXT =================
+    if (type === "text") {
+      if (!message || message.trim() === "") {
+        return res
+          .status(400)
+          .json({ success: false, message: "Text message required" });
+      }
+
+      const chat = await ChatModel.create({
+        customerId,
+        customerName,
+        mobile,
+        from,
+        type: "text",
+        message,
+        audio: "",
+        read: from === "admin",
+      });
+
+      return res.status(200).json({ success: true, chat });
     }
 
-    if (type === "audio" && (!audio || audio.trim() === "")) {
-      return res.status(400).json({ success: false, message: "Audio required" });
+    // ================= AUDIO =================
+    if (type === "audio") {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Audio file required" });
+      }
+
+      // upload to cloudinary
+      const uploadResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            resource_type: "video", // audio = video
+            folder: "chat_audio",
+          },
+          (err, result) => (err ? reject(err) : resolve(result))
+        ).end(req.file.buffer);
+      });
+
+      const chat = await ChatModel.create({
+        customerId,
+        customerName,
+        mobile,
+        from,
+        type: "audio",
+        message: "",
+        audio: uploadResult.secure_url, // ✅ ONLY URL
+        read: from === "admin",
+      });
+
+      return res.status(200).json({ success: true, chat });
     }
 
-    const chat = new ChatModel({
-      customerId,
-      customerName,
-      mobile,
-    
-      from,
-      message: type === "text" ? message : "",
-      audio: type === "audio" ? audio : "",
-      read: from === "admin", // Admin messages are marked read
-    });
-
-    await chat.save();
-
-    return res.status(200).json({ success: true, chat });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid message type" });
   } catch (error) {
     console.error("Send chat error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // Get customer chats
 export const getCustomerChats = async (req, res) => {
