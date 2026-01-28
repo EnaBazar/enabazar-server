@@ -41,7 +41,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow server-to-server / postman
+      // allow server-to-server / Postman requests
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -54,10 +54,10 @@ app.use(
   })
 );
 
-// 🔥 preflight (VERY IMPORTANT)
+// Preflight handler
 app.options("*", cors());
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "15mb" })); // voice files need bigger limit
 app.use(cookieParser());
 app.use(morgan("combined"));
 app.use(helmet());
@@ -68,19 +68,19 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
   path: "/socket.io",
 });
 
-// socket instance globally available
 app.set("io", io);
 
 /* ================== SOCKET LOGIC ================== */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
+  // Join room by customerId
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
@@ -88,6 +88,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Handle sendMessage (text/audio)
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -105,6 +106,7 @@ io.on("connection", (socket) => {
 
       await chat.save();
 
+      // Emit to the specific room
       io.to(data.customerId).emit("newMessage", chat);
     } catch (err) {
       console.error("Socket sendMessage error:", err);
@@ -130,6 +132,11 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
+
+/* ================== HEALTH CHECK ================== */
+app.get("/", (req, res) => {
+  res.send("🟢 API is running");
+});
 
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
