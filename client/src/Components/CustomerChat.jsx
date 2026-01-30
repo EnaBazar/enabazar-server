@@ -90,7 +90,6 @@ export default function CustomerChat({ user }) {
     socket.emit("sendMessage", chatData);
     setMessages((prev) => [...prev, chatData]);
     setMsg("");
-    document.activeElement.blur();
   };
 
   /* ================= OUTSIDE CLICK CLOSE ================= */
@@ -112,15 +111,23 @@ export default function CustomerChat({ user }) {
     };
   }, [open]);
 
-  /* ================= DYNAMIC HEIGHT ON MOBILE ================= */
+  /* ================= MOBILE KEYBOARD ADJUST ================= */
   useEffect(() => {
-    const handleResize = () => {
-      setChatHeight(window.innerHeight * 0.8); // chat height = 80% of visible screen
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const adjustHeight = () => {
+      const vh = window.visualViewport?.height || window.innerHeight;
+      setChatHeight(vh * 0.8);
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.visualViewport?.addEventListener("resize", adjustHeight);
+    window.addEventListener("resize", adjustHeight); // fallback
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", adjustHeight);
+      window.removeEventListener("resize", adjustHeight);
+    };
   }, []);
 
   /* ================= FORMAT DATE + TIME ================= */
@@ -153,7 +160,6 @@ export default function CustomerChat({ user }) {
 
   return (
     <>
-      {/* FLOATING BUTTON */}
       {(hasUnread || !open) && (
         <button
           onClick={handleOpenChat}
@@ -165,7 +171,6 @@ export default function CustomerChat({ user }) {
         </button>
       )}
 
-      {/* CHAT BOX */}
       {open && (
         <div
           ref={chatBoxRef}
@@ -185,14 +190,12 @@ export default function CustomerChat({ user }) {
           <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
             {dates.map((date) => (
               <div key={date}>
-                {/* DATE HEADER */}
                 <div className="flex justify-center my-2">
-                  <span className="text-[12px] text-white bg-gray-500 px-2 py-1 rounded-md">
+                  <span className="text-[11px] text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
                     {date}
                   </span>
                 </div>
 
-                {/* MESSAGES OF THIS DATE */}
                 {groupedMessages[date].map((m, idx) => {
                   const isMe = m.from === "customer";
                   return (
@@ -205,13 +208,13 @@ export default function CustomerChat({ user }) {
                       {!isMe && (
                         <img
                           src={DEMO_ADMIN_IMAGE}
-                          className="w-6 h-6 rounded-full"
+                          className="w-8 h-8 rounded-full"
                         />
                       )}
 
-                      <div className="max-w-[70%] flex flex-col gap-1 !mb-2">
+                      <div className="max-w-[70%] flex flex-col gap-1">
                         <div
-                          className={`px-3 py-0 rounded-lg text-[12px] ${
+                          className={`px-3 py-2 rounded-lg text-sm ${
                             isMe
                               ? "text-white rounded-br-none"
                               : "bg-gray-300 rounded-bl-none"
@@ -221,7 +224,7 @@ export default function CustomerChat({ user }) {
                           {m.message}
                         </div>
 
-                        <span className="text-[10px] text-gray-500 self-end">
+                        <span className="text-[11px] text-gray-500 self-end">
                           {formatTime(m.createdAt || new Date())}
                         </span>
                       </div>
@@ -229,7 +232,7 @@ export default function CustomerChat({ user }) {
                       {isMe && (
                         <img
                           src={user?.avatar || DEMO_USER_IMAGE}
-                          className="w-6 h-6 rounded-full"
+                          className="w-8 h-8 rounded-full"
                         />
                       )}
                     </div>
@@ -248,13 +251,9 @@ export default function CustomerChat({ user }) {
               onChange={(e) => setMsg(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendText()}
               onFocus={() =>
-                setTimeout(
-                  () =>
-                    messagesEndRef.current?.scrollIntoView({
-                      behavior: "smooth",
-                    }),
-                  300
-                )
+                setTimeout(() => {
+                  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                }, 300)
               }
               placeholder="Type a message"
               className="flex-1 px-4 py-2 rounded-full border"
