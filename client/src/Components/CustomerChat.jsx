@@ -16,6 +16,7 @@ export default function CustomerChat({ user }) {
 
   const messagesEndRef = useRef(null);
   const chatBoxRef = useRef(null);
+  const notifyAudioRef = useRef(null);
 
   const token = localStorage.getItem("accesstoken");
 
@@ -23,6 +24,15 @@ export default function CustomerChat({ user }) {
   const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
   const DEMO_ADMIN_IMAGE =
     "https://cdn-icons-png.flaticon.com/512/1995/1995550.png";
+
+  /* ================= PUSH NOTIFICATION PERMISSION ================= */
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   /* ================= SOCKET SETUP ================= */
   useEffect(() => {
@@ -35,6 +45,17 @@ export default function CustomerChat({ user }) {
       setMessages((prev) => [...prev, chat]);
       if (!open) setHasUnread((prev) => prev + 1);
       scrollToBottom();
+
+      // Audio notification
+      notifyAudioRef.current?.play();
+
+      // Browser push notification
+      if (Notification.permission === "granted" && chat.from === "admin") {
+        new Notification("New message from Admin", {
+          body: chat.message,
+          icon: "/notification-icon.png",
+        });
+      }
     });
 
     return () => socket.disconnect();
@@ -47,9 +68,7 @@ export default function CustomerChat({ user }) {
     const fetchChats = async () => {
       const res = await fetch(
         `https://api.goroabazar.com/chat/customer/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();
       if (data?.success) setMessages(data.chats || []);
@@ -161,32 +180,33 @@ export default function CustomerChat({ user }) {
     (a, b) => new Date(a) - new Date(b)
   );
 
-  /* ================= EMOJI DETECTION ================= */
+  /* ================= EMOJI CHECK ================= */
   const isOnlyEmoji = (text) => /^\p{Emoji}+$/u.test(text.trim());
 
   return (
     <>
+      <audio ref={notifyAudioRef} src="/notification.mp3" />
+
       {/* Floating Button */}
-    {/* Floating Button */}
-<button
-  onClick={handleOpenChat}
-  className="fixed bottom-16 right-5 w-16 h-16 rounded-full text-white text-3xl shadow-lg z-[100] flex items-center justify-center active:scale-95 "
-  style={{ backgroundColor: PRIMARY, position: "fixed" }}
->
-  💬
-  {hasUnread > 0 && (
-    <span
-      className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2
+      <button
+        onClick={handleOpenChat}
+        className="fixed bottom-16 right-5 w-16 h-16 rounded-full text-white text-3xl shadow-lg z-[100] flex items-center justify-center active:scale-95"
+        style={{ backgroundColor: PRIMARY }}
+      >
+        💬
+        {hasUnread > 0 && (
+          <span
+            className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2
                  bg-red-500 text-white text-[12px] font-bold w-5 h-5 rounded-full 
                  flex items-center justify-center z-[120]"
-    >
-      {hasUnread}
-    </span>
-  )}
-</button>
+          >
+            {hasUnread}
+          </span>
+        )}
+      </button>
 
-{/* Chat Box */}
- {open && (
+      {/* Chat Box */}
+      {open && (
         <div
           ref={chatBoxRef}
           className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] bg-white shadow-xl rounded-xl flex flex-col !z-[100]"
@@ -238,20 +258,19 @@ export default function CustomerChat({ user }) {
                           }`}
                           style={
                             onlyEmoji
-                              ? { backgroundColor: "transparent",
-                                 padding: "0" ,
-                                  fontSize: "2.5rem", // emoji বড় করা
-                                   lineHeight: "1", // compact spacing
-                                
+                              ? {
+                                  backgroundColor: "transparent",
+                                  padding: 0,
+                                  fontSize: "2.5rem",
+                                  lineHeight: 1,
                                 }
                               : isMe
                               ? { backgroundColor: PRIMARY }
-                              : { backgroundColor: "#d1d5db" } // gray-300
+                              : { backgroundColor: "#d1d5db" }
                           }
                         >
                           {m.message}
                         </div>
-
                         <span className="text-[10px] text-gray-500 self-end">
                           {formatTime(m.createdAt || new Date())}
                         </span>
@@ -268,7 +287,6 @@ export default function CustomerChat({ user }) {
                 })}
               </div>
             ))}
-
             <div ref={messagesEndRef} />
           </div>
 
@@ -280,13 +298,14 @@ export default function CustomerChat({ user }) {
               onKeyDown={(e) => e.key === "Enter" && sendText()}
               onFocus={() =>
                 setTimeout(() => {
-                  messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                  messagesEndRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                  });
                 }, 300)
               }
               placeholder="Type a message"
               className="flex-1 px-4 py-2 rounded-full border"
             />
-
             <button
               onClick={sendText}
               className="px-4 py-2 rounded-full text-white active:scale-95"
@@ -300,7 +319,7 @@ export default function CustomerChat({ user }) {
             Powered by Enabazar
           </div>
         </div>
- )}
-        </>
-      );
-      }
+      )}
+    </>
+  );
+}
