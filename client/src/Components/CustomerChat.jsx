@@ -92,7 +92,7 @@ export default function CustomerChat({ user }) {
     };
 
     socket.emit("sendMessage", chatData);
-    setMessages((prev) => [...prev, chatData]);
+    setMessages((prev) => [...prev]);
     setMsg("");
     scrollToBottom();
   };
