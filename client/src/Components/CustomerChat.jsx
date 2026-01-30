@@ -158,6 +158,11 @@ export default function CustomerChat({ user }) {
     (a, b) => new Date(a) - new Date(b)
   );
 
+  /* ================= EMOJI DETECTION ================= */
+  const isOnlyEmoji = (text) => {
+    return /^\p{Emoji}+$/u.test(text.trim());
+  };
+
   return (
     <>
       {(hasUnread || !open) && (
@@ -191,13 +196,15 @@ export default function CustomerChat({ user }) {
             {dates.map((date) => (
               <div key={date}>
                 <div className="flex justify-center my-2">
-                  <span className="text-[11px] text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                  <span className="text-[11px] text-white bg-gray-500 px-2 py-1 rounded-md">
                     {date}
                   </span>
                 </div>
 
                 {groupedMessages[date].map((m, idx) => {
                   const isMe = m.from === "customer";
+                  const onlyEmoji = isOnlyEmoji(m.message);
+
                   return (
                     <div
                       key={idx}
@@ -208,23 +215,29 @@ export default function CustomerChat({ user }) {
                       {!isMe && (
                         <img
                           src={DEMO_ADMIN_IMAGE}
-                          className="w-8 h-8 rounded-full"
+                          className="w-6 h-6 rounded-full"
                         />
                       )}
 
-                      <div className="max-w-[70%] flex flex-col gap-1">
+                      <div className="max-w-[70%] flex flex-col gap-1 !mb-2">
                         <div
-                          className={`px-3 py-2 rounded-lg text-sm ${
+                          className={`px-3 py-0 rounded-lg text-[11px] ${
                             isMe
                               ? "text-white rounded-br-none"
-                              : "bg-gray-300 rounded-bl-none"
+                              : "rounded-bl-none"
                           }`}
-                          style={isMe ? { backgroundColor: PRIMARY } : {}}
+                          style={
+                            onlyEmoji
+                              ? { backgroundColor: "transparent", padding: "0" }
+                              : isMe
+                              ? { backgroundColor: PRIMARY }
+                              : { backgroundColor: "#d1d5db" } // gray-300
+                          }
                         >
                           {m.message}
                         </div>
 
-                        <span className="text-[11px] text-gray-500 self-end">
+                        <span className="text-[10px] text-gray-500 self-end">
                           {formatTime(m.createdAt || new Date())}
                         </span>
                       </div>
@@ -232,7 +245,7 @@ export default function CustomerChat({ user }) {
                       {isMe && (
                         <img
                           src={user?.avatar || DEMO_USER_IMAGE}
-                          className="w-8 h-8 rounded-full"
+                          className="w-6 h-6 rounded-full"
                         />
                       )}
                     </div>
