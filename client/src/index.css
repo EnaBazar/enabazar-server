@@ -236,3 +236,9 @@ button.btn-org .MuiCircularProgress-root{@apply !text-[#ffffff]}
   opacity: 0.4 !important;
   pointer-events: none !important;
 }
+@supports (-webkit-touch-callout: none) {
+  body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}

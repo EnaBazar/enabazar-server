@@ -68,7 +68,7 @@ io.on("connection", (socket) => {
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",
-        audio: data.type === "audio" ? data.audio : "",
+  
         read: data.from === "admin",
       });
 

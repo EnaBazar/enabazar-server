@@ -1,10 +1,8 @@
 import { useEffect, useState, useRef, useContext } from "react";
 import { MyContext } from "../App";
 import io from "socket.io-client";
- import { MicrophoneIcon } from "@heroicons/react/24/solid";
 
-
-const SOCKET_URL = "https://api.goroabazar.com"; // তোমার সার্ভারের URL
+const SOCKET_URL = "https://api.goroabazar.com";
 let socket;
 
 export default function CustomerChat({ user }) {
@@ -14,54 +12,44 @@ export default function CustomerChat({ user }) {
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [playingAudioId, setPlayingAudioId] = useState(null);
+  const [chatHeight, setChatHeight] = useState(window.innerHeight * 0.8);
 
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
   const chatBoxRef = useRef(null);
-  const notifyAudioRef = useRef(null);
-  const audioRefs = useRef({});
 
   const token = localStorage.getItem("accesstoken");
 
   const PRIMARY = "#FC8934";
-  const HEADER = "#075E54";
   const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
   const DEMO_ADMIN_IMAGE =
     "https://cdn-icons-png.flaticon.com/512/1995/1995550.png";
 
-  /* ================== SOCKET SETUP ================== */
+  /* ================= SOCKET ================= */
   useEffect(() => {
     if (!user?._id) return;
 
     socket = io(SOCKET_URL);
-
-    // join customer room
     socket.emit("join", user._id);
 
-    // listen for new messages
     socket.on("newMessage", (chat) => {
       setMessages((prev) => [...prev, chat]);
-      if (chat.from === "admin") notifyAudioRef.current?.play();
+      if (!open) setHasUnread(true);
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [user?._id]);
+    return () => socket.disconnect();
+  }, [user?._id, open]);
 
-  /* ================== FETCH INITIAL MESSAGES ================== */
+  /* ================= FETCH CHATS ================= */
   useEffect(() => {
     if (!user?._id || !open) return;
 
     const fetchChats = async () => {
-      const res = await fetch(`https://api.goroabazar.com/chat/customer/${user._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `https://api.goroabazar.com/chat/customer/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const data = await res.json();
       if (data?.success) setMessages(data.chats || []);
     };
@@ -69,12 +57,12 @@ export default function CustomerChat({ user }) {
     fetchChats();
   }, [user?._id, open, token]);
 
-  /* ================== AUTO SCROLL ================== */
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  /* ================== OPEN CHAT ================== */
+  /* ================= OPEN CHAT ================= */
   const handleOpenChat = () => {
     if (!user?._id || !token) {
       context.openAlertBox("error", "চ্যাট করতে হলে আগে লগইন করুন");
@@ -85,7 +73,7 @@ export default function CustomerChat({ user }) {
     setHasUnread(false);
   };
 
-  /* ================== SEND TEXT ================== */
+  /* ================= SEND TEXT ================= */
   const sendText = () => {
     if (!msg.trim()) return;
 
@@ -96,90 +84,76 @@ export default function CustomerChat({ user }) {
       from: "customer",
       type: "text",
       message: msg,
+      createdAt: new Date(),
     };
 
-    // send to socket
     socket.emit("sendMessage", chatData);
-
-    setMessages((prev) => [...prev]);
+    setMessages((prev) => [...prev, chatData]);
     setMsg("");
+    document.activeElement.blur();
   };
 
-  /* ================== AUDIO RECORDING ================== */
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const chatData = {
-            customerId: user._id,
-            customerName: user.name,
-            mobile: user.mobile,
-            from: "customer",
-            type: "audio",
-            audio: reader.result,
-            
-          };
-          socket.emit("sendMessage", chatData);
-          setMessages((prev) => [...prev]);
-        };
-        reader.readAsDataURL(blob);
-      };
-
-      recorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Mic error:", err);
-    }
-  };
-
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-  };
-
-  /* ================== CLOSE CHAT ON OUTSIDE CLICK ================== */
+  /* ================= OUTSIDE CLICK CLOSE ================= */
   useEffect(() => {
     if (!open) return;
+
     const handleOutsideClick = (e) => {
       if (chatBoxRef.current && !chatBoxRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("touchstart", handleOutsideClick);
+
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("touchstart", handleOutsideClick);
     };
   }, [open]);
 
-  /* ================== FORMAT DATETIME ================== */
-  const formatDateTime = (date) => {
+  /* ================= DYNAMIC HEIGHT ON MOBILE ================= */
+  useEffect(() => {
+    const handleResize = () => {
+      setChatHeight(window.innerHeight * 0.8); // chat height = 80% of visible screen
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  /* ================= FORMAT DATE + TIME ================= */
+  const formatDate = (date) => {
     const d = new Date(date);
     const day = d.getDate().toString().padStart(2, "0");
     const month = (d.getMonth() + 1).toString().padStart(2, "0");
     const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const formatTime = (date) => {
+    const d = new Date(date);
     const hours = d.getHours().toString().padStart(2, "0");
     const minutes = d.getMinutes().toString().padStart(2, "0");
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
+    return `${hours}:${minutes}`;
   };
+
+  /* ================= GROUP MESSAGES BY DATE ================= */
+  const groupedMessages = messages.reduce((acc, msg) => {
+    const date = formatDate(msg.createdAt || new Date());
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(msg);
+    return acc;
+  }, {});
+
+  const dates = Object.keys(groupedMessages).sort(
+    (a, b) => new Date(a) - new Date(b)
+  );
 
   return (
     <>
-      <audio ref={notifyAudioRef} src="/notification.mp3" />
-
-      {/* Floating Button */}
+      {/* FLOATING BUTTON */}
       {(hasUnread || !open) && (
         <button
           onClick={handleOpenChat}
@@ -195,8 +169,8 @@ export default function CustomerChat({ user }) {
       {open && (
         <div
           ref={chatBoxRef}
-          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] h-[80vh]
-          bg-white shadow-xl rounded-xl flex flex-col z-[100]"
+          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] bg-white shadow-xl rounded-xl flex flex-col z-[100]"
+          style={{ height: `${chatHeight}px` }}
         >
           {/* HEADER */}
           <div
@@ -209,100 +183,93 @@ export default function CustomerChat({ user }) {
 
           {/* MESSAGES */}
           <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
-            {messages.map((m, idx) => {
-              const isMe = m.from === "customer";
-              return (
-                <div
-                  key={idx}
-                  className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}
-                >
-                  {!isMe && (
-                    <img src={DEMO_ADMIN_IMAGE} className="w-8 h-8 rounded-full" />
-                  )}
-
-                  <div className="max-w-[70%] flex flex-col gap-1">
-                    {m.type === "text" ? (
-                      <div
-                        className={`px-3 py-2 rounded-lg text-sm ${
-                          isMe
-                            ? "text-white rounded-br-none"
-                            : "bg-gray-400 border rounded-bl-none"
-                        }`}
-                        style={isMe ? { backgroundColor: PRIMARY } : {}}
-                      >
-                        {m.message}
-                      </div>
-                    ) : (
-                      <audio
-                        ref={(el) => (audioRefs.current[idx] = el) }
-                        src={m.audio}
-                        controls
-                        
-                      />
-                    )}
-                    <div className="flex justify-between items-center text-[11px] text-gray-500 !mb-3">
-                      <span>{formatDateTime(m.createdAt || new Date())}</span>
-                    </div>
-                  </div>
-
-                  {isMe && (
-                    <img
-                      src={user?.avatar || DEMO_USER_IMAGE}
-                      className="w-8 h-8 rounded-full"
-                    />
-                  )}
+            {dates.map((date) => (
+              <div key={date}>
+                {/* DATE HEADER */}
+                <div className="flex justify-center my-2">
+                  <span className="text-[12px] text-white bg-gray-500 px-2 py-1 rounded-md">
+                    {date}
+                  </span>
                 </div>
-              );
-            })}
+
+                {/* MESSAGES OF THIS DATE */}
+                {groupedMessages[date].map((m, idx) => {
+                  const isMe = m.from === "customer";
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex gap-2 ${
+                        isMe ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {!isMe && (
+                        <img
+                          src={DEMO_ADMIN_IMAGE}
+                          className="w-6 h-6 rounded-full"
+                        />
+                      )}
+
+                      <div className="max-w-[70%] flex flex-col gap-1 !mb-2">
+                        <div
+                          className={`px-3 py-0 rounded-lg text-[12px] ${
+                            isMe
+                              ? "text-white rounded-br-none"
+                              : "bg-gray-300 rounded-bl-none"
+                          }`}
+                          style={isMe ? { backgroundColor: PRIMARY } : {}}
+                        >
+                          {m.message}
+                        </div>
+
+                        <span className="text-[10px] text-gray-500 self-end">
+                          {formatTime(m.createdAt || new Date())}
+                        </span>
+                      </div>
+
+                      {isMe && (
+                        <img
+                          src={user?.avatar || DEMO_USER_IMAGE}
+                          className="w-6 h-6 rounded-full"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+
             <div ref={messagesEndRef} />
           </div>
 
           {/* INPUT */}
-         <div className="flex flex md:flex-row gap-2 !mt-2 p-2">
-              <input
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendText()}
-                placeholder="Type a message"
-                className="flex-1 px-4 py-2 rounded-full border w-[56%]"
-              />
-              <div className="flex  gap-2">
-                <button
-  onMouseDown={(e) => {
-    e.preventDefault();      // input focus আটকাবে
-    e.stopPropagation();
-  }}
-  onTouchStart={(e) => {
-    e.preventDefault();      // mobile keyboard / text select আটকাবে
-    e.stopPropagation();
-  }}
-  onClick={sendText}         // আসল কাজ এখানেই হবে
-  className="px-4 py-2 rounded-full text-white bg-[#FC8934] active:scale-95"
->
-  Send
-</button>
+          <div className="p-2 flex gap-2">
+            <input
+              value={msg}
+              onChange={(e) => setMsg(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendText()}
+              onFocus={() =>
+                setTimeout(
+                  () =>
+                    messagesEndRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                    }),
+                  300
+                )
+              }
+              placeholder="Type a message"
+              className="flex-1 px-4 py-2 rounded-full border"
+            />
 
-<button
-  onMouseDown={startRecording}
-  onMouseUp={stopRecording}
-  onTouchStart={startRecording}
-  onTouchEnd={stopRecording}
-  className={`relative w-12 h-12 flex items-center justify-center rounded-full text-white transition-all duration-200
-    ${isRecording ? "bg-red-500 scale-110" : "bg-gray-500 hover:bg-gray-600"}
-  `}
->
-  {/* 🔴 Recording pulse ring */}
-  {isRecording && (
-    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-  )}
+            <button
+              onClick={sendText}
+              className="px-4 py-2 rounded-full text-white active:scale-95"
+              style={{ backgroundColor: PRIMARY }}
+            >
+              Send
+            </button>
+          </div>
 
-  <MicrophoneIcon className="w-6 h-6 relative z-10" />
-</button>
-
-              </div>
-            </div>
-
-          <div className="text-[9px] p-2 text-right text-gray-400 ">
+          <div className="text-[9px] p-2 text-right text-gray-400">
             Powered by Enabazar
           </div>
         </div>

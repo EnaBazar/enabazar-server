@@ -20,6 +20,13 @@ export default function AdminChat() {
   const audioChunksRef = useRef([]);
   const notifyAudioRef = useRef(null);
   const context = useContext(MyContext);
+  const PRIMARY = "#FC8934";
+  const DEMO_USER_IMAGE = "https://i.pravatar.cc/40";
+  
+
+
+
+
 
   /* ================= LOAD TOKEN ================= */
   useEffect(() => {
@@ -288,37 +295,48 @@ export default function AdminChat() {
         </div>
 
         {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex ${
-                m.from === "admin"
-                  ? "justify-end"
-                  : "justify-start"
-              }`}
-            >
-              <div
-                className={`px-3 py-2 rounded-xl text-sm 
-                  ${
-                    m.from === "admin"
-                      ? "bg-gray-500 text-white rounded-br-none"
-                      : "bg-white rounded-bl-none"
-                  }`}
-              >
-                {m.type === "text" ? (
-                  m.message
-                ) : (
-                  <audio src={m.audio} controls className="w-[60vw]"/>
-                )}
-                <div className="text-[10px] opacity-70 text-right mt-1">
-                  {formatDateTime(m.createdAt)}
+   <div className="flex-1 p-3 overflow-y-auto bg-[#ECE5DD] space-y-3">
+            {messages.map((m, idx) => {
+              const isMe = m.from === "customer";
+              return (
+                <div
+                  key={idx}
+                  className={`flex gap-2 ${isMe ? "justify-end" : "justify-start"}`}
+                >
+                  {!isMe && (
+                    <img src={DEMO_USER_IMAGE} className="w-8 h-8 rounded-full" />
+                  )}
+
+               <div className="max-w-[70%] flex flex-col gap-1">
+  <div
+    className={`px-3 py-2 rounded-lg text-sm ${
+      isMe
+        ? "text-white rounded-br-none"
+        : "bg-gray-400 border rounded-bl-none"
+    }`}
+    style={isMe ? { backgroundColor: PRIMARY } : {}}
+  >
+    {m.message}
+  </div>
+
+  <div className="flex justify-between items-center text-[11px] text-gray-500 !mb-3">
+    <span>{formatDateTime(m.createdAt || new Date())}</span>
+  </div>
+</div>
+
+
+                  {isMe && (
+                    <img
+                      src={DEMO_USER_IMAGE}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  )}
                 </div>
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+
 
         {/* INPUT */}
         {selectedCustomer && (
@@ -338,16 +356,7 @@ export default function AdminChat() {
               Send
             </button>
 
-            <button
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              className={`w-11 h-11 rounded-full flex items-center justify-center text-white
-                ${isRecording ? "bg-red-500" : "bg-gray-500"}`}
-            >
-              <MicrophoneIcon className="w-5 h-5" />
-            </button>
+           
           </div>
         )}
       </section>

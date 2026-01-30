@@ -26,7 +26,7 @@ const ChatSchema = new mongoose.Schema(
     },
 
     message: String,
-    audio: String,
+
 
     read: {
       type: Boolean,

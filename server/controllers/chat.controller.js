@@ -22,9 +22,7 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ success: false, message: "Text message required" });
     }
 
-    if (type === "audio" && (!audio || audio.trim() === "")) {
-      return res.status(400).json({ success: false, message: "Audio required" });
-    }
+
 
     const chat = new ChatModel({
       customerId,
@@ -33,7 +31,7 @@ export const sendMessage = async (req, res) => {
     
       from,
       message: type === "text" ? message : "",
-      audio: type === "audio" ? audio : "",
+ 
       read: from === "admin", // Admin messages are marked read
     });
 
