@@ -11,7 +11,7 @@ export default function CustomerChat({ user }) {
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
   const [open, setOpen] = useState(false);
-  const [hasUnread, setHasUnread] = useState(false);
+  const [hasUnread, setHasUnread] = useState(0);
   const [chatHeight, setChatHeight] = useState(window.innerHeight * 0.8);
 
   const messagesEndRef = useRef(null);
@@ -24,7 +24,7 @@ export default function CustomerChat({ user }) {
   const DEMO_ADMIN_IMAGE =
     "https://cdn-icons-png.flaticon.com/512/1995/1995550.png";
 
-  /* ================= SOCKET ================= */
+  /* ================= SOCKET SETUP ================= */
   useEffect(() => {
     if (!user?._id) return;
 
@@ -33,13 +33,14 @@ export default function CustomerChat({ user }) {
 
     socket.on("newMessage", (chat) => {
       setMessages((prev) => [...prev, chat]);
-      if (!open) setHasUnread(true);
+      if (!open) setHasUnread((prev) => prev + 1);
+      scrollToBottom();
     });
 
     return () => socket.disconnect();
   }, [user?._id, open]);
 
-  /* ================= FETCH CHATS ================= */
+  /* ================= FETCH INITIAL CHATS ================= */
   useEffect(() => {
     if (!user?._id || !open) return;
 
@@ -52,15 +53,18 @@ export default function CustomerChat({ user }) {
       );
       const data = await res.json();
       if (data?.success) setMessages(data.chats || []);
+      scrollToBottom();
     };
 
     fetchChats();
   }, [user?._id, open, token]);
 
-  /* ================= AUTO SCROLL ================= */
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  /* ================= SCROLL TO BOTTOM ================= */
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  };
 
   /* ================= OPEN CHAT ================= */
   const handleOpenChat = () => {
@@ -70,7 +74,7 @@ export default function CustomerChat({ user }) {
       return;
     }
     setOpen(true);
-    setHasUnread(false);
+    setHasUnread(0);
   };
 
   /* ================= SEND TEXT ================= */
@@ -90,9 +94,10 @@ export default function CustomerChat({ user }) {
     socket.emit("sendMessage", chatData);
     setMessages((prev) => [...prev, chatData]);
     setMsg("");
+    scrollToBottom();
   };
 
-  /* ================= OUTSIDE CLICK CLOSE ================= */
+  /* ================= CLOSE CHAT ON OUTSIDE CLICK ================= */
   useEffect(() => {
     if (!open) return;
 
@@ -116,13 +121,11 @@ export default function CustomerChat({ user }) {
     const adjustHeight = () => {
       const vh = window.visualViewport?.height || window.innerHeight;
       setChatHeight(vh * 0.8);
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
+      scrollToBottom();
     };
 
     window.visualViewport?.addEventListener("resize", adjustHeight);
-    window.addEventListener("resize", adjustHeight); // fallback
+    window.addEventListener("resize", adjustHeight);
 
     return () => {
       window.visualViewport?.removeEventListener("resize", adjustHeight);
@@ -159,27 +162,34 @@ export default function CustomerChat({ user }) {
   );
 
   /* ================= EMOJI DETECTION ================= */
-  const isOnlyEmoji = (text) => {
-    return /^\p{Emoji}+$/u.test(text.trim());
-  };
+  const isOnlyEmoji = (text) => /^\p{Emoji}+$/u.test(text.trim());
 
   return (
     <>
-      {(hasUnread || !open) && (
-        <button
-          onClick={handleOpenChat}
-          className="fixed bottom-16 right-5 w-16 h-16 rounded-full text-white text-3xl shadow-lg z-[100]
-          flex items-center justify-center active:scale-95"
-          style={{ backgroundColor: PRIMARY }}
-        >
-          💬
-        </button>
-      )}
+      {/* Floating Button */}
+    {/* Floating Button */}
+<button
+  onClick={handleOpenChat}
+  className="fixed bottom-16 right-5 w-16 h-16 rounded-full text-white text-3xl shadow-lg z-[100] flex items-center justify-center active:scale-95 "
+  style={{ backgroundColor: PRIMARY, position: "fixed" }}
+>
+  💬
+  {hasUnread > 0 && (
+    <span
+      className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2
+                 bg-red-500 text-white text-[12px] font-bold w-5 h-5 rounded-full 
+                 flex items-center justify-center z-[120]"
+    >
+      {hasUnread}
+    </span>
+  )}
+</button>
 
-      {open && (
+{/* Chat Box */}
+ {open && (
         <div
           ref={chatBoxRef}
-          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] bg-white shadow-xl rounded-xl flex flex-col z-[100]"
+          className="fixed bottom-16 right-5 w-[90vw] max-w-[380px] bg-white shadow-xl rounded-xl flex flex-col !z-[100]"
           style={{ height: `${chatHeight}px` }}
         >
           {/* HEADER */}
@@ -228,7 +238,12 @@ export default function CustomerChat({ user }) {
                           }`}
                           style={
                             onlyEmoji
-                              ? { backgroundColor: "transparent", padding: "0" }
+                              ? { backgroundColor: "transparent",
+                                 padding: "0" ,
+                                  fontSize: "2.5rem", // emoji বড় করা
+                                   lineHeight: "1", // compact spacing
+                                
+                                }
                               : isMe
                               ? { backgroundColor: PRIMARY }
                               : { backgroundColor: "#d1d5db" } // gray-300
@@ -285,7 +300,7 @@ export default function CustomerChat({ user }) {
             Powered by Enabazar
           </div>
         </div>
-      )}
-    </>
-  );
-}
+ )}
+        </>
+      );
+      }
