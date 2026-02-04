@@ -1,200 +1,131 @@
-import React, { useEffect, useState } from 'react';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Link from '@mui/material/Link';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Link from "@mui/material/Link";
 import ProductItem from "../../Components/ProductItem";
 import ProductItemListView from "../../Components/ProductItemListView";
-import Button from '@mui/material/Button';
-import { IoGridSharp } from 'react-icons/io5';
-import { LuMenu } from 'react-icons/lu';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Pagination from '@mui/material/Pagination';
-import ProductLodingGrid from '../../Components/ProductLoding/ProductLoadingGrid';
-import Sidebar from '../../Components/Sidebar';
-import { useParams } from 'react-router-dom';
-import { postData } from '../../utils/api';
+import Pagination from "@mui/material/Pagination";
+import ProductLodingGrid from "../../Components/ProductLoding/ProductLoadingGrid";
+import { fetchDataFromApi, postData } from "../../utils/api";
+import { Button, Menu, MenuItem } from "@mui/material";
+import { LuMenu } from "react-icons/lu";
+import { IoGridSharp } from "react-icons/io5";
 
 const SearchPage = () => {
-
-  const [itemView, setItemView] = useState('grid');
-  const [anchorEl, setAnchorEl] = useState(null);
+  const { keyword } = useParams();
   const [productsData, setProductsData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedSortVal, setSelectedSortVal] = useState("Name, A to Z");
+  const [itemView, setItemView] = useState("grid");
   const [page, setPage] = useState(1);
   const [totalpage, setTotalPage] = useState(1);
-  const [selectedSortVal, setSelectedSortVal] = useState("Name, A to Z");
 
   const open = Boolean(anchorEl);
-  const { id } = useParams();
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  // Fetch products from API
+  const fetchProducts = async (kw, pg = 1) => {
+    if (!kw) return;
+    setIsLoading(true);
+    try {
+      const res = await fetchDataFromApi(
+        `/product/search/get?q=${encodeURIComponent(kw)}&page=${pg}&limit=20`
+      );
+      setProductsData(res?.products || []);
+      setTotalPage(res?.totalPages || 1);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  // Sort products
 
-  const handleSortBy = (name, order, products, value) => {
-    setSelectedSortVal(value);
 
-    postData(`/product/sortBy`, {
-      products: products,
-      sortBy: name,
-      order: order,
-    }).then((res) => {
-      setProductsData(res);
-      setAnchorEl(null);
-    });
-  };
+  // Fetch products on keyword or page change
+  useEffect(() => {
+    fetchProducts(keyword, page);
+  }, [keyword, page]);
 
   return (
-    <section className='py-3 md:py-5 pb-0'>
-      {/* Breadcrumb */}
-      <div className='container pb-3 '>
+    <section className="py-3 md:py-5 pb-0">
+      {/* Breadcrumbs */}
+      <div className="container pb-3">
         <Breadcrumbs aria-label="breadcrumb">
-          <Link underline="hover" color="inherit" href="/" className='link transition'>
+          <Link underline="hover" color="inherit" href="/" className="link transition">
             Home
           </Link>
-          <Link underline="hover" color="inherit" href="/" className='link transition'>
-            Fashion
+          <Link underline="hover" color="inherit" href="/" className="link transition">
+            Search
           </Link>
         </Breadcrumbs>
       </div>
 
-      <div className='bg-white p-2 '>
-        <div className='container flex flex-col lg:flex-row gap-5'>
-
-          {/* Sidebar */}
-          <div className="
-            hidden md:block
-            w-full md:w-[30%] lg:w-[20%]
-            shadow-md
-            border border-[rgba(0,0,0,0.2)]
-            mt-3
-            p-3
-            rounded-md
-            bg-[#dfd9d9]
-          ">
-            <Sidebar
-              productsData={productsData}
-              setProductsData={setProductsData}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-              page={page}
-              setTotalPage={setTotalPage}
-            />
-          </div>
-
-          {/* Right Content */}
-          <div className='w-full lg:w-[80%] py-3 '>
-
-            {/* Top Bar */}
-            <div className='
-              bg-[#dfd9d9]
-              p-2
-              w-full
-              mb-3
-              mt-4
-              shadow-md
-              border border-[rgba(0,0,0,0.2)]
-              rounded-md
-              flex flex-wrap
-              items-center
-              justify-between
-              sticky
-              top-[80px]
-              md:top-[140px]
-              z-[90] !mb-5
-            '>
-
-              <div className='flex items-center gap-2 !mb-2'>
-                <Button
-                  className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full ${itemView === "list" && 'active'}`}
-                  onClick={() => setItemView('list')}
-                >
-                  <LuMenu className='text-[20px]' />
-                </Button>
-
-                <Button
-                  className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full ${itemView === "grid" && 'active'}`}
-                  onClick={() => setItemView('grid')}
-                >
-                  <IoGridSharp className='text-[20px]' />
-                </Button>
-
-                <span className='text-[12px] md:text-[14px] font-[500] text-[rgba(0,0,0,0.7)]'>
-                  There are {productsData?.products?.length || 0} products
-                </span>
-              </div>
-
-              {/* Sort */}
-              <div className='flex items-center gap-2 mt-2 md:mt-0'>
-                <span className='text-[12px] md:text-[14px] font-[500] text-[rgba(0,0,0,0.7)]'>
-                  Sort-By
-                </span>
-
-                <Button
-                  onClick={handleClick}
-                  className='!bg-white !text-[11px] !text-black truncate max-w-[160px]'
-                >
-                  {selectedSortVal}
-                </Button>
-
-                <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                  <MenuItem onClick={() => handleSortBy('name', 'asc', productsData, 'Name, A to Z')}>
-                    Name, A to Z
-                  </MenuItem>
-                  <MenuItem onClick={() => handleSortBy('name', 'desc', productsData, 'Name, Z to A')}>
-                    Name, Z to A
-                  </MenuItem>
-                  <MenuItem onClick={() => handleSortBy('price', 'desc', productsData, 'Price, High to Low')}>
-                    Price, High to Low
-                  </MenuItem>
-                  <MenuItem onClick={() => handleSortBy('price', 'asc', productsData, 'Price, Low to High')}>
-                    Price, Low to High
-                  </MenuItem>
-                </Menu>
-              </div>
-            </div>
-
-            {/* Products */}
-            <div
-              className={`grid gap-4 mt-5 ${
-                itemView === 'grid'
-                  ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-                  : 'grid-cols-1'
-              }`}
-            >
-              {isLoading ? (
-                <ProductLodingGrid view={itemView} />
-              ) : (
-                productsData?.products?.map((item, index) =>
-                  itemView === 'grid' ? (
-                    <ProductItem key={index} item={item} />
-                  ) : (
-                    <ProductItemListView key={index} item={item} />
-                  )
-                )
-              )}
-            </div>
-
-            {/* Pagination */}
-            {totalpage > 1 && (
-              <div className='flex justify-center mt-10'>
-                <Pagination
-                  showFirstButton
-                  showLastButton
-                  count={totalpage}
-                  page={page}
-                  onChange={(e, value) => setPage(value)}
-                />
-              </div>
-            )}
-
-          </div>
+      {/* Top Controls: View Toggle + Sorting */}
+      <div className="bg-[#dfd9d9] p-2 w-full mb-3 !mt-0 shadow-md border-[rgba(0,0,0,0.2)] rounded-md flex items-center justify-between sticky top-[90px] z-[90]">
+        {/* View Toggle */}
+        <div className="flex items-center gap-2">
+          <Button
+            className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full ${
+              itemView === "list" ? "bg-[#FC8934]/20" : "!text-[#000]"
+            }`}
+            onClick={() => setItemView("list")}
+          >
+            <LuMenu className="text-[rgba(0,0,0,0.7)] text-[20px]" />
+          </Button>
+          <Button
+            className={`!w-[40px] !h-[40px] !min-w-[40px] !rounded-full ${
+              itemView === "grid" ? "bg-[#FC8934]/20" : "!text-[#000]"
+            }`}
+            onClick={() => setItemView("grid")}
+          >
+            <IoGridSharp className="text-[rgba(0,0,0,0.7)] text-[20px]" />
+          </Button>
+          <span className="text-[14px] font-[500] pl-3 text-[rgba(0,0,0,0.7)]">
+            There are {productsData.length} products.
+          </span>
         </div>
+
+        {/* Sorting */}
+       
       </div>
+
+      {/* Products */}
+      <div
+        className={`grid gap-4 !mt-8 px-3 !mb-12 ${
+          itemView === "grid"
+            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            : "grid-cols-1"
+        }`}
+      >
+        {isLoading ? (
+          <ProductLodingGrid view={itemView} />
+        ) : (
+          productsData.map((item, index) =>
+            itemView === "grid" ? (
+              <ProductItem key={index} item={item} />
+            ) : (
+              <ProductItemListView key={index} item={item} />
+            )
+          )
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalpage > 1 && (
+        <div className="flex justify-center mt-10">
+          <Pagination
+            showFirstButton
+            showLastButton
+            count={totalpage}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+          />
+        </div>
+      )}
     </section>
   );
 };
