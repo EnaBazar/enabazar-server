@@ -39,8 +39,8 @@ const Search = () => {
   return (
     <>
       {/* Search Box */}
-      <div className="w-full max-w-xl mx-auto px-3 md:px-0">
-        <div className="flex items-center h-[45px] rounded-full border border-gray-300 focus-within:border-[#FC8934] focus-within:shadow-sm transition overflow-hidden">
+      <div className="w-full max-w-xl mx-auto  px-3 md:px-0">
+        <div className="flex items-center h-[45px] rounded-full border border-gray-300 focus-within:border-[#FC8934] focus-within:shadow-sm transition overflow-hidden bg-white">
           <input
             type="text"
             placeholder="Search products..."

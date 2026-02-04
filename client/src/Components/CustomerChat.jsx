@@ -226,7 +226,7 @@ export default function CustomerChat({ user }) {
             {dates.map((date) => (
               <div key={date}>
                 <div className="flex justify-center my-2">
-                  <span className="text-[11px] text-white bg-gray-500 px-2 py-1 rounded-md">
+                  <span className="text-[12px] text-white bg-gray-500 px-2 py-1 rounded-md">
                     {date}
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export default function CustomerChat({ user }) {
 
                       <div className="max-w-[70%] flex flex-col gap-1 !mb-2">
                         <div
-                          className={`px-3 py-0 rounded-lg text-[11px] ${
+                          className={`px-3 py-0 rounded-lg text-[14px] ${
                             isMe
                               ? "text-white rounded-br-none"
                               : "rounded-bl-none"

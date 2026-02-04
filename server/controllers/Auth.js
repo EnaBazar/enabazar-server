@@ -25,68 +25,29 @@ cloudinary.config({
       
 
 
-const register = async (req, res) => {
-    try {
-        const { mobile, password, name } = req.body;
+export const register = async (req, res) => {
+  const { name, mobile, password } = req.body;
 
-        // Required fields
-        if (!mobile || !password || !name) {
-            return res.status(400).json({
-                error: true,
-                success: false,
-                message: "Mobile, Password & Name are required"
-            });
-        }
+  const user = await User.findOne({ mobile });
 
-        // Check if user exists
-        const existsUser = await usermodel.findOne({ mobile });
-        if (existsUser) {
-            return res.status(400).json({
-                error: true,
-                success: false,
-                message: "User already exists, please login"
-            });
-        }
+  if (!user || !user.isMobileVerified) {
+    return res.status(400).json({
+      error: true,
+      message: "Mobile number not verified",
+    });
+  }
 
-        // Hash password
-        const salt = await bcryptjs.genSalt(10);
-        const hashPassword = await bcryptjs.hash(password, salt);
-        // Create new user
-        const user = new usermodel({
-            mobile,
-            name,
-            password: hashPassword,
-            status: "Active",
-            otp: null,
-            otpExpires: null
-        });
+  user.name = name;
+  user.password = password;
 
-        await user.save();
+  await user.save();
 
-        // Token (optional)
-        const token = jwt.sign(
-            { id: user._id, mobile: user.mobile },
-            process.env.JSON_WEB_TOKEN_SECRET_KEY,
-            { expiresIn: "7d" }
-        );
-
-        return res.status(200).json({
-            success: true,
-            error: false,
-            message: "User registered successfully",
-            token,
-            user
-        });
-
-    } catch (error) {
-        console.log("🔥 Registration Error:", error);
-        return res.status(500).json({
-            success: false,
-            error: true,
-            message: error.message || "Internal Server Error"
-        });
-    }
+  res.json({
+    error: false,
+    message: "Register successful",
+  });
 };
+
 
 
 
@@ -1200,4 +1161,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {register,VerifyEmail,registerPanel}
+export {VerifyEmail,registerPanel}

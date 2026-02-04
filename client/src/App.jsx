@@ -39,6 +39,7 @@ import CustomerChat from './Components/CustomerChat';
 
 
 
+
 const MyContext =createContext();
 const App =() => {
   const [openProductDetailsModel, setOpenProductDetailsModel] = useState({
@@ -336,7 +337,7 @@ return (
 <Route path={"/ligalNotice"} exact={true} element={<LegalNotice/>}/>
 <Route path={"/helpCenter"} exact={true} element={<HelpCenter/>}/>
 <Route path={"/securePayment"} exact={true} element={<SecurePayment/>}/>
-  
+ 
 </Routes>
 
 <CustomerChat user={userData}/>
