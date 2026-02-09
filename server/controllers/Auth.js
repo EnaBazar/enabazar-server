@@ -7,8 +7,7 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import Otp from "../models/Otp.js";
-import twilio from "twilio";
+
 
 
 
@@ -26,67 +25,10 @@ cloudinary.config({
       
 
 
-const client = twilio(
-  process.env.TWILIO_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-export const sendOTP = async (req, res) => {
-  const { phone } = req.body;
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-  await Otp.deleteMany({ phone }); // old OTP clear
-
-  await Otp.create({
-    phone,
-    otp,
-    expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 min
-  });
-
-  await client.messages.create({
-    body: `Your OTP is ${otp}`,
-    from: process.env.TWILIO_PHONE,
-    to: phone
-  });
-
-  res.json({ success: true, message: "OTP sent" });
-};
-
-export const verifyOTP = async (req, res) => {
-  const { phone, otp } = req.body;
-
-  const record = await Otp.findOne({ phone, otp });
-
-  if (!record) {
-    return res.status(400).json({ success: false, message: "Invalid OTP" });
-  }
-
-  if (record.expiresAt < new Date()) {
-    return res.status(400).json({ success: false, message: "OTP expired" });
-  }
-
-  await Otp.deleteMany({ phone });
-
-  res.json({ success: true });
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const register = async (req, res) => {
   const { name, mobile, password } = req.body;
 
-  const user = await user.findOne({ mobile });
+  const user = await User.findOne({ mobile });
 
   if (!user || !user.isMobileVerified) {
     return res.status(400).json({
