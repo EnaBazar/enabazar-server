@@ -67,7 +67,7 @@ const handleSubmit=(e)=>{
         return false
       }
   
-  postData("/auth/registerPanel",formFields).then((res)=>{
+  postData("/auth/register",formFields).then((res)=>{
     console.log(res)
     if(res?.error !== true){
       setIsLoading(false)
