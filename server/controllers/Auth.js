@@ -25,28 +25,43 @@ cloudinary.config({
       
 
 
-export const register = async (req, res) => {
-  const { name, mobile, password } = req.body;
-
-  const user = await User.findOne({ mobile });
-
-  if (!user || !user.isMobileVerified) {
-    return res.status(400).json({
-      error: true,
-      message: "Mobile number not verified",
-    });
-  }
-
-  user.name = name;
-  user.password = password;
-
-  await user.save();
-
-  res.json({
-    error: false,
-    message: "Register successful",
-  });
-};
+const  register =async(req,res)=>{
+    
+    try{
+        
+   const {mobile,password,name}=req.body
+   
+        if (!mobile || !password || !name){
+            
+            return res.status(400).json({error:true,success:false,message:"All fields are required"})
+        }
+        const ExistsUser= await usermodel.findOne({mobile})
+        if (ExistsUser){
+        return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
+            
+        }
+        const salt = await bcryptjs.genSalt(10)
+        const hashPassword =await bcryptjs.hash(password,salt)
+  
+        const user= new usermodel({
+            mobile,
+            password:hashPassword,
+            name,
+            otp : "",
+            otpExpires : Date.now() + 600000,  
+        })
+        const token =jwt.sign(
+        {
+        mobile: user.mobile, id: user._id },
+        process.env.JSON_WEB_TOKEN_SECRET_KEY  
+        )
+        await user.save()
+        return res.status(200).json({success:true,error:false,message:"User Register Successfuly", token: token, user})
+        }catch(error){
+        console.log(error)
+        return res.status(500).json({success:false,error:true,message:"internet Server error"})
+        }
+        }
 
 
 
@@ -1161,4 +1176,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {VerifyEmail,registerPanel}
+export {register, VerifyEmail,registerPanel}
