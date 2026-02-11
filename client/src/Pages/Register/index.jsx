@@ -53,7 +53,7 @@ const Register = () => {
   const verifyOtpHandler = async () => {
     setIsLoading(true);
 
-    const verifyRes = await postData("/auth/verify-otp", {
+    const verifyRes = await postData("/auth/verify-mobile-otp", {
       mobile: formFields.mobile,
       otp
     });
@@ -127,7 +127,7 @@ const Register = () => {
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               fullWidth
-              className="mt-4 mb-4"
+              className="!mt-4 !mb-4"
             />
 
             <Button

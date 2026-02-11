@@ -7,9 +7,8 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
+import axios from "axios";
 
-import http from "http";
-import querystring from "querystring";
 
 
 
@@ -62,11 +61,6 @@ export const register = async (req, res) => {
 };
 
 
-
-
-
-
-
 const  registerPanel=async(req,res)=>{
     
     try{
@@ -105,76 +99,67 @@ const  registerPanel=async(req,res)=>{
         }
         }
 
-
-
-
-
-
 export const sendMobileOtp = async (req, res) => {
   try {
     const { mobile } = req.body;
 
     if (!mobile) {
       return res.status(400).json({
-        error: true,
         success: false,
         message: "Mobile number required",
       });
     }
 
+    // 🔹 Mobile format ঠিক করো
+    let formattedMobile = mobile.replace(/^0/, "880");
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    let user = await usermodel.findOne({ mobile });
-
-    if (!user) {
-      user = new usermodel({ mobile });
-    }
-
-    user.mobileOtp = otp;
-    user.mobileOtpExpires = Date.now() + 5 * 60 * 1000; // 5 মিনিট
-    user.isMobileVerified = false;
-
-    await user.save();
-
-    // GreenWeb SMS
-    const postData = querystring.stringify({
-      token: process.env.GREENWEB_TOKEN,
-      to: mobile,
-      message: `Your verification code is ${otp}`,
-    });
-
-    const options = {
-      hostname: "api.bdbulksms.net",
-      path: "/api.php",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Content-Length": postData.length,
+    // 🔹 DB তে save করো
+    const user = await usermodel.findOneAndUpdate(
+      { mobile: formattedMobile },
+      {
+        mobile: formattedMobile,
+        mobileOtp: otp,
+        mobileOtpExpires: Date.now() + 5 * 60 * 1000,
+        isMobileVerified: false,
       },
-    };
+      { upsert: true, new: true }
+    );
 
-    const smsReq = http.request(options, function (smsRes) {
-      smsRes.on("data", function () {});
-      smsRes.on("end", function () {});
-    });
+    // 🔹 GreenWeb SMS
+    const params = new URLSearchParams();
+    params.append("token", process.env.GREENWEB_SMS_TOKEN);
+    params.append("to", formattedMobile);
+    params.append("message", `Your OTP is ${otp}`);
 
-    smsReq.write(postData);
-    smsReq.end();
+    const response = await axios.post(
+      "https://api.bdbulksms.net/api.php",
+      params,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    console.log("GreenWeb Response:", response.data);
 
     return res.json({
-      error: false,
       success: true,
       message: "OTP Sent Successfully",
     });
 
   } catch (error) {
+    console.log("SMS Error:", error.response?.data || error.message);
+
     return res.status(500).json({
-      error: true,
       success: false,
-      message: error.message,
+      message: "SMS Failed",
     });
   }
 };
+
 
 export const verifyMobileOtp = async (req, res) => {
   try {
