@@ -8,6 +8,8 @@ import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
 
+import http from "http";
+import querystring from "querystring";
 
 
 
@@ -26,27 +28,39 @@ cloudinary.config({
 
 
 export const register = async (req, res) => {
-  const { name, mobile, password } = req.body;
+  try {
+    const { name, mobile, password } = req.body;
 
-  const user = await User.findOne({ mobile });
+    const user = await usermodel.findOne({ mobile });
 
-  if (!user || !user.isMobileVerified) {
-    return res.status(400).json({
+    if (!user || !user.isMobileVerified) {
+      return res.status(400).json({
+        error: true,
+        message: "Mobile number not verified",
+      });
+    }
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password, salt);
+
+    user.name = name;
+    user.password = hashPassword;
+
+    await user.save();
+
+    return res.json({
+      error: false,
+      message: "Register successful",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
       error: true,
-      message: "Mobile number not verified",
+      message: error.message,
     });
   }
-
-  user.name = name;
-  user.password = password;
-
-  await user.save();
-
-  res.json({
-    error: false,
-    message: "Register successful",
-  });
 };
+
 
 
 
@@ -90,6 +104,133 @@ const  registerPanel=async(req,res)=>{
         return res.status(500).json({success:false,error:true,message:"internet Server error"})
         }
         }
+
+
+
+
+
+
+export const sendMobileOtp = async (req, res) => {
+  try {
+    const { mobile } = req.body;
+
+    if (!mobile) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Mobile number required",
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    let user = await usermodel.findOne({ mobile });
+
+    if (!user) {
+      user = new usermodel({ mobile });
+    }
+
+    user.mobileOtp = otp;
+    user.mobileOtpExpires = Date.now() + 5 * 60 * 1000; // 5 মিনিট
+    user.isMobileVerified = false;
+
+    await user.save();
+
+    // GreenWeb SMS
+    const postData = querystring.stringify({
+      token: process.env.GREENWEB_TOKEN,
+      to: mobile,
+      message: `Your verification code is ${otp}`,
+    });
+
+    const options = {
+      hostname: "api.bdbulksms.net",
+      path: "/api.php",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": postData.length,
+      },
+    };
+
+    const smsReq = http.request(options, function (smsRes) {
+      smsRes.on("data", function () {});
+      smsRes.on("end", function () {});
+    });
+
+    smsReq.write(postData);
+    smsReq.end();
+
+    return res.json({
+      error: false,
+      success: true,
+      message: "OTP Sent Successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const verifyMobileOtp = async (req, res) => {
+  try {
+    const { mobile, otp } = req.body;
+
+    const user = await usermodel.findOne({ mobile });
+
+    if (!user) {
+      return res.status(400).json({
+        error: true,
+        message: "User not found",
+      });
+    }
+
+    if (user.mobileOtp !== otp) {
+      return res.status(400).json({
+        error: true,
+        message: "Invalid OTP",
+      });
+    }
+
+    if (user.mobileOtpExpires < Date.now()) {
+      return res.status(400).json({
+        error: true,
+        message: "OTP Expired",
+      });
+    }
+
+    user.isMobileVerified = true;
+    user.mobileOtp = null;
+    user.mobileOtpExpires = null;
+
+    await user.save();
+
+    return res.json({
+      error: false,
+      success: true,
+      message: "Mobile Verified Successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+};
+
+
+
+
+
+
+
+
+
 
 
 // verify email
