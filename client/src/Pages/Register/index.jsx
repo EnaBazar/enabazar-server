@@ -35,7 +35,7 @@ const Register = () => {
 
     setIsLoading(true);
 
-    const res = await postData("/auth/send-otp", {
+    const res = await postData("/auth/send-mobile-otp", {
       mobile: formFields.mobile
     });
 
@@ -76,7 +76,7 @@ const Register = () => {
     <section className="py-10">
       <div className="w-[400px] m-auto bg-white p-6 shadow-md rounded-md">
 
-        <h3 className="text-center mb-5">Register</h3>
+        <h3 className="text-center !mb-5">Register</h3>
 
         <form onSubmit={handleSendOtp}>
 
@@ -86,7 +86,7 @@ const Register = () => {
             value={formFields.name}
             onChange={onchangeInput}
             fullWidth
-            className="mb-4"
+            className="!mb-4"
           />
 
           <TextField
@@ -95,7 +95,7 @@ const Register = () => {
             value={formFields.mobile}
             onChange={onchangeInput}
             fullWidth
-            className="mb-4"
+            className="!mb-4"
           />
 
           <TextField
@@ -105,7 +105,7 @@ const Register = () => {
             value={formFields.password}
             onChange={onchangeInput}
             fullWidth
-            className="mb-4"
+            className="!mb-4"
           />
 
           {!showOtpField && (
