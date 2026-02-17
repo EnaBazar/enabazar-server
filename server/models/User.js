@@ -74,7 +74,11 @@ orderHistory:[{
     type : mongoose.Schema.ObjectId,
      ref : "cartProduct"
  }],
+ otp:{
+    
+    type : String
 
+ },
   role:{
     
     type : String,
@@ -87,8 +91,12 @@ orderHistory:[{
      default:false 
   },
   
-mobileOtp: String,
-mobileOtpExpires: Date,
+ otpExpires:{
+    
+    type : Date
+ 
+ },
+
 
 verificationCode:String
 },{timestamps:true})

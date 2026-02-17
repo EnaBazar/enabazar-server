@@ -7,7 +7,6 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import axios from "axios";
 
 
 
@@ -26,39 +25,47 @@ cloudinary.config({
       
 
 
-export const register = async (req, res) => {
-  try {
-    const { name, mobile, password } = req.body;
+const  register =async(req,res)=>{
+    
+    try{
+        
+   const {mobile,password,name}=req.body
+   
+        if (!mobile || !password || !name){
+            
+            return res.status(400).json({error:true,success:false,message:"All fields are required"})
+        }
+        const ExistsUser= await usermodel.findOne({mobile})
+        if (ExistsUser){
+        return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
+            
+        }
+        const salt = await bcryptjs.genSalt(10)
+        const hashPassword =await bcryptjs.hash(password,salt)
+  
+        const user= new usermodel({
+            mobile,
+            password:hashPassword,
+            name,
+            otp : "",
+            otpExpires : Date.now() + 600000,  
+        })
+        const token =jwt.sign(
+        {
+        mobile: user.mobile, id: user._id },
+        process.env.JSON_WEB_TOKEN_SECRET_KEY  
+        )
+        await user.save()
+        return res.status(200).json({success:true,error:false,message:"User Register Successfuly", token: token, user})
+        }catch(error){
+        console.log(error)
+        return res.status(500).json({success:false,error:true,message:"internet Server error"})
+        }
+        }
 
-    const user = await usermodel.findOne({ mobile });
 
-    if (!user || !user.isMobileVerified) {
-      return res.status(400).json({
-        error: true,
-        message: "Mobile number not verified",
-      });
-    }
 
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
 
-    user.name = name;
-    user.password = hashPassword;
-
-    await user.save();
-
-    return res.json({
-      error: false,
-      message: "Register successful",
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message,
-    });
-  }
-};
 
 
 const  registerPanel=async(req,res)=>{
@@ -98,124 +105,6 @@ const  registerPanel=async(req,res)=>{
         return res.status(500).json({success:false,error:true,message:"internet Server error"})
         }
         }
-
-export const sendMobileOtp = async (req, res) => {
-  try {
-    const { mobile } = req.body;
-
-    if (!mobile) {
-      return res.status(400).json({
-        success: false,
-        message: "Mobile number required",
-      });
-    }
-
-    // 🔹 Mobile format ঠিক করো
-    let formattedMobile = mobile.replace(/^0/, "880");
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // 🔹 DB তে save করো
-    const user = await usermodel.findOneAndUpdate(
-      { mobile: formattedMobile },
-      {
-        mobile: formattedMobile,
-        mobileOtp: otp,
-        mobileOtpExpires: Date.now() + 5 * 60 * 1000,
-        isMobileVerified: false,
-      },
-      { upsert: true, new: true }
-    );
-
-    // 🔹 GreenWeb SMS
-    const params = new URLSearchParams();
-    params.append("token", process.env.GREENWEB_SMS_TOKEN);
-    params.append("to", formattedMobile);
-    params.append("message", `Your OTP is ${otp}`);
-
-    const response = await axios.post(
-      "https://api.bdbulksms.net/api.php",
-      params,
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-      }
-    );
-
-    console.log("GreenWeb Response:", response.data);
-
-    return res.json({
-      success: true,
-      message: "OTP Sent Successfully",
-    });
-
-  } catch (error) {
-    console.log("SMS Error:", error.response?.data || error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "SMS Failed",
-    });
-  }
-};
-
-
-export const verifyMobileOtp = async (req, res) => {
-  try {
-    const { mobile, otp } = req.body;
-
-    const user = await usermodel.findOne({ mobile });
-
-    if (!user) {
-      return res.status(400).json({
-        error: true,
-        message: "User not found",
-      });
-    }
-
-    if (user.mobileOtp !== otp) {
-      return res.status(400).json({
-        error: true,
-        message: "Invalid OTP",
-      });
-    }
-
-    if (user.mobileOtpExpires < Date.now()) {
-      return res.status(400).json({
-        error: true,
-        message: "OTP Expired",
-      });
-    }
-
-    user.isMobileVerified = true;
-    user.mobileOtp = null;
-    user.mobileOtpExpires = null;
-
-    await user.save();
-
-    return res.json({
-      error: false,
-      success: true,
-      message: "Mobile Verified Successfully",
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message,
-    });
-  }
-};
-
-
-
-
-
-
-
-
-
 
 
 // verify email
@@ -1287,4 +1176,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {VerifyEmail,registerPanel}
+export {register, VerifyEmail,registerPanel}

@@ -1,10 +1,9 @@
 import express from 'express';
 import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
         registerPanel, 
-        removeimageFromCloudinary, resetpassword, resetpasswordaccont, sendMobileOtp, updateUserDeatils, userAvatarController, 
+        removeimageFromCloudinary, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
         userDeatils, 
-        VerifyEmail, verifyForgotPasswordOtp, 
-        verifyMobileOtp}
+        VerifyEmail, verifyForgotPasswordOtp }
  from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
@@ -36,8 +35,6 @@ AuthRoutes.get('/getAllUser',getAllusers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
-AuthRoutes.post("/send-mobile-otp", sendMobileOtp);
-AuthRoutes.post("/verify-mobile-otp", verifyMobileOtp);
 export default  AuthRoutes;
 
 
