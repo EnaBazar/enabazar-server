@@ -66,8 +66,7 @@ const register = async (req, res) => {
     await user.save();
 
     // 🔹 Send SMS
-    await sendSMS();
-
+ 
     return res.status(200).json({
       success: true,
       error: false,
