@@ -49,7 +49,7 @@ const register = async (req, res) => {
       password,
       otp,
       otpExpires: Date.now() + 300000,
-      verify_mobile: false
+
     });
 
     await user.save();
