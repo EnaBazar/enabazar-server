@@ -7,7 +7,7 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import sendSMS from "../utils/sendSMS.js";
+
 
 
 
