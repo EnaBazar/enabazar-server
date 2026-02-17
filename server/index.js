@@ -30,50 +30,32 @@ const PORT = process.env.PORT || 5000;
 
 const app = express();
 
-/* ================== CORS CONFIG ================== */
-const allowedOrigins = ["https://goroabazar.com"]; // শুধু এই domain থেকে access
-app.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true); // Postman, curl ইত্যাদির জন্য
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = `CORS policy: ${origin} not allowed`;
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
-  credentials: true
-}));
-
-// Preflight OPTIONS request handle
-app.options("*", cors());
-
 /* ================== HTTP + SOCKET SERVER ================== */
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "*", // পরে চাইলে specific domain দিবে
+    methods: ["GET", "POST"],
   },
-  path: "/socket.io"
+    path: "/socket.io"
 });
 
+// socket instance globally available
 app.set("io", io);
 
 /* ================== SOCKET LOGIC ================== */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
+  // customerId / room join
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
       console.log("➡️ Joined room:", customerId);
     }
   });
-
+// send message
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -82,14 +64,17 @@ io.on("connection", (socket) => {
         customerId: data.customerId,
         customerName: data.customerName,
         mobile: data.mobile,
+
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",
+  
         read: data.from === "admin",
       });
 
       await chat.save();
 
+      // Emit to this room
       io.to(data.customerId).emit("newMessage", chat);
     } catch (err) {
       console.error("Socket sendMessage error:", err);
@@ -102,6 +87,7 @@ io.on("connection", (socket) => {
 });
 
 /* ================== MIDDLEWARE ================== */
+app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(morgan("combined"));
