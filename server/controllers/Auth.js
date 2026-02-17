@@ -27,59 +27,46 @@ cloudinary.config({
 
 
 
+
 const register = async (req, res) => {
   try {
     const { mobile, password, name } = req.body;
 
     if (!mobile || !password || !name) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "All fields are required",
-      });
+      return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
     }
 
-    const existsUser = await usermodel.findOne({ mobile });
-    if (existsUser) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "User Already Exists",
-      });
+    const exist = await usermodel.findOne({ mobile });
+    if (exist) {
+      return res.json({ error: true, message: "User already exists" });
     }
 
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
-
-    // 🔹 OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     const user = new usermodel({
-      mobile,
-      password: hashPassword,
       name,
-      otp: otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
-
+      mobile,
+      password,
+      otp,
+      otpExpires: Date.now() + 300000,
+      verify_mobile: false
     });
 
     await user.save();
 
-    // 🔹 Send SMS
- 
-    return res.status(200).json({
+    await sendSMS(mobile, otp);
+
+    return res.json({
       success: true,
-      error: false,
-      message: "OTP sent to your mobile number",
+      message: "OTP পাঠানো হয়েছে"
     });
+
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: true,
-      message: error.message,
-    });
+    console.log(error);
+    return res.json({ error: true, message: "Server error" });
   }
 };
+
 
 
 export async function verifyMobileOtp(req, res) {

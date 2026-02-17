@@ -2,13 +2,29 @@ import axios from "axios";
 
 const sendSMS = async (mobile, otp) => {
   try {
+
+    // 017 → 88017 বানাবে
+    if (mobile.startsWith("0")) {
+      mobile = "880" + mobile.slice(1);
+    }
+
     const response = await axios.get(
-      `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN }&to=${mobile}&message=Your OTP is ${otp}`
+      "https://api.greenweb.com.bd/api.php",
+      {
+        params: {
+          token: process.env.GREEN_WEB_API_KEY,
+          to: mobile,
+          message: `Your OTP is ${otp}`
+        }
+      }
     );
 
-    return response.data;
+    console.log("SMS RESULT:", response.data);
+
+    return true;
+
   } catch (error) {
-    console.log("SMS Error:", error.message);
+    console.log("SMS ERROR:", error.message);
     return false;
   }
 };
