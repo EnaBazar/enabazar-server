@@ -79,6 +79,8 @@ orderHistory:[{
     type : String
 
  },
+   verify_mobile: { type: Boolean, default: false },
+   
   role:{
     
     type : String,
