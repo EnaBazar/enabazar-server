@@ -7,7 +7,6 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import sendSMS from "../utils/sendSMS.js";
 
 
 
@@ -26,63 +25,43 @@ cloudinary.config({
       
 
 
-
-const register = async (req, res) => {
-  try {
-    const { mobile, password, name } = req.body;
-
-    if (!mobile || !password || !name) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "All fields are required",
-      });
-    }
-
-    const existsUser = await usermodel.findOne({ mobile });
-    if (existsUser) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "User Already Exists",
-      });
-    }
-
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
-
-    // 🔹 OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const user = new usermodel({
-      mobile,
-      password: hashPassword,
-      name,
-      otp: otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
-      verify_mobile: false,
-    });
-
-    await user.save();
-
-    // 🔹 Send SMS
-    await sendSMS(mobile, otp);
-
-    return res.status(200).json({
-      success: true,
-      error: false,
-      message: "OTP sent to your mobile number",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      error: true,
-      message: error.message,
-    });
-  }
-};
-
-
+const  register =async(req,res)=>{
+    
+    try{
+        
+   const {mobile,password,name}=req.body
+   
+        if (!mobile || !password || !name){
+            
+            return res.status(400).json({error:true,success:false,message:"All fields are required"})
+        }
+        const ExistsUser= await usermodel.findOne({mobile})
+        if (ExistsUser){
+        return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
+            
+        }
+        const salt = await bcryptjs.genSalt(10)
+        const hashPassword =await bcryptjs.hash(password,salt)
+  
+        const user= new usermodel({
+            mobile,
+            password:hashPassword,
+            name,
+            otp : "",
+            otpExpires : Date.now() + 600000,  
+        })
+        const token =jwt.sign(
+        {
+        mobile: user.mobile, id: user._id },
+        process.env.JSON_WEB_TOKEN_SECRET_KEY  
+        )
+        await user.save()
+        return res.status(200).json({success:true,error:false,message:"User Register Successfuly", token: token, user})
+        }catch(error){
+        console.log(error)
+        return res.status(500).json({success:false,error:true,message:"internet Server error"})
+        }
+        }
 
 
 
