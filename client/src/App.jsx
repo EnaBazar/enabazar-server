@@ -34,6 +34,7 @@ import SecurePayment from './Pages/SequrePayment/sequrePayment';
 import OrderReceipt from './Pages/Orders/OrderReceipt ';
 
 import CustomerChat from './Components/CustomerChat';
+import VerifyOtp from './Pages/Register/VerifyOtp';
 
 
 
@@ -330,7 +331,7 @@ return (
 <Route path={"/order/failed"} exact={true} element={<OrderFailed/>}/>
 <Route path={"/order/receipt"} exact={true} element={<OrderReceipt/>}/>
 <Route path={"/address"} exact={true} element={<Address/>}/>
-
+<Route path={"/verify-otp"} exact={true} element={<VerifyOtp/>}/>
  <Route path="/search/:keyword" element={<SearchPage />} />
 <Route path={"/aboutUs"} exact={true} element={<About/>}/>
 <Route path={"/Terms_Conditions"} exact={true} element={<Terms/>}/>
