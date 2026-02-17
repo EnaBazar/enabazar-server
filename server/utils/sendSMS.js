@@ -10,7 +10,7 @@ const sendSMS = async (mobile, otp) => {
       formattedMobile = "880" + mobile.substring(1);
     }
 
-    const url = `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN}&to=${formattedMobile}&message=Your OTP is ${otp}`;
+    const url = `http://api.greenweb.com.bd/api.php?token=${process.env.GREEN_WEB_API_KEY}&to=${formattedMobile}&message=Your OTP is ${otp}`;
 
     console.log("SMS URL:", url);
 
