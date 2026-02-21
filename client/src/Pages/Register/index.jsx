@@ -162,7 +162,7 @@ const authWithGoogle=()=>{
    <section className='section py-10'>
    <div className='container'>
    <div className='card !shadow-md !w-[400px] !m-auto !rounded-md !bg-white p-5 px-12'>
-<h3 className='text-center text-[18px] text-[200]'>Register akhane korun</h3>
+<h3 className='text-center text-[14px] text-[200]'>আমাদের সাথে থাকার জন্য আপনার মোবাইল নাম্বার দিয়ে রেজিস্টেশন করুন!</h3>
 
 <form className='w-full !mt-5'onSubmit={handleSubmit}>
 <div className='form-group w-full !mb-5'>
