@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
 dotenv.config();
@@ -8,7 +9,7 @@ if(!process.env.MONGODB_URL){
     )
 }
 
-const connectDB = async () => {
+const DbCon = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URL, {
             useNewUrlParser: true,
@@ -34,7 +35,7 @@ mongoose.connection.on('error', (err) => {
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected! Reconnecting...');
-    connectDB(); // Reconnect automatically
+    DbCon(); // Reconnect automatically
 });
 
-export default connectDB;
+export default DbCon;
