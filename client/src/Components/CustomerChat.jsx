@@ -217,7 +217,7 @@ export default function CustomerChat({ user }) {
             className="p-3 flex justify-between items-center text-white text-sm font-semibold"
             style={{ backgroundColor: PRIMARY }}
           >
-            <span>Live Chat Support</span>
+            <span>Live Chat Support our servece</span>
             <button onClick={() => setOpen(false)}>✕</button>
           </div>
 
