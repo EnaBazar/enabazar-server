@@ -1,0 +1,10 @@
+.productItem .title{line-height: 2px !important;}
+.productItem .info Link{text-decoration: none !important;}
+.Productsslider .swiper-wrapper{padding: 15px; margin-left: -15px; margin-right: -15px;}
+
+.Productsslider .Swiper-wrapper:last-child .productItem {
+    border: 5px solid rgba(0, 0, 0, 0.2) !important;
+}
+
+.productItem .actions button:hover svg{color:#fff !important;}
+.productItem .actions button svg{pointer-events: none !important;}
