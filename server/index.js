@@ -32,7 +32,7 @@ const app = express();
 /* ================== ALLOWED ORIGINS ================== */
 
 const allowedOrigins =
-  process.env.NODE_ENV === "production"
+  process.env.MONGODB_URL === "production"
     ? [
         "https://api.goroabazar.com", // 🔴 এখানে তোমার production frontend URL দিবে
       ]
