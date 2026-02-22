@@ -27,35 +27,38 @@ dotenv.config();
 DbCon();
 
 const PORT = process.env.PORT || 5000;
-
 const app = express();
 
 /* ================== HTTP + SOCKET SERVER ================== */
 const server = http.createServer(app);
 
+/* ================== SOCKET.IO CONFIG ================== */
 const io = new Server(server, {
   cors: {
-    origin: "*", // পরে চাইলে specific domain দিবে
+    origin: [
+      "http://localhost:5173",
+      "https://goroabazar.com",
+      "https://api.goroabazar.com"
+    ],
     methods: ["GET", "POST"],
+    credentials: true
   },
-    path: "/socket.io"
+  path: "/socket.io"
 });
 
-// socket instance globally available
 app.set("io", io);
 
 /* ================== SOCKET LOGIC ================== */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
-  // customerId / room join
   socket.on("join", (customerId) => {
     if (customerId) {
       socket.join(customerId.toString());
       console.log("➡️ Joined room:", customerId);
     }
   });
-// send message
+
   socket.on("sendMessage", async (data) => {
     try {
       const ChatModel = (await import("./models/chat.model.js")).default;
@@ -64,18 +67,15 @@ io.on("connection", (socket) => {
         customerId: data.customerId,
         customerName: data.customerName,
         mobile: data.mobile,
-
         from: data.from,
         type: data.type,
         message: data.type === "text" ? data.message : "",
-  
         read: data.from === "admin",
       });
 
       await chat.save();
-
-      // Emit to this room
       io.to(data.customerId).emit("newMessage", chat);
+
     } catch (err) {
       console.error("Socket sendMessage error:", err);
     }
@@ -86,14 +86,41 @@ io.on("connection", (socket) => {
   });
 });
 
+/* ================== CORS CONFIG ================== */
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://goroabazar.com",
+  "https://api.goroabazar.com"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Postman allow
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
+// Preflight request handle
+app.options("*", cors());
+
 /* ================== MIDDLEWARE ================== */
-app.use(cors({ origin: "*" }));
+
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("combined"));
 app.use(helmet());
 
 /* ================== ROUTES ================== */
+
 app.use("/auth", AuthRoutes);
 app.use("/category", categoryRoutes);
 app.use("/product", productRoutes);
@@ -109,6 +136,7 @@ app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
 
 /* ================== SERVER START ================== */
+
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
