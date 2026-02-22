@@ -2,25 +2,11 @@ import axios from "axios";
 
 const sendSMS = async (mobile, otp) => {
   try {
-
-    // বাংলাদেশ format ঠিক করা
-    const formattedMobile = mobile.startsWith("+88")
-      ? mobile
-      : `+88${mobile}`;
-
-    const response = await axios.post(
-      "http://api.bdbulksms.net/api.php",
-      new URLSearchParams({
-        token: process.env.GREENWEB_TOKEN ,
-        to: formattedMobile,
-        message: `Your OTP is ${otp}`
-      })
+    const response = await axios.get(
+      `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN }&to=${mobile}&message=Your OTP is ${otp}`
     );
 
-    console.log("SMS Response:", response.data);
-
-    return true;
-
+    return response.data;
   } catch (error) {
     console.log("SMS Error:", error.message);
     return false;
