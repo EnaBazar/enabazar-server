@@ -7,6 +7,7 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
+import { sendSMS } from "../utils/sendSMS.js";
 
 
 
@@ -25,56 +26,56 @@ cloudinary.config({
  //registration//
       
 
-
-
-
+// Registration API with OTP verification
 const register = async (req, res) => {
   try {
     const { mobile, password, name } = req.body;
 
+    // Validate required fields
     if (!mobile || !password || !name) {
       return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
     }
 
+    // Check if user already exists
     const exist = await usermodel.findOne({ mobile });
     if (exist) {
       return res.json({ error: true, message: "User already exists" });
     }
 
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
+    // Create new user with OTP
     const user = new usermodel({
       name,
       mobile,
       password,
       otp,
-      otpExpires: Date.now() + 300000,
-
+      otpExpires: Date.now() + 300000,  // OTP expires in 5 minutes
     });
 
+    // Save user and send OTP to mobile
     await user.save();
-
-    await sendSMS(mobile, otp);
+    await sendSMS(mobile, otp);  // Send OTP via SMS
 
     return res.json({
       success: true,
       message: "OTP পাঠানো হয়েছে"
     });
-
   } catch (error) {
     console.log(error);
     return res.json({ error: true, message: "Server error" });
   }
 };
 
-
-
+// OTP Verification API
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
     const user = await usermodel.findOne({ mobile });
 
+    // Check if user exists
     if (!user) {
       return res.status(400).json({
         error: true,
@@ -83,6 +84,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
+    // Validate OTP
     if (user.otp !== otp) {
       return res.status(400).json({
         error: true,
@@ -91,6 +93,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
+    // Check if OTP has expired
     if (user.otpExpires < Date.now()) {
       return res.status(400).json({
         error: true,
@@ -99,6 +102,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
+    // Mark mobile as verified and clear OTP
     user.verify_mobile = true;
     user.otp = "";
     user.otpExpires = "";
@@ -117,6 +121,9 @@ export async function verifyMobileOtp(req, res) {
     });
   }
 }
+
+
+
 
 
 

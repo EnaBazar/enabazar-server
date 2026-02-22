@@ -31,6 +31,11 @@ mobile:{
    require:true,
 },
 
+verify_mobile:{
+    
+    type:Boolean,
+    default : false
+},
 verify_email:{
     
     type:Boolean,
