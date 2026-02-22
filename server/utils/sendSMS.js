@@ -1,26 +1,14 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const sendSMS = async (mobile, otp) => {
+  const smsData = new URLSearchParams();
+  smsData.append('token', '1310419322517704711457bef66f552f9ed3565718ed5fbb807b1'); // Replace with your actual token
+  smsData.append('to', mobile);
+  smsData.append('message', `Your OTP is: ${otp}`);
+
   try {
-    const response = await axios.post(
-      "https://api.sms.net.bd/sendsms",
-      new URLSearchParams({
-        api_key: process.env.SMS_API_KEY,
-        msg: `Enabazar OTP: ${otp}. Do not share this code.`,
-        to: mobile
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      }
-    );
-
-    console.log("SMS Response:", response.data);
-    return response.data;
-
+    await axios.post('https://api.bdbulksms.net/api.php', smsData);
   } catch (error) {
-    console.log("SMS Error:", error.response?.data || error.message);
-    throw error;
+    console.error('Error sending OTP:', error);
   }
 };
