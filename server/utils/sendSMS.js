@@ -1,14 +1,24 @@
 import axios from "axios";
 
-const sendSMS = async (mobile, otp) => {
+const sendSMS = async (mobile, message) => {
   try {
-    const response = await axios.get(
-      `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN }&to=${mobile}&message=Your OTP is ${otp}`
+    const greenwebsms = new URLSearchParams();
+    greenwebsms.append("token", process.env.GREENWEB_TOKEN ); // save token in .env
+    greenwebsms.append("to", mobile);
+    greenwebsms.append("message", message);
+
+    const response = await axios.post(
+      "https://api.bdbulksms.net/api.php",
+      greenwebsms.toString(),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
     );
 
-    return response.data;
+    console.log("SMS Response:", response.data);
+    return true;
   } catch (error) {
-    console.log("SMS Error:", error.message);
+    console.error("SMS Sending Error:", error.message || error);
     return false;
   }
 };
