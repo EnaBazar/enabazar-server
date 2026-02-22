@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const sendSMS = async (mobile, otp) => {
   const smsData = new URLSearchParams();
-  smsData.append('token', 'yourtokenhere'); // Replace with your actual token
+  smsData.append('token','1310419322517704711457bef66f552f9ed3565718ed5fbb807b1'); // Replace with your actual token
   smsData.append('to', mobile);
   smsData.append('message', `Your OTP is: ${otp}`);
 

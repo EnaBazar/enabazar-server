@@ -36,7 +36,7 @@ AuthRoutes.get('/getAllUser',getAllusers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
-AuthRoutes.post("/verify-mobile-otp", verifyMobileOtp);
+AuthRoutes.post("/verify-otp", verifyMobileOtp);
 export default  AuthRoutes;
 
 
