@@ -35,7 +35,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*", // পরে চাইলে specific domain দিবে
+    origin: "*,http://api.greenweb.com.bd", // পরে চাইলে specific domain দিবে
     methods: ["GET", "POST"],
   },
     path: "/socket.io"
