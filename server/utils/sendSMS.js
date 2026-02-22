@@ -1,14 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
-export const sendSMS = async (mobile, otp) => {
-  const smsData = new URLSearchParams();
-  smsData.append('token', 'g8liCEnoNfgwMK3GN6JRste6q0fQDIyTBPn7c8qn'); // Replace with your actual token
-  smsData.append('to', mobile);
-  smsData.append('message', `Your OTP is: ${otp}`);
-
+const sendSMS = async (mobile, otp) => {
   try {
-    await axios.post('https://api.sms.net.bd/sendsms', smsData);
+    const response = await axios.get(
+      `https://api.sms.net.bd/sendsms?token=${process.env.GREENWEB_TOKEN }&to=${mobile}&message=Your OTP is ${otp}`
+    );
+
+    return response.data;
   } catch (error) {
-    console.error('Error sending OTP:', error);
+    console.log("SMS Error:", error.message);
+    return false;
   }
 };
+
+export default sendSMS;
