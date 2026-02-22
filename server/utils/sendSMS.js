@@ -8,7 +8,7 @@ const sendSMS = async (mobile, otp) => {
 
     const message = encodeURIComponent(`Your OTP is ${otp}`);
 
-    const url = `https://api.bdbulksms.net/api.php?token=${process.env.SMS_API_KEY}&to=${mobile}&message=${message}`;
+    const url = `https://api.bdbulksms.net/api.php?token=1310419322517704711457bef66f552f9ed3565718ed5fbb807b1&to=01674847446&message=test%20massage`;
 
     const response = await axios.get(url);
 
