@@ -1,21 +1,20 @@
 import axios from "axios";
 
-export const sendSMS = async (mobile, otp) => {
+const sendSMS = async (mobile, otp) => {
   try {
-    const params = new URLSearchParams();
-    params.append("token", process.env.GREENWEB_TOKEN);
-    params.append("to", mobile);
-    params.append("message", `Your OTP is ${otp}`);
+    await axios.post("https://api.sms.net.bd/sendsms", null, {
+      params: {
+        api_key: process.env.SMS_API_KEY,
+        msg: `Your OTP is ${otp}`,
+        to: mobile
+      }
+    });
 
-    const response = await axios.post(
-      "https://api.bdbulksms.net/api.php",
-      params
-    );
-
-    console.log("SMS Response:", response.data);
-    return response.data;
+    return true;
   } catch (error) {
-    console.error("SMS Error:", error.response?.data || error.message);
+    console.log("SMS Error:", error.message);
     return false;
   }
 };
+
+export default sendSMS;

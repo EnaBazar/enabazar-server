@@ -7,7 +7,6 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import { sendSMS } from "../utils/sendSMS.js";
 
 
 
@@ -27,44 +26,66 @@ cloudinary.config({
       
 
 // Registration API with OTP verification
+import bcryptjs from "bcryptjs";
+import sendSMS from "../utils/sendSMS.js";
+
 const register = async (req, res) => {
   try {
     const { mobile, password, name } = req.body;
 
-    // Validate required fields
     if (!mobile || !password || !name) {
-      return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
+      return res.status(400).json({
+        error: true,
+        message: "সব ফিল্ড পূরণ করুন"
+      });
     }
 
-    // Check if user already exists
     const exist = await usermodel.findOne({ mobile });
+
     if (exist) {
-      return res.json({ error: true, message: "User already exists" });
+      return res.status(400).json({
+        error: true,
+        message: "User already exists"
+      });
     }
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    // 🔐 Password hash
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password, salt);
 
-    // Create new user with OTP
+    // 🔢 OTP generate
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
     const user = new usermodel({
       name,
       mobile,
-      password,
+      password: hashPassword,
       otp,
-      otpExpires: Date.now() + 300000,  // OTP expires in 5 minutes
+      otpExpires: Date.now() + 5 * 60 * 1000,
+      verify_mobile: false
     });
 
-    // Save user and send OTP to mobile
     await user.save();
-    await sendSMS(mobile, otp);  // Send OTP via SMS
+
+    const smsStatus = await sendSMS(mobile, otp);
+
+    if (!smsStatus) {
+      return res.status(500).json({
+        error: true,
+        message: "OTP পাঠানো যায়নি"
+      });
+    }
 
     return res.json({
       success: true,
       message: "OTP পাঠানো হয়েছে"
     });
+
   } catch (error) {
-    console.log(error);
-    return res.json({ error: true, message: "Server error" });
+    return res.status(500).json({
+      error: true,
+      message: "Server error"
+    });
   }
 };
 
@@ -75,49 +96,42 @@ export async function verifyMobileOtp(req, res) {
 
     const user = await usermodel.findOne({ mobile });
 
-    // Check if user exists
     if (!user) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "User not found",
+        message: "User not found"
       });
     }
 
-    // Validate OTP
-    if (user.otp !== otp) {
+    if (user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "Invalid OTP",
+        message: "Invalid OTP"
       });
     }
 
-    // Check if OTP has expired
     if (user.otpExpires < Date.now()) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "OTP expired",
+        message: "OTP expired"
       });
     }
 
-    // Mark mobile as verified and clear OTP
     user.verify_mobile = true;
-    user.otp = "";
-    user.otpExpires = "";
+    user.otp = null;
+    user.otpExpires = null;
+
     await user.save();
 
     return res.json({
       success: true,
-      error: false,
-      message: "Mobile verified successfully",
+      message: "Mobile verified successfully"
     });
+
   } catch (error) {
     return res.status(500).json({
       error: true,
-      success: false,
-      message: error.message,
+      message: "Server error"
     });
   }
 }
