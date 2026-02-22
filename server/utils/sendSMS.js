@@ -2,15 +2,11 @@ import axios from "axios";
 
 const sendSMS = async (mobile, otp) => {
   try {
-    await axios.post("https://api.sms.net.bd/sendsms", null, {
-      params: {
-        api_key: process.env.SMS_API_KEY,
-        msg: `Your OTP is ${otp}`,
-        to: mobile
-      }
-    });
+    const response = await axios.get(
+      `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN }&to=${mobile}&message=Your OTP is ${otp}`
+    );
 
-    return true;
+    return response.data;
   } catch (error) {
     console.log("SMS Error:", error.message);
     return false;

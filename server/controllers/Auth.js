@@ -25,56 +25,36 @@ cloudinary.config({
  //registration//
       
 
-// Registration API with OTP verification
-import bcryptjs from "bcryptjs";
-import sendSMS from "../utils/sendSMS.js";
+
+
 
 const register = async (req, res) => {
   try {
     const { mobile, password, name } = req.body;
 
     if (!mobile || !password || !name) {
-      return res.status(400).json({
-        error: true,
-        message: "সব ফিল্ড পূরণ করুন"
-      });
+      return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
     }
 
     const exist = await usermodel.findOne({ mobile });
-
     if (exist) {
-      return res.status(400).json({
-        error: true,
-        message: "User already exists"
-      });
+      return res.json({ error: true, message: "User already exists" });
     }
 
-    // 🔐 Password hash
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
-
-    // 🔢 OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     const user = new usermodel({
       name,
       mobile,
-      password: hashPassword,
+      password,
       otp,
-      otpExpires: Date.now() + 5 * 60 * 1000,
-      verify_mobile: false
+      otpExpires: Date.now() + 300000,
+
     });
 
     await user.save();
 
-    const smsStatus = await sendSMS(mobile, otp);
-
-    if (!smsStatus) {
-      return res.status(500).json({
-        error: true,
-        message: "OTP পাঠানো যায়নি"
-      });
-    }
+    await sendSMS(mobile, otp);
 
     return res.json({
       success: true,
@@ -82,14 +62,13 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: "Server error"
-    });
+    console.log(error);
+    return res.json({ error: true, message: "Server error" });
   }
 };
 
-// OTP Verification API
+
+
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
@@ -99,45 +78,45 @@ export async function verifyMobileOtp(req, res) {
     if (!user) {
       return res.status(400).json({
         error: true,
-        message: "User not found"
+        success: false,
+        message: "User not found",
       });
     }
 
-    if (user.otp !== otp.toString()) {
+    if (user.otp !== otp) {
       return res.status(400).json({
         error: true,
-        message: "Invalid OTP"
+        success: false,
+        message: "Invalid OTP",
       });
     }
 
     if (user.otpExpires < Date.now()) {
       return res.status(400).json({
         error: true,
-        message: "OTP expired"
+        success: false,
+        message: "OTP expired",
       });
     }
 
     user.verify_mobile = true;
-    user.otp = null;
-    user.otpExpires = null;
-
+    user.otp = "";
+    user.otpExpires = "";
     await user.save();
 
     return res.json({
       success: true,
-      message: "Mobile verified successfully"
+      error: false,
+      message: "Mobile verified successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       error: true,
-      message: "Server error"
+      success: false,
+      message: error.message,
     });
   }
 }
-
-
-
 
 
 
