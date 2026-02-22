@@ -18,74 +18,67 @@ const Register = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const context = useContext(MyContext);
-  const history = useNavigate();
+  const navigate = useNavigate();
 
-  // Input field change handler
+  // Input handler
   const onChangeInput = (e) => {
     const { name, value } = e.target;
     setFormFields({ ...formFields, [name]: value });
   };
 
-  // Register form submit
-  const handleSubmit = async (e) => {
+  // ==================== Send OTP ====================
+  const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simple validation
-    if (!formFields.name || !formFields.mobile || !formFields.password) {
+    const { name, mobile, password } = formFields;
+
+    if (!name || !mobile || !password) {
       context.openAlertBox("error", "All fields are required");
       setIsLoading(false);
       return;
     }
 
     try {
-      // 1️⃣ Call registration API
-      const res = await axios.post(
-        "https://api.goroabazar.com/auth/register",
-        formFields
-      );
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, formFields);
 
       if (res.data.success) {
-        // 2️⃣ OTP sent successfully
+        context.openAlertBox("success", res.data.message);
         setOtpSent(true);
-        localStorage.setItem("verifyMobile", formFields.mobile);
-        context.openAlertBox("success", "OTP sent to your mobile number");
+        localStorage.setItem("verifyMobile", mobile); // store for verification
       } else {
-        context.openAlertBox("error", res.data.message || "Registration failed");
+        context.openAlertBox("error", res.data.message);
       }
     } catch (err) {
       console.error(err);
       context.openAlertBox("error", "Server error. Try again later");
-    } finally {
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   };
 
-  // OTP verification
-  const handleOtpVerify = async (e) => {
+  // ==================== Verify OTP ====================
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const mobile = localStorage.getItem("verifyMobile");
-      const res = await axios.post(
-        "https://api.goroabazar.com/auth/verify-otp",
-        { mobile, otp }
-      );
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/verify-otp`, { mobile, otp });
 
       if (res.data.success) {
-        context.openAlertBox("success", "Mobile verified successfully!");
+        context.openAlertBox("success", res.data.message);
         localStorage.removeItem("verifyMobile");
-        history("/login"); // Redirect after successful OTP
+        navigate("/login");
       } else {
-        context.openAlertBox("error", res.data.message || "OTP verification failed");
+        context.openAlertBox("error", res.data.message);
       }
     } catch (err) {
       console.error(err);
-      context.openAlertBox("error", "Server error. Try again later");
-    } finally {
-      setIsLoading(false);
+      context.openAlertBox("error", "Failed to verify OTP");
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -97,103 +90,89 @@ const Register = () => {
           </h3>
 
           {!otpSent ? (
-            <form className="w-full !mt-5" onSubmit={handleSubmit}>
-              <div className="form-group w-full !mb-5">
-                <TextField
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formFields.name}
-                  disabled={isLoading}
-                  label="আপনার নাম"
-                  variant="outlined"
-                  className="w-full"
-                  onChange={onChangeInput}
-                />
-              </div>
+            // ==================== Registration Form ====================
+            <form className="w-full !mt-5" onSubmit={handleRegister}>
+              <TextField
+                type="text"
+                name="name"
+                value={formFields.name}
+                disabled={isLoading}
+                label="আপনার নাম"
+                variant="outlined"
+                className="w-full mb-5"
+                onChange={onChangeInput}
+              />
 
-              <div className="form-group w-full !mb-5">
-                <TextField
-                  type="number"
-                  id="mobile"
-                  name="mobile"
-                  value={formFields.mobile}
-                  disabled={isLoading}
-                  label="মোবাইল নাম্বার"
-                  variant="outlined"
-                  className="w-full"
-                  onChange={onChangeInput}
-                />
-              </div>
+              <TextField
+                type="number"
+                name="mobile"
+                value={formFields.mobile}
+                disabled={isLoading}
+                label="মোবাইল নাম্বার"
+                variant="outlined"
+                className="w-full mb-5"
+                onChange={onChangeInput}
+              />
 
-              <div className="form-group w-full !mb-5 relative">
+              <div className="relative mb-5">
                 <TextField
                   type={isShowPassword ? "text" : "password"}
-                  id="password"
-                  label="পাসওয়াড*"
                   name="password"
                   value={formFields.password}
                   disabled={isLoading}
+                  label="পাসওয়াড*"
                   variant="outlined"
                   className="w-full"
                   onChange={onChangeInput}
                 />
                 <Button
-                  className="!absolute !top-[10px] !right-[10px] z-50 !w-[35px] !h-[35px] !min-w-[35px] !rounded-full !text-black"
+                  className="!absolute !top-[10px] !right-[10px] z-50"
                   onClick={() => setIsShowPassword(!isShowPassword)}
-                  type="button"
                 >
-                  {isShowPassword ? <IoMdEye className="text-[20px] opacity-75" /> : <IoMdEyeOff className="text-[20px] opacity-75" />}
+                  {isShowPassword ? <IoMdEye /> : <IoMdEyeOff />}
                 </Button>
               </div>
 
-              <div className="flex items-center w-full !mt-3 !mb-3">
-                <Button
-                  type="submit"
-                  disabled={Object.values(formFields).some((val) => !val)}
-                  className="btn-org btn-lg w-full cursor-pointer flex gap-3"
-                >
-                  {isLoading ? <CircularProgress color="inherit" /> : "Register"}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={Object.values(formFields).some((val) => !val) || isLoading}
+                className="btn-org btn-lg w-full flex gap-3"
+              >
+                {isLoading ? <CircularProgress color="inherit" /> : "Register"}
+              </Button>
 
-              <p className="text-center">
+              <p className="text-center mt-3">
                 Already have an account?{" "}
-                <Link className="link !text-[14px] cursor-pointer !font-[600] !text-[#ff5252]" to="/login">
+                <Link to="/login" className="text-red-500 font-semibold">
                   Sign In
                 </Link>
               </p>
             </form>
           ) : (
-            <form className="w-full !mt-5" onSubmit={handleOtpVerify}>
-              <div className="form-group w-full !mb-5">
-                <TextField
-                  type="number"
-                  id="otp"
-                  name="otp"
-                  value={otp}
-                  disabled={isLoading}
-                  label="Enter OTP"
-                  variant="outlined"
-                  className="w-full"
-                  onChange={(e) => setOtp(e.target.value)}
-                />
-              </div>
+            // ==================== OTP Verification Form ====================
+            <form className="w-full !mt-5" onSubmit={handleVerifyOtp}>
+              <TextField
+                type="number"
+                value={otp}
+                disabled={isLoading}
+                label="Enter OTP"
+                variant="outlined"
+                className="w-full mb-5"
+                onChange={(e) => setOtp(e.target.value)}
+              />
 
-              <div className="flex items-center w-full !mt-3 !mb-3">
-                <Button
-                  type="submit"
-                  disabled={otp.length < 6}
-                  className="btn-org btn-lg w-full cursor-pointer flex gap-3"
-                >
-                  {isLoading ? <CircularProgress color="inherit" /> : "Verify OTP"}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                disabled={otp.length < 6 || isLoading}
+                className="btn-org btn-lg w-full flex gap-3"
+              >
+                {isLoading ? <CircularProgress color="inherit" /> : "Verify OTP"}
+              </Button>
 
-              <p className="text-center">
-                Didn’t receive the OTP?{" "}
+              <p className="text-center mt-3">
+                Didn’t receive OTP?{" "}
                 <span
-                  className="link !text-[14px] cursor-pointer !font-[600] !text-[#ff5252]"
+                  className="text-red-500 font-semibold cursor-pointer"
                   onClick={() => setOtpSent(false)}
                 >
                   Resend OTP
@@ -201,11 +180,6 @@ const Register = () => {
               </p>
             </form>
           )}
-
-          <p className="text-center font-[500]">Or continue with social account</p>
-          <Button className="flex gap-3 w-full !bg-[f1f1f1] btn-lg !text-black">
-            SignUp with Google
-          </Button>
         </div>
       </div>
     </section>

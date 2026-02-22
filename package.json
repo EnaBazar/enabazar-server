@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "twilio": "^5.12.2"
   }
 }
