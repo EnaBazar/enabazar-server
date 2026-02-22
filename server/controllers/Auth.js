@@ -7,6 +7,8 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
+import sendSMS from "../utils/sendSMS.js";
+
 
 
 
@@ -25,36 +27,53 @@ cloudinary.config({
  //registration//
       
 
+// Registration API with OTP verification
 
 
-
-const register = async (req, res) => {
+export const register = async (req, res) => {
   try {
-    const { mobile, password, name } = req.body;
+    const { name, mobile, password } = req.body;
 
-    if (!mobile || !password || !name) {
-      return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
+    if (!name || !mobile || !password) {
+      return res.status(400).json({
+        error: true,
+        message: "সব ফিল্ড পূরণ করুন"
+      });
     }
 
     const exist = await usermodel.findOne({ mobile });
+
     if (exist) {
-      return res.json({ error: true, message: "User already exists" });
+      return res.status(400).json({
+        error: true,
+        message: "User already exists"
+      });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password, salt);
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = new usermodel({
       name,
       mobile,
-      password,
+      password: hashPassword,
       otp,
-      otpExpires: Date.now() + 300000,
-
+      otpExpires: Date.now() + 5 * 60 * 1000,
+      verify_mobile: false
     });
 
     await user.save();
 
-    await sendSMS(mobile, otp);
+    const smsStatus = await sendSMS(mobile, otp);
+
+    if (!smsStatus) {
+      return res.status(500).json({
+        error: true,
+        message: "OTP পাঠানো যায়নি"
+      });
+    }
 
     return res.json({
       success: true,
@@ -62,14 +81,15 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
-    return res.json({ error: true, message: "Server error" });
+    return res.status(500).json({
+      error: true,
+      message: "Server error"
+    });
   }
 };
 
-
-
-export async function verifyMobileOtp(req, res) {
+// OTP Verification API
+export const verifyMobileOtp = async (req, res) => {
   try {
     const { mobile, otp } = req.body;
 
@@ -78,45 +98,45 @@ export async function verifyMobileOtp(req, res) {
     if (!user) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "User not found",
+        message: "User not found"
       });
     }
 
     if (user.otp !== otp) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "Invalid OTP",
+        message: "Invalid OTP"
       });
     }
 
     if (user.otpExpires < Date.now()) {
       return res.status(400).json({
         error: true,
-        success: false,
-        message: "OTP expired",
+        message: "OTP expired"
       });
     }
 
     user.verify_mobile = true;
-    user.otp = "";
-    user.otpExpires = "";
+    user.otp = null;
+    user.otpExpires = null;
+
     await user.save();
 
     return res.json({
       success: true,
-      error: false,
-      message: "Mobile verified successfully",
+      message: "Mobile verified successfully"
     });
+
   } catch (error) {
     return res.status(500).json({
       error: true,
-      success: false,
-      message: error.message,
+      message: "Server error"
     });
   }
-}
+};
+
+
+
 
 
 
