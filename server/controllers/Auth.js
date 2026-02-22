@@ -7,7 +7,7 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
-import sendSMS from "../utils/sendSMS.js";
+
 
 
 
@@ -28,89 +28,95 @@ cloudinary.config({
 
 
 
-
-
-/* ================== REGISTER WITH OTP ================== */
-export const register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const { mobile, password, name } = req.body;
 
     if (!mobile || !password || !name) {
-      return res.status(400).json({ error: true, message: "সব ফিল্ড পূরণ করুন" });
+      return res.json({ error: true, message: "সব ফিল্ড লাগবে" });
     }
 
     const exist = await usermodel.findOne({ mobile });
-    if (exist)
-      return res.status(400).json({ error: true, message: "User already exists" });
+    if (exist) {
+      return res.json({ error: true, message: "User already exists" });
+    }
 
-    // Password hash
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
-
-    // OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     const user = new usermodel({
       name,
       mobile,
-      password: hashPassword,
+      password,
       otp,
-      otpExpires: Date.now() + 5 * 60 * 1000,
-      verify_mobile: false,
+      otpExpires: Date.now() + 300000,
+
     });
 
     await user.save();
 
-    // Send SMS using axios
-    const smsStatus = await sendSMS(mobile, `আপনার OTP কোড: ${otp}`);
-    if (!smsStatus) {
-      return res.status(500).json({ error: true, message: "OTP পাঠানো যায়নি" });
-    }
+    await sendSMS(mobile, otp);
 
-    return res.json({ success: true, message: "OTP পাঠানো হয়েছে" });
+    return res.json({
+      success: true,
+      message: "OTP পাঠানো হয়েছে"
+    });
+
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: true, message: "Server error" });
+    console.log(error);
+    return res.json({ error: true, message: "Server error" });
   }
 };
 
-/* ================== VERIFY MOBILE OTP ================== */
-export const verifyMobileOtp = async (req, res) => {
+
+
+export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
     const user = await usermodel.findOne({ mobile });
-    if (!user)
-      return res.status(400).json({ error: true, message: "User not found" });
 
-    if (user.otp !== otp.toString())
-      return res.status(400).json({ error: true, message: "Invalid OTP" });
+    if (!user) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "User not found",
+      });
+    }
 
-    if (user.otpExpires < Date.now())
-      return res.status(400).json({ error: true, message: "OTP expired" });
+    if (user.otp !== otp) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "OTP expired",
+      });
+    }
 
     user.verify_mobile = true;
-    user.otp = null;
-    user.otpExpires = null;
+    user.otp = "";
+    user.otpExpires = "";
     await user.save();
-
-    // Generate JWT tokens after verification
-    const accesstoken = await generatedAccessToken(user._id);
-    const refreshtoken = await generatedRefreshToken(user._id);
 
     return res.json({
       success: true,
+      error: false,
       message: "Mobile verified successfully",
-      data: { accesstoken, refreshtoken },
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: true, message: "Server error" });
+    return res.status(500).json({
+      error: true,
+      success: false,
+      message: error.message,
+    });
   }
-};
-
-
-
+}
 
 
 
@@ -1224,4 +1230,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export { VerifyEmail,registerPanel}
+export {register, VerifyEmail,registerPanel}
