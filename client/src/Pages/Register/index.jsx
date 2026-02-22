@@ -88,7 +88,7 @@ const Register = () => {
       <div className="container">
         <div className="card !shadow-md !w-[400px] !m-auto !rounded-md !bg-white p-5 px-12">
           <h3 className="text-center text-[14px] text-[200]">
-            আমাদের সাথে থাকার জন্য আপনার মোবাইল নাম্বার দিয়ে রেজিস্টেশন করুন!
+            আপনার মোবাইল নাম্বার দিয়ে রেজিস্টেশন করুন!
           </h3>
 
           {/* Registration Form */}
