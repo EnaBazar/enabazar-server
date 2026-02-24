@@ -57,10 +57,17 @@ const Register = () => {
     <div className="container mx-auto p-5">
       {step === 1 && (
         <form onSubmit={handleRegister} className="space-y-4 max-w-md mx-auto">
-          <TextField label="Name" name="name" value={formFields.name} onChange={handleChange} fullWidth required />
-          <TextField label="Mobile" name="mobile" value={formFields.mobile} onChange={handleChange} fullWidth required />
-          <TextField label="Password" type="password" name="password" value={formFields.password} onChange={handleChange} fullWidth required />
-          <Button type="submit" variant="contained" fullWidth disabled={isLoading}>
+          <TextField
+           label="Name"
+           className='!mt-2'
+            name="name"
+             value={formFields.name} 
+             onChange={handleChange} 
+             fullWidth required />
+
+          <TextField label="Mobile" className='!mt-2' name="mobile" value={formFields.mobile} onChange={handleChange} fullWidth required />
+          <TextField label="Password"  className='!mt-2' type="password" name="password" value={formFields.password} onChange={handleChange} fullWidth required />
+          <Button type="submit"  className='!mt-2' variant="contained" fullWidth disabled={isLoading}>
             {isLoading ? <CircularProgress size={24} /> : "Register & Send OTP"}
           </Button>
         </form>
