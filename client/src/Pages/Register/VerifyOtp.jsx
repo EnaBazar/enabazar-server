@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { postData } from "../../utils/api";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { MyContext } from "../../App";
+import { postData } from "../../utils/api";
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
@@ -17,9 +17,9 @@ const VerifyOtp = () => {
   const context = useContext(MyContext);
 
   const mobile = location.state?.mobile;
-  const redirectTo = location.state?.from || "/";
+  const redirectPath = location.state?.redirectPath || "/";
 
-  // Countdown timer
+  // Countdown
   useEffect(() => {
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
@@ -32,89 +32,75 @@ const VerifyOtp = () => {
   // Web OTP API auto-fill
   useEffect(() => {
     if ("OTPCredential" in window) {
+      const ac = new AbortController();
       navigator.credentials
-        .get({ otp: { transport: ["sms"] } })
-        .then((otpResponse) => {
-          const code = otpResponse.code;
-          setOtp(code);
-          handleVerify(code); // auto verify
+        .get({ otp: { transport: ["sms"] }, signal: ac.signal })
+        .then((otpCredential) => {
+          setOtp(otpCredential.code);
+          handleVerify(otpCredential.code);
         })
-        .catch((err) => console.log("OTP autofill not supported", err));
+        .catch((err) => console.log("Web OTP failed", err));
+      return () => ac.abort();
     }
   }, []);
 
-  const handleVerify = async (autoOtp) => {
-    const codeToVerify = autoOtp || otp;
-    if (codeToVerify.length !== 6) {
-      context.openAlertBox("error", "Please enter 6-digit OTP");
-      return;
-    }
+  const handleVerify = async (otpCode) => {
+    const code = otpCode || otp;
+    if (!code) return;
 
     setIsLoading(true);
-    const res = await postData("/auth/verify-mobile-otp", {
-      mobile,
-      otp: codeToVerify,
-    });
-    setIsLoading(false);
+    const res = await postData("/auth/verify-otp", { mobile, otp: code });
 
-    if (!res.error) {
-      context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই হয়েছে!");
+    if (!res?.error) {
+      context.openAlertBox("success", "আপনার মোবাইল ভেরিফাই হয়েছে!");
 
-      if (res.data?.accesstoken) {
-        localStorage.setItem("accesstoken", res.data.accesstoken);
-        localStorage.setItem("refreshtoken", res.data.refreshtoken);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        context.setIsLogin(true);
-      }
+      // Auto login
+      localStorage.setItem("accesstoken", res?.data?.accesstoken);
+      localStorage.setItem("refreshtoken", res?.data?.refreshtoken);
+      context.setIsLogin(true);
 
-      navigate(redirectTo, { replace: true });
+      navigate(redirectPath);
     } else {
-      context.openAlertBox("error", res.message);
+      context.openAlertBox("error", res?.message);
+      setIsLoading(false);
     }
   };
 
   const handleResend = async () => {
-    setIsLoading(true);
     const res = await postData("/auth/resend-otp", { mobile });
-    setIsLoading(false);
-
-    if (!res.error) {
-      context.openAlertBox("success", "নতুন OTP পাঠানো হয়েছে!");
+    if (!res?.error) {
+      context.openAlertBox("success", "OTP পাঠানো হয়েছে।");
       setSeconds(60);
       setCanResend(false);
     } else {
-      context.openAlertBox("error", res.message);
+      context.openAlertBox("error", res?.message);
     }
   };
 
   return (
     <div style={{ width: "400px", margin: "100px auto" }}>
-      <h3 className="text-center mb-5">Verify OTP</h3>
-
+      <h3>আপনার মোবাইল ভেরিফাই করুন</h3>
       <TextField
         label="Enter OTP"
         fullWidth
         inputProps={{ maxLength: 6 }}
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-        className="mb-5"
+        disabled={isLoading}
+        style={{ marginTop: "20px", marginBottom: "20px" }}
       />
-
       <Button
         variant="contained"
         fullWidth
         onClick={() => handleVerify()}
-        disabled={isLoading}
-        style={{ marginBottom: "20px" }}
+        disabled={isLoading || !otp}
       >
         {isLoading ? <CircularProgress size={24} /> : "Verify"}
       </Button>
 
-      <div style={{ textAlign: "center" }}>
+      <div style={{ marginTop: "20px", textAlign: "center" }}>
         {canResend ? (
-          <Button onClick={handleResend} disabled={isLoading}>
-            Resend OTP
-          </Button>
+          <Button onClick={handleResend}>Resend OTP</Button>
         ) : (
           <p>Resend in {seconds}s</p>
         )}
