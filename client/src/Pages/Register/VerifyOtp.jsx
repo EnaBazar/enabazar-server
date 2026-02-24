@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { postData } from "../../utils/api";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import { useContext } from "react";
+import { MyContext } from "../../App";
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
@@ -12,7 +14,7 @@ const VerifyOtp = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const mobile = location.state?.mobile;
-
+  const context = useContext(MyContext)
   // countdown
   useEffect(() => {
     if (seconds > 0) {
@@ -30,7 +32,7 @@ const VerifyOtp = () => {
     });
 
     if (!res?.error) {
-      alert("Verified Successfully");
+      context.openAlertBox("success","আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
       navigate("/login");
     } else {
       alert(res?.message);
@@ -55,6 +57,7 @@ const VerifyOtp = () => {
 
       <TextField
         label="Enter OTP"
+        className="!mt-3 !mb-3"
         fullWidth
         inputProps={{ maxLength: 6 }}
         value={otp}
