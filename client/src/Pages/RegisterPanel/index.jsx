@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 import React, { useContext, useState } from 'react'
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -13,14 +20,16 @@ import { useNavigate } from 'react-router-dom';
 
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { firebaseApp } from '../../firebase';
-import { PhoneInput } from 'react-international-phone';
 const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
+
+
+
+
  const RegisterPanel = () => {
-    
-    
     const [isLoading,setIsLoading]= useState(false);
+    const navigate = useNavigate();
     const [IsShowPassword,setIsShowPassword] = useState(false);
     const [formFields,setFormFields]= useState({
       name:"",
@@ -47,10 +56,6 @@ const googleProvider = new GoogleAuthProvider();
     
 const handleSubmit=(e)=>{
   
-
-
-
-
   e.preventDefault();
   setIsLoading(true)
   
@@ -74,26 +79,23 @@ const handleSubmit=(e)=>{
   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
+
+
+    // Register.jsx এর handleSubmit function এর মধ্যে
 if(res?.error !== true){
   setIsLoading(false)
   context.openAlertBox("success",res?.message);
+  localStorage.setItem("userEmail",formFields.mobile)
 
-  // 👉 Login Form এ Name + Mobile পাঠানো
-  context.setLoginPrefill({
-    name: formFields.name,
-    mobile: formFields.mobile
-  });
-
-  context?.setOpenRegisterPanel(false);
-  context?.setOpenLoginPanel(true);
+  // ✅ Add this line for OTP redirect
+  navigate("/verify-otp", { state: { mobile: formFields.mobile } });
 
   setFormFields({
     name:"",
     mobile:"",
     password:""
   })
-}
-else{
+}else{
       context.openAlertBox("error",res?.message);
       setFormFields({
         name:"",
@@ -172,7 +174,7 @@ const authWithGoogle=()=>{
 }
 
   return (
-  <section className="py-8 flex justify-center">
+   <section className="py-8 flex justify-center">
   <div
     className="
       w-[90%] 
@@ -267,3 +269,13 @@ onClick={authWithGoogle}
   )
 }
 export default RegisterPanel;
+
+
+
+
+
+
+
+
+
+
