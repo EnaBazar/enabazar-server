@@ -9,7 +9,7 @@ const sendSMS = async (mobile, message) => {
       mobile = "88" + mobile;
     }
 
-    const url = `${process.env.GREENWEB_API_URL}?token=${process.env.GREENWEB_TOKEN}&to=${mobile}&message=${encodeURIComponent(message)}`;
+    const url = `https://bulksmsdhaka.net/api/otpsend?apikey=b65bf467f3282df00975768237e81ce765830322&callerID=1234&number=${mobile}&message=Your OTP is ${otp}`;
 
     console.log("Final URL:", url);
 
