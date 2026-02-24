@@ -16,7 +16,8 @@ const VerifyOtp = () => {
   const navigate = useNavigate();
   const context = useContext(MyContext);
 
-  const mobile = location.state?.mobile; // register থেকে পাঠানো mobile
+  const mobile = location.state?.mobile; // Register থেকে পাঠানো mobile
+  const redirectTo = location.state?.from || "/"; // previous page or home
 
   // Countdown for resend
   useEffect(() => {
@@ -36,7 +37,7 @@ const VerifyOtp = () => {
     }
 
     setIsLoading(true);
-    const res = await postData("/auth/verify-otp", { mobile, otp });
+    const res = await postData("/auth/verify-mobile-otp", { mobile, otp });
 
     setIsLoading(false);
     if (!res?.error) {
@@ -51,8 +52,8 @@ const VerifyOtp = () => {
         context.setIsLogin(true);
       }
 
-      // Redirect to homepage
-      navigate("/");
+      // Redirect back to previous page
+      navigate(redirectTo, { replace: true });
     } else {
       context.openAlertBox("error", res?.message);
     }
@@ -75,15 +76,16 @@ const VerifyOtp = () => {
 
   return (
     <div style={{ width: "400px", margin: "100px auto" }}>
-      <h3 className="text-center mb-5">Verify OTP</h3>
+      <h3 className="text-center !mb-5">Verify OTP</h3>
 
       <TextField
         label="Enter OTP"
+       
         fullWidth
         inputProps={{ maxLength: 6 }}
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-        className="mb-5"
+        className="!mb-5"
       />
 
       <Button
