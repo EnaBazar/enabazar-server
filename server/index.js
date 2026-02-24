@@ -22,6 +22,7 @@ import blogRoutes from "./route/blog.route.js";
 import orderRoutes from "./route/order.route.js";
 import homeSlideRoutes from "./route/homeSlide.route.js";
 import chatrouter from "./route/chat.routes.js";
+import usersRoutes from "./route/users.routes.js";
 
 dotenv.config();
 DbCon();
@@ -107,7 +108,7 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
-
+app.use("/api/users", usersRoutes);
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
