@@ -2,24 +2,22 @@ import axios from "axios";
 
 const sendSMS = async (mobile, message) => {
   try {
-    if (!mobile || !message) {
-      throw new Error("Mobile and message are required");
-    }
 
-    const params = new URLSearchParams();
-    params.append("token", process.env.GREENWEB_TOKEN);
-    params.append("to", mobile);
-    params.append("message", message);
+    // 🔹 Mobile format ঠিক করা ( + থাকলে remove )
+    mobile = mobile.replace("+", "");
 
-    const response = await axios.post(
-      "https://api.greenweb.com.bd/api.php",
-      params
-    );
+    const url = `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN}&to=${mobile}&message=${encodeURIComponent(message)}`;
+
+    console.log("SMS URL:", url); // debug
+
+    const response = await axios.get(url);
+
+    console.log("SMS Response:", response.data);
 
     return response.data;
 
   } catch (error) {
-    console.error("SMS Error:", error.response?.data || error.message);
+    console.log("SMS Error:", error.response?.data || error.message);
     return false;
   }
 };
