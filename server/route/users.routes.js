@@ -39,7 +39,7 @@ usersRoutes.post("/register", async (req, res) => {
 
     // Send OTP via Greenweb
     const message = `আপনার OTP হলো: ${otp}`;
-    const url = `http://api.greenweb.com.bd/api.php?token=1310419322517704711457bef66f552f9ed3565718ed5fbb807b1&to=88${mobile}&message=${encodeURIComponent(message)}`;
+    const url = `https://api.greenweb.com.bd/api.php?token=1310419322517704711457bef66f552f9ed3565718ed5fbb807b1&to=88${mobile}&message=${encodeURIComponent(message)}`;
     await axios.get(url);
 
     return res.json({ success: true, message: "OTP sent successfully" });
