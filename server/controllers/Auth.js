@@ -64,7 +64,7 @@ const register = async (req, res) => {
     await user.save();
 
     // 📩 SMS send
-    await sendSMS(mobile, `Your OTP is ${otp}`);
+    await sendSMS(mobile,otp);
 
     return res.json({
       success: true,
