@@ -26,116 +26,146 @@ cloudinary.config({
  //registration//
       
 
-export const register = async (req, res) => {
+const register = async (req, res) => {
   try {
-    const { name, mobile, password } = req.body;
+    const { mobile, password, name } = req.body;
 
-    if (!name || !mobile || !password)
-      return res.status(400).json({ error: true, message: "সব তথ্য দিন" });
+    if (!mobile || !password || !name) {
+      return res.status(400).json({
+        error: true,
+        message: "সব ফিল্ড লাগবে",
+      });
+    }
 
     const exist = await usermodel.findOne({ mobile });
-    if (exist)
-      return res.status(400).json({ error: true, message: "User exists" });
+    if (exist) {
+      return res.status(400).json({
+        error: true,
+        message: "User already exists",
+      });
+    }
 
-    const hashPassword = await bcryptjs.hash(password, 10);
+    // 🔐 password hash
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password, salt);
 
+    // 🔢 OTP generate
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedOtp = await bcryptjs.hash(otp, 10);
 
     const user = new usermodel({
       name,
       mobile,
       password: hashPassword,
-      otp: hashedOtp,
-      otpExpires: Date.now() + 5 * 60 * 1000,
-      otpLastSent: new Date(),
+      otp,
+      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+      verify_mobile: false,
     });
 
     await user.save();
 
+    // 📩 SMS send
     await sendSMS(mobile,otp);
 
-    res.json({ success: true, message: "OTP Sent" });
+    return res.json({
+      success: true,
+      message: "OTP পাঠানো হয়েছে",
+    });
 
-  } catch (err) {
-    res.status(500).json({ error: true, message: err.message });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: true,
+      message: "Server error",
+    });
   }
 };
 
 
-export const verifyMobileOtp = async (req, res) => {
+
+
+
+
+export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
     const user = await usermodel.findOne({ mobile });
 
-    if (!user)
-      return res.status(400).json({ error: true, message: "User not found" });
+    if (!user) {
+      return res.status(400).json({
+        error: true,
+        message: "User not found",
+      });
+    }
 
-    if (user.otpExpires < Date.now())
-      return res.status(400).json({ error: true, message: "OTP expired" });
+    if (user.otp !== otp.toString()) {
+      return res.status(400).json({
+        error: true,
+        message: "Invalid OTP",
+      });
+    }
 
-    const isMatch = await bcryptjs.compare(otp, user.otp);
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        error: true,
+        message: "OTP expired",
+      });
+    }
 
-    if (!isMatch)
-      return res.status(400).json({ error: true, message: "Invalid OTP" });
-
+    // ✅ verified
     user.verify_mobile = true;
-    user.otp = null;
+    user.otp = "";
     user.otpExpires = null;
-    user.otpResendCount = 0;
 
     await user.save();
 
-    res.json({ success: true, message: "Mobile Verified" });
+    return res.json({
+      success: true,
+      message: "Mobile verified successfully",
+    });
 
-  } catch (err) {
-    res.status(500).json({ error: true, message: err.message });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: error.message,
+    });
   }
-};
+}
 
-
-
-
-export const resendOtp = async (req, res) => {
+export async function resendOtp(req, res) {
   try {
     const { mobile } = req.body;
 
     const user = await usermodel.findOne({ mobile });
 
-    if (!user)
-      return res.status(400).json({ error: true, message: "User not found" });
-
-    if (user.otpResendCount >= 3)
-      return res.status(429).json({
+    if (!user) {
+      return res.status(400).json({
         error: true,
-        message: "Max resend limit reached",
+        message: "User not found",
       });
-
-    if (Date.now() - user.otpLastSent.getTime() < 60000)
-      return res.status(429).json({
-        error: true,
-        message: "Please wait 60 seconds",
-      });
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedOtp = await bcryptjs.hash(otp, 10);
 
-    user.otp = hashedOtp;
+    user.otp = otp;
     user.otpExpires = Date.now() + 5 * 60 * 1000;
-    user.otpLastSent = new Date();
-    user.otpResendCount += 1;
 
     await user.save();
 
-    await sendSMS(mobile, `Your OTP is ${otp}`);
+    await sendSMS(mobile, `Your new OTP is ${otp}`);
 
-    res.json({ success: true, message: "OTP Resent" });
+    return res.json({
+      success: true,
+      message: "New OTP sent",
+    });
 
-  } catch (err) {
-    res.status(500).json({ error: true, message: err.message });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: error.message,
+    });
   }
-};
+}
 
 
 
