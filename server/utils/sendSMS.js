@@ -3,12 +3,15 @@ import axios from "axios";
 const sendSMS = async (mobile, message) => {
   try {
 
-    // 🔹 Mobile format ঠিক করা ( + থাকলে remove )
     mobile = mobile.replace("+", "");
 
-    const url = `http://api.greenweb.com.bd/api.php?token=${process.env.GREENWEB_TOKEN}&to=${mobile}&message=${encodeURIComponent(message)}`;
+    if (mobile.startsWith("01")) {
+      mobile = "88" + mobile;
+    }
 
-    console.log("SMS URL:", url); // debug
+    const url = `${process.env.GREENWEB_API_URL}?token=${process.env.GREENWEB_TOKEN}&to=${mobile}&message=${encodeURIComponent(message)}`;
+
+    console.log("Final URL:", url);
 
     const response = await axios.get(url);
 
