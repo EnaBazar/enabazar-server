@@ -1,7 +1,7 @@
 import express from 'express';
 import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
         registerPanel, 
-        removeimageFromCloudinary, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
+        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
         userDeatils, 
         VerifyEmail, verifyForgotPasswordOtp, 
         verifyMobileOtp}
@@ -37,6 +37,7 @@ AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
 AuthRoutes.post("/verify-otp", verifyMobileOtp);
+AuthRoutes.post("/resend-otp", resendOtp);
 export default  AuthRoutes;
 
 
