@@ -53,7 +53,7 @@ export const register = async (req, res) => {
 
     await user.save();
 
-    await sendSMS(mobile, `Your OTP is ${otp}`);
+    await sendSMS(mobile,otp);
 
     res.json({ success: true, message: "OTP Sent" });
 
