@@ -39,11 +39,9 @@ usersRoutes.post("/register", async (req, res) => {
 
     // Send OTP via Greenweb
     const message = `আপনার OTP হলো: ${otp}`;
-    const url = `https://api.sms.net.bd/sendsms?api_key=Dukm6pPtPttJKR8Zw26O7M1FBpZGp2Vv52adNohx&msg={YOUR_MSG}&to=8801674847446`;
+    const url = `https://bulksmsdhaka.net/api/otpsend?apikey=b65bf467f3282df00975768237e81ce765830322&callerID=1234&number=01674847446&message=test for otp`;
     await axios.get(url);
-
     return res.json({ success: true, message: "OTP sent successfully" });
-
   } catch (error) {
     console.log("SMS Error:", error.message);
     return res.status(500).json({ error: true, message: "Server error" });
