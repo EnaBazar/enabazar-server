@@ -32,6 +32,7 @@ const VerifyOtp = () => {
       <h3>Verify OTP</h3>
 
       <TextField
+      className="!mt-3"
         label="Enter OTP"
         fullWidth
         value={otp}
