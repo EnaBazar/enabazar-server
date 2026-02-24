@@ -19,7 +19,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await postData("/users/register", {
+    const res = await postData("/registers", {
       name: formFields.name,
       mobile: formFields.mobile,
       password: formFields.password
