@@ -69,18 +69,23 @@ const handleSubmit=(e)=>{
   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
-    if(res?.error !== true){
-      setIsLoading(false)
-      context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",formFields.mobile)
-      setFormFields({
-        name:"",
-        mobile:"",
-        password:""
-      })
- 
 
-    }else{
+
+    // Register.jsx এর handleSubmit function এর মধ্যে
+if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+  localStorage.setItem("userEmail",formFields.mobile)
+
+  // ✅ Add this line for OTP redirect
+  navigate("/verify-otp", { state: { mobile: formFields.mobile } });
+
+  setFormFields({
+    name:"",
+    mobile:"",
+    password:""
+  })
+}else{
       context.openAlertBox("error",res?.message);
       setFormFields({
         name:"",
