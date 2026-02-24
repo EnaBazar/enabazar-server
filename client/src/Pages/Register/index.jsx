@@ -19,7 +19,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await postData("/api/users/register", {
+    const res = await postData("/users/register", {
       name: formFields.name,
       mobile: formFields.mobile,
       password: formFields.password
@@ -38,7 +38,7 @@ const Register = () => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await postData("/api/users/verify-otp", {
+    const res = await postData("/users/verify-otp", {
       mobile: formFields.mobile,
       otp: formFields.otp
     });

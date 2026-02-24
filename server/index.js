@@ -108,7 +108,7 @@ app.use("/bannerV3", bannerV3Routes);
 app.use("/blog", blogRoutes);
 app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
-app.use("/api/users", usersRoutes);
+app.use("/users", usersRoutes);
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
