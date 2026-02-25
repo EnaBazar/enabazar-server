@@ -1,26 +1,17 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { postData } from "../../utils/api";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
+import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
-import { Box, Typography } from "@mui/material";
+import { postData } from "../../utils/api";
 
 const VerifyOtpPanel = () => {
+  const context = useContext(MyContext);
+  const mobile = context.otpData?.mobile; // Context থেকে ফোন নাম্বার
+
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-  const context = useContext(MyContext);
-
-  const mobile = location.state?.mobile;
-  const redirectTo = location.state?.from || "/";
-
-  // Countdown timer for Resend OTP
+  // Countdown
   useEffect(() => {
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
@@ -30,41 +21,44 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds]);
 
-  // Handle OTP verification
+  // OTP verify
   const handleVerify = async () => {
+    if (!mobile) {
+      context.openAlertBox("error", "Mobile number missing!");
+      return;
+    }
+
     if (otp.length !== 6) {
-      context.openAlertBox("error", "Please enter a 6-digit OTP");
+      context.openAlertBox("error", "Please enter 6-digit OTP");
       return;
     }
 
     setIsLoading(true);
-    const res = await postData("/auth/verify-otp", { mobile, otp });
+
+    const payload = {
+      mobile: mobile.toString(), // string হিসেবে পাঠাও
+      otp: otp.toString(),
+    };
+
+    console.log("Sending OTP verify request:", payload);
+
+    const res = await postData("https://api.goroabazar.com/auth/verify-otp", payload);
+
     setIsLoading(false);
 
     if (!res?.error) {
-      // Success → auto login
       context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
-
-      if (res?.data?.accesstoken) {
-        localStorage.setItem("accesstoken", res.data.accesstoken);
-        localStorage.setItem("refreshtoken", res.data.refreshtoken);
-        localStorage.setItem("userData", JSON.stringify(res.data.user));
-        localStorage.setItem("isLogin", "true");
-
-        context.setIsLogin(true);
-        context.setUserData(res.data.user);
-      }
- navigate("/login");
-     
+      context.closeOtpPanel();
     } else {
       context.openAlertBox("error", res?.message || "OTP verification failed");
     }
   };
 
-  // Handle Resend OTP
   const handleResend = async () => {
     setIsLoading(true);
-    const res = await postData("/auth/resend-otp", { mobile });
+    const res = await postData("https://api.goroabazar.com/auth/resend-otp", {
+      mobile: mobile.toString(),
+    });
     setIsLoading(false);
 
     if (!res?.error) {
@@ -76,53 +70,30 @@ const VerifyOtpPanel = () => {
     }
   };
 
-  return (
-    <Box
-      sx={{
-        maxWidth: 400,
-        width: "90%",
-        mx: "auto",
-        mt: { xs: 8, sm: 12 },
-        p: { xs: 2, sm: 4 },
-        boxShadow: 3,
-        borderRadius: 2,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Typography variant="h5" align="center" gutterBottom>
-        Verify OTP
-      </Typography>
+  if (!context.openVerifyOtpPanel) return null; // panel বন্ধ থাকলে কিছু দেখাবে না
 
-      <TextField
-        label="Enter OTP"
-        fullWidth
-        inputProps={{ maxLength: 6 }}
+  return (
+    <div style={{ padding: 20, maxWidth: 400, margin: "auto", background: "#fff", borderRadius: 8 }}>
+      <h3>Verify OTP for {mobile}</h3>
+      <input
+        type="text"
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-        sx={{ mb: 3 }}
+        maxLength={6}
+        placeholder="Enter OTP"
       />
+      <button onClick={handleVerify} disabled={isLoading}>
+        {isLoading ? "Loading..." : "Verify"}
+      </button>
 
-      <Button
-        variant="contained"
-        fullWidth
-        onClick={handleVerify}
-        disabled={isLoading}
-        sx={{ mb: 2 }}
-      >
-        {isLoading ? <CircularProgress color="inherit" size={24} /> : "Verify"}
-      </Button>
+      {canResend ? (
+        <button onClick={handleResend} disabled={isLoading}>Resend OTP</button>
+      ) : (
+        <p>Resend in {seconds}s</p>
+      )}
 
-      <Box sx={{ textAlign: "center" }}>
-        {canResend ? (
-          <Button onClick={handleResend} disabled={isLoading}>
-            Resend OTP
-          </Button>
-        ) : (
-          <Typography variant="body2">Resend in {seconds}s</Typography>
-        )}
-      </Box>
-    </Box>
+      <button onClick={context.closeOtpPanel}>Cancel</button>
+    </div>
   );
 };
 
