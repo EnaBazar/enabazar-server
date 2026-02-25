@@ -94,8 +94,7 @@ export const Reviews = (props) => {
     {
         reviewsData?.map((review,index)=>{
   return(
-             <div className='review w-full pt-5 pb-5 border-b border-[rgba(0,0,0,0.2)] 
-             flex items-center justify-between'>
+             <div className='review w-full pt-5 pb-5 border-b border-[rgba(0,0,0,0.2)] flex items-center justify-between'>
     <div className='info w-[60%] flex items-center gap-3'>
     <div className='img w-[80px] h-[80px] overflow-hidden rounded-full'>
     <img src={review?.image} className='w-full'/>

@@ -91,8 +91,7 @@ const BannerV1List = () => {
                         <img
                           src={item?.images[0] || '/no-image.png'}
                           alt='Slide'
-                          className='w-full h-[65px] sm:h-[80px] object-cover group-hover:scale-105 
-                          transition-transform duration-200'
+                          className='w-full h-[65px] sm:h-[80px] object-cover group-hover:scale-105 transition-transform duration-200'
                         />
                       </div>
                     </div>
@@ -100,16 +99,14 @@ const BannerV1List = () => {
                   <TableCell>
                     <div className='flex items-center gap-2'>
                       <Button
-                        className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border 
-                        !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]'
+                        className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]'
                         onClick={() => context.setIsOpenFullScreenPanel({ open: true, model: 'Edit BannerV1', id: item?._id })}
                       >
                         <AiOutlineEdit className='text-[rgba(0,0,0,0.7)] text-[20px]' />
                       </Button>
 
                       <Button
-                        className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border 
-                        !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]'
+                        className='!w-[35px] !h-[35px] !bg-[#f1f1f1] !min-w-[35px] !border !border-[rgba(0,0,0,0.1)] !rounded-full hover:!bg-[#ccc]'
                         onClick={() => handleOpenConfirm(item._id)}
                       >
                         <GoTrash className='text-[#ff5252] text-[20px]' />

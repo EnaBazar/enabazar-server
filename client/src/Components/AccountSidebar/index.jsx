@@ -5,7 +5,7 @@ import { FaRegUser } from 'react-icons/fa';
 import { IoBagCheckOutline } from "react-icons/io5";
 import { IoMdHeartEmpty } from "react-icons/io";
 import { IoIosLogOut } from "react-icons/io";
-import {NavLink, useNavigate} from 'react-router-dom' 
+import {NavLink, useNavigate} from 'react-router' 
 import {MyContext} from '../../App';
 import  CircularProgress  from '@mui/material/CircularProgress';
 import { fetchDataFromApi, uploadImage } from '../../utils/api';

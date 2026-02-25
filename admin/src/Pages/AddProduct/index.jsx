@@ -13,13 +13,10 @@ import { deleteImages, fetchDataFromApi, postData } from '../../utils/api';
 import { CircularProgress } from '@mui/material';
 import { useNavigate} from 'react-router-dom';
 import Switch from '@mui/material/Switch';
-import Editor from 'react-simple-wysiwyg';
-
 
 
  const AddProduct = () => {
-   const [html, setHtml] = useState('');
-
+   
   const [previews,setPreviews] = useState([]);
     const [bannerpreviews,setBannerPreviews] = useState([]);
   const context = useContext(MyContext);
@@ -77,14 +74,6 @@ const onChangeInput = (e) => {
   }));
 }
   
-const onchangeDescription = (e) => {
-  setHtml(e.target.value);
-  setFormFields(prev => ({
-    ...prev,
-    description: e.target.value
-  }));
-};
-
   useEffect(()=>{
     fetchDataFromApi("/product/productRAMS/get").then((res)=>{
       if(res?.error===false){
@@ -412,28 +401,17 @@ e.preventDefault(0); // ✅
   />
   </div>
   </div>
-<div className='grid grid-cols-1 mb-3'>
+  <div className='grid grid-cols-1 mb-3'>
   <div className='col'>
-    <h3 className='text-[16px] font-[600]'>
-      Description <span className='text-red-400'>*</span>
-    </h3>
-
-    <Editor
-      value={html}
-      onChange={onchangeDescription}
-      containerProps={{
-        style: {
-          resize: 'vertical',
-          minHeight: '200px',
-          marginTop: '8px'
-        }
-      }}
-    />
+  <h3 className='text-[16px] font-[600]'>Discription<span className='text-red-400'> *</span></h3>
+  <textarea type='text' className='w-full h-[140px] border mt-2 border-[rgba(0,0,0,0.2)] 
+  focus:outline-none focus:border-[rgba(0,0,0,0.4)] hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm'
+    name='description'
+   value={formFields.description} 
+  onChange={onChangeInput}
+  />
   </div>
-</div>
-
-
-
+  </div>
 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-3 gap-4">
   {/* Category */}
   <div className="col">

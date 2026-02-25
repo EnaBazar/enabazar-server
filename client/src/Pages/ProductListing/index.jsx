@@ -132,7 +132,7 @@ const ProductListing = () => {
             <div
               className="bg-[#f5f5f5] !p-3 w-full !mb-5 shadow-md border
              border-[rgba(0,0,0,0.1)] rounded-md flex flex-wrap items-center
-              justify-between sticky top-[92px] lg:top-[190px] z-[90] gap-3"
+              justify-between sticky top-[120px] lg:top-[190px] z-[90] gap-3"
             >
               {/* View Switch */}
               <div className="col1 flex items-center flex-wrap gap-2">

@@ -13,11 +13,11 @@ import { deleteImages, editData, fetchDataFromApi, postData} from '../../utils/a
 import { CircularProgress } from '@mui/material';
 import { data, useNavigate, useParams} from 'react-router-dom';
 import Switch from '@mui/material/Switch';
-import Editor from 'react-simple-wysiwyg';
+
 
  const EditProduct = () => {
    
-     const [html, setHtml] = useState('');
+   
      const [formFields, setFormFields]= useState({
              name: "",
              description: "",
@@ -86,15 +86,6 @@ const label = { inputProps: { 'aria-label': 'Switch demo' } };
 
 }
   
-
-const onchangeDescription = (e) => {
-  setHtml(e.target.value);
-  setFormFields(prev => ({
-    ...prev,
-    description: e.target.value
-  }));
-};
-
     const handleChangeSwitch = (event) => {
     setCheckedSwitch(event.target.checked);
     formFields.isDisplayOnHomeBanner = event.target.checked
@@ -151,7 +142,6 @@ const onchangeDescription = (e) => {
                     isDisplayOnHomeBanner:res?.products?.isDisplayOnHomeBanner
                  
         });
-setHtml(res?.products?.description || "");
 setProductCat(res?.products?.catId);
 setProductsubCat(res?.products?.subCatId);
 setProductThirdLavelCat(res?.products?.thirdsubCatId);
@@ -430,24 +420,15 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
   </div>
   
   <div className='grid grid-cols-1 mb-3'>
-    <div className='col'>
-      <h3 className='text-[16px] font-[600]'>
-        Description <span className='text-red-400'>*</span>
-      </h3>
-  
-<Editor
-  value={html}
-  onChange={onchangeDescription}
-  containerProps={{
-    style: {
-      resize: 'vertical',
-      minHeight: '200px',
-      marginTop: '8px'
-    }
-  }}
-/>
-
-    </div>
+  <div className='col'>
+  <h3 className='text-[16px] font-[600]'>Discription<span className='text-red-400'> *</span></h3>
+  <textarea type='text' className='w-full h-[140px] border mt-2 px-3 border-[rgba(0,0,0,0.2)] 
+  focus:outline-none focus:border-[rgba(0,0,0,0.4)] hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm'
+    name='description'
+   value={formFields.description} 
+  onChange={onChangeInput}
+  />
+  </div>
   </div>
   
   

@@ -6,8 +6,7 @@ import { MyContext } from '../../App';
 import { FaPlus } from 'react-icons/fa6';
 import Radio from '@mui/material/Radio';
 import { deleteData, fetchDataFromApi, postData } from '../../utils/api';
-import { useNavigate} from 'react-router-dom';
-
+import { useNavigate } from 'react-router-dom';
 
 const CheckOut = () => {
   window.scrollTo(0, 0);
@@ -27,21 +26,6 @@ const CheckOut = () => {
     context?.setOpenAddressPanel(true);
     context?.setAddressId(id);
   };
-
-
-      
-       const removeAddress = (id) => {
-  deleteData(`/address/${id}`).then((res) => {
-    fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then((res) => {
-      context?.openAlertBox("success", "Remove This Address");
-      window.location.reload(); // ✅ removeAddress এর পর পেজ রিলোড
-    });
-  });
-};
-
- // ✅ Product fetch
-
-
 
   const handleChange = (e, index) => {
     if (e.target.checked) {
@@ -74,14 +58,12 @@ const CheckOut = () => {
     setsSubTotalAmount(total);
   }, [context.cartData, context.userData]);
 
-// Cash on Delivery function update
-const cashOnDelivery = () => {
-  const user = context?.userData;
+  const cashOnDelivery = () => {
+    const user = context?.userData;
 
-  if (context?.userData?.address_details?.length !== 0) {
-    setLoading(true); // start loading
-    context?.getCartItems();
-
+if(context?.userData?.address_details?.length !== 0){
+  setLoading(true);
+    context?.  getCartItems() // ✅ start loading
     const payLoad = {
       userId: user?._id,
       products: context?.cartData,
@@ -99,28 +81,22 @@ const cashOnDelivery = () => {
     };
 
     postData(`/order/create`, payLoad).then((res) => {
-      setLoading(false); // stop loading
+      setLoading(false); // ✅ stop loading
       if (res?.error !== true) {
-        // Empty cart
         deleteData(`/cart/emptycart/${user?._id}`).then(() => {
-          context?.setCartData([]);
+        context?.setCartData([]);
         });
-
         context?.openAlertBox("success", res?.message);
-
-        // ✅ Navigate to OrderSuccess page with order object
-        navigate("/order/success", { state: { order: res.order } });
-
+        navigate("/order/success"); // ✅ redirect
       } else {
+        navigate("/order/failed"); // ✅ redirect
         context?.openAlertBox("error", res?.message);
-        navigate("/order/failed");
       }  
     });
-  } else {
-    context?.openAlertBox("error", "Please Add Address First!");
-  }  
+}else{
+  context?.openAlertBox("error", "Please Add Addres Frist!");
+}  
 };
-
 
   return (
     <section className="min-h-screen py-10">
@@ -141,10 +117,6 @@ const cashOnDelivery = () => {
                 >
                   <FaPlus /> ADD NEW ADDRESS
                 </Button>
-
-
-        
-           
               </div>
 
               <div className="flex flex-col gap-3 !mt-5">
@@ -164,41 +136,25 @@ const cashOnDelivery = () => {
                         data-delivery={address?.deliverylocation}
                       />
                       <div className="info flex-1">
-                        <span className="inline-block pl-2 pr-2 bg-sky-600 text-[13px]
-                         text-white font-[500] rounded-sm">
+                        <span className="inline-block pl-2 pr-2 bg-sky-600 text-[13px] text-white font-[500] rounded-sm">
                           {address?.addressType}
                         </span>
                         <h4 className="pt-2 text-[14px] flex flex-wrap items-center gap-3">
                           <span>{context?.userData?.name}</span>
-                          <span>{context?.userData?.mobile}</span>
+                          <span>{address?.mobile}</span>
                         </h4>
                         <span className="pt-1 text-[14px] block">
-                          {`${address?.address_line}, ${address?.city},
-                           ${address?.state}`}
+                          {`${address?.address_line}, ${address?.city}, ${address?.country}, ${address?.state}, ${address?.pincode}`}
                         </span>
                       </div>
-                      <div className="flex flex-col gap-3 !mt-5">
                       <Button
                         variant="text"
                         size="small"
-                        className="!absolute top-[18px] right-[60px] !font-[700]"
+                        className="!absolute top-[18px] right-[10px]"
                         onClick={() => editeAddress(address?._id)}
                       >
                         EDIT
                       </Button>
-
-                    <Button
-                        variant="text"
-                        size="small"
-                        className="!absolute top-[18px] right-[10px] !font-[700] !text-red-500"
-                       onClick={() => removeAddress(address?._id)}
-                      >
-                        Delete
-                      </Button>
-
-
-                        </div>
-
                     </label>
                   ))
                 ) : (
@@ -319,8 +275,6 @@ const cashOnDelivery = () => {
                 </a>
               </div>
             </div>
-
-  
           </div>
 
         </div>

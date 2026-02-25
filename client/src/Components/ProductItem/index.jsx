@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import "../ProductItem/style.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
 import { FaRegHeart } from "react-icons/fa";
@@ -8,6 +8,7 @@ import { IoGitCompareOutline } from "react-icons/io5";
 import { MdClose, MdOutlineShoppingCart, MdZoomOutMap } from "react-icons/md";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { IoMdHeart } from "react-icons/io";
+
 import { MyContext } from '../../App';
 import { deleteData, editData, postData } from '../../utils/api';
 
@@ -20,11 +21,10 @@ const ProductItem = (props) => {
   const [isShowTab, setIsShowTab] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTabName, setSelectedTabName] = useState(null);
-  const history = useNavigate();
+
   const context = useContext(MyContext);
 
   const addToCart = (products, userId, qty) => {
-
     const productItem = {
       _id: products?._id,
       name: products?.name,
@@ -140,7 +140,6 @@ const ProductItem = (props) => {
   const handleAddToMyList = (item) => {
     if (context?.userData === null) {
       context?.openAlertBox("error", "Your session expired, please login again!");
-         history("/login");
       return false;
     } else {
       const obj = {
@@ -299,20 +298,36 @@ const ProductItem = (props) => {
         </div>
 
         <div className="!mt-5">
-           <Link to={`/product/${props?.item?._id}`}>
+          {!isAdded ? (
             <Button
               type="button"   // ✅ Fix
               className="w-full btn-orgs btn-borders text-black py-2 rounded-lg 
               shadow-md flex items-center justify-center gap-2"
               size="small"
-             
+              onClick={() => addToCart(props?.item, context?.userData?._id, quantity)}
             >
-              <MdOutlineShoppingCart className="text-[14px] font-[500]" /> Order Now
+              <MdOutlineShoppingCart className="text-[14px]" /> Add to Cart
             </Button>
-
-
-            </Link>
-   
+          ) : (
+            <div className="flex items-center justify-between rounded-md gap-2 
+            border border-[rgba(0,0,0,0.1)]">
+              <Button
+                type="button"   // ✅ Fix
+                className="!min-w-[30px] !w-[30px] !h-[30px] !bg-gray-400 !rounded-none"
+                onClick={minusQty}
+              >
+                <FaMinus className="text-white" />
+              </Button>
+              <span>{quantity}</span>
+              <Button
+                type="button"   // ✅ Fix
+                className="!min-w-[30px] !w-[30px] !h-[30px] !bg-red-400 !rounded-none"
+                onClick={addQty}
+              >
+                <FaPlus className="text-white" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

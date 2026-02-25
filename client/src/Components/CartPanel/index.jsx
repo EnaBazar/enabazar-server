@@ -4,7 +4,7 @@ import {MdOutlineDeleteOutline} from "react-icons/md"
 import { Button } from '@mui/material';
 import { MyContext } from '../../App';
 import { deleteData } from '../../utils/api';
-
+ 
  
  
  
@@ -12,7 +12,7 @@ import { deleteData } from '../../utils/api';
  
  const CartPanel = (props) => {
       const context = useContext(MyContext);
-
+ 
  const removeItem = (id) =>{
         deleteData(`/cart/delete-cart-item/${id}`).then((res)=>{   
             context?.openAlertBox("success", "Remove Cart Item");      

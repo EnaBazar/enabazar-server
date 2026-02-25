@@ -74,10 +74,7 @@ const label = { inputProps:{ 'aria-label': 'Checkbox demo' }};
         {/* Add Address Button */}
         <div
           className="flex items-center justify-center p-4 mt-4 !mb-3 border border-dashed border-[rgba(0,0,0,0.2)] bg-[#f8f9fa] hover:bg-[#e7f3f9] rounded-md cursor-pointer"
-         onClick={() => {
-                    context?.setOpenAddressPanel(true);
-                    context?.setAddressMode("add");
-                  }}
+          onClick={() => context?.toggleAddressPanel(true)}
         >
           <span className="text-[14px] font-[500]">Add Address</span>
         </div>

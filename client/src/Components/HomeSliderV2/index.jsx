@@ -37,8 +37,8 @@ const HomeSliderV2 =(props) => {
                 if(item?.isDisplayOnHomeBanner===true){
                      return(
                           <SwiperSlide key={index}>
-               <Link to={`/product/${item?._id}`} className="block w-full h-full">
-             <div className='item w-full  rounded-md overflow-hidden lg:h-[320px]  relative'>
+                             <Link to={`/product/${item?._id}`} className="block w-full h-full">
+             <div className='item w-full rounded-md overflow-hidden lg:h-[320px]  relative'>
            <img
                     src={item?.bannerimages[0]}
                     alt="HomeSlider"

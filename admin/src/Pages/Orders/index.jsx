@@ -85,7 +85,7 @@ useEffect(() => {
       order?.delivery_address?.mobile?.includes(searchQuery) ||
       order?.delivery_address?.city?.includes(searchQuery)
   );
-console.log(orders)
+
   const handleViewOrderDetails = (order) => {
     setSelectedOrder(order);
     setOpenModal(true);
@@ -145,9 +145,9 @@ console.log(orders)
             widths: ["25%", "75%"],
             body: [
               ["নাম:", order?.userId?.name || "--"],
-              ["ফোন:", order?.userId?.mobile|| "--"],
-              ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"},
-                 ${order?.delivery_address?.city || "--"}, ${order?.delivery_address?.state || ""}`],
+              ["ফোন:", order?.delivery_address?.mobile || "--"],
+              ["ইমেইল:", order?.userId?.email || "--"],
+              ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || "--"}, ${order?.delivery_address?.state || ""}`],
               ["স্ট্যাটাস:", order?.order_status || "--"],
               ["পেমেন্ট:", order?.paymentId || "Cash on Delivery"],
             ],
@@ -267,7 +267,7 @@ orders.forEach((order, index) => {
         widths: ["25%", "75%"],
         body: [
           ["নাম:", order?.userId?.name || "--"],
-          ["ফোন:", order?.userId?.mobile || "--"],
+          ["ফোন:", order?.delivery_address?.mobile || "--"],
           ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`],
           ["স্ট্যাটাস:", order?.order_status || "--"],
           ["তারিখ:", new Date(order?.createdAt).toLocaleDateString()],
@@ -390,7 +390,7 @@ const exportDeliveryLabel = (order) => {
           widths: ["25%", "75%"],
           body: [
             ["নাম:", order?.userId?.name || "--"],
-            ["ফোন:", order?.userId?.mobile || "--"],
+            ["ফোন:", order?.delivery_address?.mobile || "--"],
             ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`],
             ["পেমেন্ট:", order?.paymentId || "Cash on Delivery"],
             ["মোট:", `${order?.totalAmt || 0} ৳`],
@@ -515,11 +515,11 @@ const exportDeliveryLabel = (order) => {
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2 hidden sm:table-cell">Phone</th>
               <th className="px-3 py-2 hidden lg:table-cell">Address</th>
-        
+              <th className="px-3 py-2 hidden lg:table-cell">Pincode</th>
               <th className="px-3 py-2">Subtotal</th>
               <th className="px-3 py-2 hidden sm:table-cell">D.Charge</th>
               <th className="px-3 py-2">Total</th>
-             
+              <th className="px-3 py-2 hidden lg:table-cell">Email</th>
               <th className="px-3 py-2 hidden sm:table-cell">User Id</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2 hidden sm:table-cell">Date</th>
@@ -542,12 +542,13 @@ const exportDeliveryLabel = (order) => {
                   <td className="px-3 py-2 text-[#ff5252]">{order?._id}</td>
                   <td className="px-3 py-2">{order?.paymentId || "Cash on Delivery"}</td>
                   <td className="px-3 py-2">{order?.userId?.name}</td>
-                  <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_address?.mobile || "--"}</td>
                   <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.address_line}</td>
-               
+                  <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.pincode || "--"}</td>
                   <td className="px-3 py-2">{order?.subTotalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
                   <td className="px-3 py-2">{order?.totalAmt}</td>
+                  <td className="px-3 py-2 hidden lg:table-cell">{order?.userId?.email}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
                   <td className="px-3 py-2">
                     <Select value={order?.order_status || ""} onChange={(e) => handleChange(e, order?._id)} className="w-full h-[30px]">

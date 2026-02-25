@@ -16,17 +16,15 @@ import { firebaseApp } from '../../firebase';
 const auth = getAuth(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 
-
-
-
-
  const Register = () => {
+    
+    
     const [isLoading,setIsLoading]= useState(false);
-    const navigate = useNavigate();
     const [IsShowPassword,setIsShowPassword] = useState(false);
     const [formFields,setFormFields]= useState({
       name:"",
-      mobile:"",
+      email:"",
+
       password:""
     })
     
@@ -58,9 +56,9 @@ const handleSubmit=(e)=>{
     return false
   }
   
-  if(formFields.mobile==="")
+  if(formFields.email==="")
     {
-      context.openAlertBox("error","Please entry your mobile")
+      context.openAlertBox("error","Please entry your Eamil")
       return false
     }
     
@@ -72,27 +70,22 @@ const handleSubmit=(e)=>{
   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
-
-
-    // Register.jsx এর handleSubmit function এর মধ্যে
-if(res?.error !== true){
-  setIsLoading(false)
-  context.openAlertBox("success",res?.message);
-  localStorage.setItem("userEmail",formFields.mobile)
-
-  // ✅ Add this line for OTP redirect
-  navigate("/verify-otp", { state: { mobile: formFields.mobile } });
-
-  setFormFields({
-    name:"",
-    mobile:"",
-    password:""
-  })
-}else{
+    if(res?.error !== true){
+      setIsLoading(false)
+      context.openAlertBox("success",res?.message);
+      localStorage.setItem("userEmail",formFields.email)
+      setFormFields({
+        name:"",
+        email:"",
+        password:""
+      })
+ 
+      history("/Verify")
+    }else{
       context.openAlertBox("error",res?.message);
       setFormFields({
         name:"",
-        mobile:"",
+        email:"",
         password:""
       })
       setIsLoading(false);
@@ -128,7 +121,7 @@ const authWithGoogle=()=>{
     if(res?.error !== true){
       setIsLoading(false)
       context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",fields.mobile)
+      localStorage.setItem("userEmail",fields.email)
       
        localStorage.setItem("accesstoken",res?.data?.accesstoken)     
      localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
@@ -159,7 +152,7 @@ const authWithGoogle=()=>{
     const errorCode = error.code;
     const errorMessage = error.message;
 
-    const email = error.customData.mobile;
+    const email = error.customData.email;
  
     const credential = GoogleAuthProvider.credentialFromError(error);
     // ...
@@ -170,7 +163,7 @@ const authWithGoogle=()=>{
    <section className='section py-10'>
    <div className='container'>
    <div className='card !shadow-md !w-[400px] !m-auto !rounded-md !bg-white p-5 px-12'>
-<h3 className='text-center text-[14px] text-[200]'>আমাদের সাথে থাকার জন্য আপনার মোবাইল নাম্বার দিয়ে রেজিস্টেশন করুন!</h3>
+<h3 className='text-center text-[18px] text-[200]'>Register with a new account</h3>
 
 <form className='w-full !mt-5'onSubmit={handleSubmit}>
 <div className='form-group w-full !mb-5'>
@@ -180,7 +173,7 @@ id="name"
 name="name"
 value={formFields.name}
 disabled={isLoading===true ? true : false}
- label="আপনার নাম"
+ label="Full Name"
   variant="outlined"
   className='w-full' 
   onChange={onchangeInput}
@@ -188,12 +181,12 @@ disabled={isLoading===true ? true : false}
 </div>
 <div className='form-group w-full !mb-5'>
 <TextField 
-type='number'
-id="mobile"
-name="mobile"
-value={formFields.mobile}
+type='email'
+id="Email"
+name="email"
+value={formFields.email}
 disabled={isLoading===true ? true : false}
- label="মোবাইল নাম্বার"
+ label="Email Id*"
   variant="outlined"
   className='w-full' 
   onChange={onchangeInput}
@@ -204,7 +197,7 @@ disabled={isLoading===true ? true : false}
 <TextField 
 type={IsShowPassword===false ? 'password': 'text'}
 id="Password"
- label="পাসওয়াড*"
+ label="Password*"
  name="password"
  value={formFields.password}
  disabled={isLoading===true ? true : false}

@@ -7,7 +7,7 @@ import {IoMdEyeOff} from 'react-icons/io';
 import {FcGoogle} from "react-icons/fc"
 import Button from '@mui/material/Button';
 import { BsFacebook } from 'react-icons/bs';
-import { FormControlLabel, Input, TextField } from '@mui/material';
+import { FormControlLabel, Input } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { useContext } from 'react';
 import { MyContext } from '../../App';
@@ -24,8 +24,8 @@ const Login = () => {
   
     const [formFields,setFormFields]= useState({
          
-       mobile:"",
-       name:""
+         email:"",
+         password:""
          
       });
       const context = useContext(MyContext)
@@ -49,13 +49,13 @@ const Login = () => {
     const forgotPassword =()=>{
 
       
-        if(formFields.mobile===""){
+        if(formFields.email===""){
            
-         context.openAlertBox("error","Please entry your Mobile")
+         context.openAlertBox("error","Please entry your Eamil")
          return false; 
         }else{
       
-           localStorage.setItem("userEmail",formFields.mobile)
+           localStorage.setItem("userEmail",formFields.email)
            localStorage.setItem("actionType",'forgot-password')
            
                postData("/auth/forgot-password",
@@ -93,41 +93,38 @@ const Login = () => {
       e.preventDefault();
       setIsLoading(true)
       
-    
-      if(formFields.mobile==="")
+      if(formFields.email==="")
         {
           context.openAlertBox("error","Please entry your Eamil")
           return false
         }
         
-        if(formFields.name==="")
+        if(formFields.password==="")
           {
-            context.openAlertBox("error","Please entry your name")
+            context.openAlertBox("error","Please entry your Password")
             return false
           }
       
       postData("/auth/login",formFields,{withCredentials:true}).then((res)=>{
-      console.log(res)
-       if(res?.error !== true){
-  setIsLoading(false)
-  context.openAlertBox("success",res?.message);
-
-  setFormFields({
-    mobile: "",
-    password: ""
-  })
-
-  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-
-  context.setIsLogin(true);
-
-  history("/");       
-  window.location.reload();  // Force Home Page Reload
-}else{
+        console.log(res)
+        if(res?.error !== true){
+          setIsLoading(false)
+          context.openAlertBox("success",res?.message);
+      
+          setFormFields({
+            email: "",
+            password: ""
+          })
+     
+     localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+     localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+     
+     context.setIsLogin(true);
+          history("/")
+        }else{
           context.openAlertBox("error",res?.message);
           setFormFields({
-            mobile: "",
+            email: "",
             password: ""
           })
           setIsLoading(false);
@@ -144,12 +141,9 @@ const Login = () => {
     <header className='w-full static lg:fixed top-0 left-0 px-4 py-5 flex items-center  justify-center
     sm:justify-between z-50'>
     
-     <div className="col1 w-[50%] lg:w-[10%] flex items-center 
-     justify-end ">
-  <Link to={"/"}> 
-    <img src="/logo.png"/>
-  </Link>
-</div>
+ 
+       <Link to="/" className='w-[200px]'> <p><span className='font-[800] text-[32px] text-[#ff5252]'>F
+       <span className=' font-bold text-[25px] text-black'>enix</span></span></p></Link>
       
        
  <div className='hidden sm:flex items-center gap-0 '>
@@ -174,7 +168,25 @@ const Login = () => {
    <div className='loginBox card w-full md:w-[600px] h-[auto] pb-25 mx-auto pt-0 lg:pt-20 relative z-50'>
   
        
-   
+       
+       <h1 className='text-center text-[18px] sm:text-[30px] font-[800] mt-4'>Welcome Back <br/>Sign in with Credentials.</h1>
+       
+       <div className='flex items-center justify-center w-full mt-5 gap-2'>
+       <Button
+          size="small"
+          onClick={handleClickGoogle}
+          endIcon={<FcGoogle className='!text-[25px]'/>}
+          loading={loadingGoogle}
+          loadingPosition='end'
+          variant="outlined"
+        className='!bg-none !py-2 !text-[14px] !capitalize !px-5 !text-[rgba(0,0,0,0.7)]'
+        >
+        signing with Google
+        </Button>
+       
+        
+        
+       </div>
        
        <br/>
        
@@ -187,42 +199,50 @@ const Login = () => {
        <br/><br/>
        
        <form className='w-full !px-10 ' onSubmit={handleSubmit}>
-<div className='form-group w-full !mb-5 relative'>
-<TextField 
-type='text'
-id="name"
- label="আপনার নাম"
-  name='name'
-value={formFields.name}
-disabled={isLoading===true ? true : false}
-onChange={onchangeInput}
-  variant="outlined"
-  className='w-full' 
-  
-  />
-<Button  className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
- !h-[35px] !min-w-[35px] !rounded-full 
- !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
- {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
- }
-</Button>
-</div>
-<div className='form-group w-full !mb-5'>
-<TextField 
-type='number'
-id="mobile"
-name="mobile"
-value={formFields.mobile}
-disabled={isLoading===true ? true : false}
-onChange={onchangeInput}
- label="মোবাইল নাম্বার"
-  variant="outlined"
-  className='w-full' 
-
-  />
-
-</div>
+       <div className='form-group mb-4 w-full'>
+       <h4 className='mb-2 text-[14px]  font-[600]'>Email<span className='text-[red] font-[500]'> *</span></h4>
+       <Input 
+       type='email'
+        placeholder='Enter your Email'
+      name="email"
+      value={formFields.email}
+      disabled={isLoading===true ? true : false}
+      onChange={onchangeInput}
+      variant="outlined"
+      className='w-full  h-[40px]
+       border border-[rbga(0,0,0,0.1)] 
+       rounded-sm focus:border-[rgba(0,0,0,0.7)]
+        focus:outline-none px-3'     
+         />
+       </div>
+       
+       
+       <div className='form-group mb-4 w-full'>
+       <h4 className='mb-2 text-[14px]  font-[600]'>Password<span className='text-[red] font-[500]'> *</span></h4>
+       <div className='relative w-full'>
+       <Input  
+       placeholder='Enter your Password' 
+       type={IsShowPassword===false ? 'password': 'text'}
+       name='password'
+       value={formFields.password}
+       disabled={isLoading===true ? true : false}
+       onChange={onchangeInput}
+       variant="outlined"
+       className='w-full  h-[40px]
+        border border-[rbga(0,0,0,0.1)] 
+        rounded-sm focus:border-[rgba(0,0,0,0.7)] 
+        focus:outline-none px-3'   
+        />
+        
+        <Button  className='!absolute !top-[5px] !right-[10px] z-50 !w-[35x]
+         !h-[35px] !min-w-[35px] !rounded-full 
+         !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
+         {
+            IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+         }
+        </Button>
+        </div>
+       </div>
        
        
            

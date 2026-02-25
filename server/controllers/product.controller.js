@@ -278,7 +278,7 @@ cloudinary.config({
       });
     }
 
-    return response.status(200) .json({
+    return response.status(200).json({
       error: false,
       success: true,
       products: products,

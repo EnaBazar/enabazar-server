@@ -6,6 +6,7 @@ import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
+import Reviewsmodel from "../models/reviews.model.js";
 
 
 
@@ -94,6 +95,90 @@ const VerifyEmail=async(req,res)=>{
     }
     
 }
+
+
+export async function authWithGoogle(request,response){
+    const {name, email, password, avatar, mobile, role} = request.body;
+    
+    try {
+        const existingUser = await usermodel.findOne({email: email});
+       
+        if (!existingUser){
+            const user = await usermodel.create({
+                name: name,
+                mobile: mobile,
+                email: email,
+                password: "null",
+                avatar: avatar,
+                role: role,
+                verify_email:true,
+                signUpWithGoogle:true
+            });
+              
+              await user.save();
+              
+    const accesstoken = await generatedAccessToken(user._id)
+    const refreshtoken = await generatedRefreshToken(user._id)
+    
+  await usermodel.findByIdAndUpdate(user?._id,{
+        last_login_date : new Date()
+    })
+ 
+    const cookiesOption = {
+        
+        httpOnly :true,
+        secure :true,
+        sameSite :"none"
+    }
+   response.cookie('accessToken',accesstoken,cookiesOption) 
+   response.cookie('refreshToken',refreshtoken,cookiesOption)   
+   return response.json({   
+       message : "Login Sccessfully",
+       error : false,
+       success : true,
+       data :{       
+           accesstoken,
+           refreshtoken
+       }       
+   })
+        }else{
+            
+            
+    const accesstoken = await generatedAccessToken(existingUser._id)
+    const refreshtoken = await generatedRefreshToken(existingUser._id)
+    
+  await usermodel.findByIdAndUpdate(existingUser?._id,{
+        last_login_date : new Date()
+    })
+ 
+    const cookiesOption = {
+        
+        httpOnly :true,
+        secure :true,
+        sameSite :"none"
+    }
+   response.cookie('accessToken',accesstoken,cookiesOption) 
+   response.cookie('refreshToken',refreshtoken,cookiesOption)   
+   return response.json({   
+       message : "Login Sccessfully",
+       error : false,
+       success : true,
+       data :{       
+           accesstoken,
+           refreshtoken
+       }       
+   }) 
+            
+        }
+    } catch (error) {
+    
+        return response.status(500).json({
+        error:true,
+        success:false,
+        message: error.message || error}) 
+    }
+}
+
 //login user
 export async function loginUserController(request,response) {
    try{
@@ -630,7 +715,12 @@ export async function loginUserController(request,response) {
             })
         }
         
-        const checkPassword = await bcryptjs.compare(oldpassword, user.password);
+        
+        
+        
+        
+        if(user?.signUpWithGoogle===false){
+               const checkPassword = await bcryptjs.compare(oldpassword, user.password);
         
         if(!checkPassword){
                 return response.status(400).json({
@@ -639,7 +729,9 @@ export async function loginUserController(request,response) {
                 success:false
             })
             
+        }  
         }
+   
         
         if(newPassword !== confirmPassword){
             return response.status(400).json({
@@ -654,13 +746,14 @@ export async function loginUserController(request,response) {
         const hashPassword = await bcryptjs.hash(confirmPassword, salt)
         
         user.password = hashPassword;
+        user.signUpWithGoogle = false;
          await user.save();
         
      
         
         return response.json({
                 
-            message: "Password Reset successfully",
+            message: "Password is successfully",
             error:false,
             success:true
         })
@@ -759,5 +852,246 @@ export async function loginUserController(request,response) {
  }
  
 
+// Reviews Controller
+ export async function addReviews(request,response) {
+     try {
+        const {image,userName,review,rating,userId,productId} = request.body;
+        const userReview = new Reviewsmodel({
+            image:image,
+            userName:userName,
+            review:review,
+            rating:rating,
+            userId:userId,
+            productId:productId
+        })
+        
+        await userReview.save();
+        
+          return response.json({
+                
+            message: "Reviews added successfully",
+            error:false,
+            success:true,
+          
+        })
+        
+     } catch (error) {
+        return response.json({       
+            message: "Somthins is wrong",
+            error:true,
+            success:false
+        })
+     }
+     
+     
+ }
+// Get Reviews 
+ export async function getReviews(request,response) {
+     try {
+        const productId = request.query.productId;
+        const reviews = await Reviewsmodel.find({productId:productId})
+        
+        if(!reviews){
+          return response.status(400).json({       
+    
+            error:true,
+            success:false
+        })  
+        }
+    return response.status(200).json({       
+    
+            error:false,
+            success:true,
+            reviews:reviews
+        })  
+        
+     } catch (error) {
+         return response.json({       
+            message: "Somthins is wrong",
+            error:true,
+            success:false
+        })
+     }
+ }
+
  
+
+// Get All Users 
+ export async function getAllusers(request,response) {
+     try {
+
+        const users = await usermodel.find();
+        
+        if(!users){
+          return response.status(400).json({       
+    
+            error:true,
+            success:false
+        })  
+        }
+    return response.status(200).json({       
+    
+            error:false,
+            success:true,
+            users:users
+        })  
+        
+     } catch (error) {
+         return response.json({       
+            message: "Somthins is wrong",
+            error:true,
+            success:false
+        })
+     }
+ }
+
+ // Get All Users 
+ export async function getAllReviews(request,response) {
+     try {
+
+        const reviews = await Reviewsmodel.find();
+        
+        if(!reviews){
+          return response.status(400).json({       
+    
+            error:true,
+            success:false
+        })  
+        }
+    return response.status(200).json({       
+    
+            error:false,
+            success:true,
+            reviews:reviews
+        })  
+        
+     } catch (error) {
+         return response.json({       
+            message: "Somthins is wrong",
+            error:true,
+            success:false
+        })
+     }
+ }
+
+
+
+      //DeletemultipleProducts
+              
+export async function deletemultipleUsers(request, response) {
+  const { ids } = request.body;
+
+  // ইনপুট যাচাই
+  if (!ids || !Array.isArray(ids)) {
+    return response.status(400).json({
+      error: true,
+      success: false,
+      message: "ভুল ইনপুট দেওয়া হয়েছে",
+    });
+  }
+
+  try {
+    // সব প্রোডাক্ট একসাথে খোঁজা
+    const users = await usermodel.find({ _id: { $in: ids } });
+
+    const imageDeletionPromises = [];
+
+    for (const user of users) {
+      if (!user || !user.images) continue;
+
+      for (const imgUrl of user.images) {
+        try {
+          // ইমেজ URL থেকে publicId বের করা
+          const urlArr = imgUrl.split("/");
+          const lastSegment = urlArr[urlArr.length - 1];
+          const publicIdWithExtension = lastSegment.split(",")[0];
+          const publicId = publicIdWithExtension.split(".")[0];
+
+          if (publicId) {
+            // ইমেজ ডিলিটের প্রমিস তৈরি
+            imageDeletionPromises.push(cloudinary.uploader.destroy(publicId));
+          }
+        } catch (err) {
+          console.error("ইমেজ URL পার্স করতে সমস্যা:", err);
+        }
+      }
+    }
+
+    // সব ইমেজ একসাথে ডিলিট করো
+    await Promise.all(imageDeletionPromises);
+
+    // সব প্রোডাক্ট একসাথে ডিলিট করো
+    await usermodel.deleteMany({ _id: { $in: ids } });
+
+    return response.status(200).json({
+      error: false,
+      success: true,
+      message: "All User Are Deleted",
+    });
+  } catch (error) {
+    console.error("ডিলিট করার সময় সমস্যা:", error);
+    return response.status(500).json({
+      error: true,
+      success: false,
+      message: error.message || "সার্ভারে সমস্যা হয়েছে",
+    });
+  }
+}
+
+  
+  
+    //Delete Product 
+  
+ export async function DeleteUsers(request,response) { 
+                                                                      
+                  const users = await usermodel.findById(request.params.id) ;
+                  
+                  if (!users){
+                    response.status(500).json({  
+                        message:"Users Not found",          
+                        error: true,
+                        success: false
+                    })
+                    
+                      
+                  }  
+                  
+                  
+                  const images = users.avatar;
+                  
+                  let img="";
+                  for (img of images){
+                           const imgUrl = img;
+                  const urlArr =imgUrl.split("/");
+                  const image = urlArr[urlArr.length -1];
+                  const imageName = image.split(".")[0];
+                    
+                      
+                        if (imageName) {
+                      
+                 cloudinary.uploader.destroy(
+                      imageName,
+                      (error,result)=> {
+                          
+                      });
+                   
+                      
+                  }
+                  }
+                  
+                   const deleteUser = await usermodel.findByIdAndDelete(request.params.id);                 
+                   if(!deleteUser){
+                    response.status(404).json({  
+                        message:"User Not deleted",          
+                        error: true,
+                        success: false
+                    })
+                       
+                   }
+                  return response.status(200).json({  
+                    message:"User  deleted",          
+                    error: false,
+                    success: true
+                })
+            }
 export {register,VerifyEmail}

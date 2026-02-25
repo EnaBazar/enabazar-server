@@ -6,10 +6,30 @@ import usermodel from "../models/User.js";
 export const addAddressController = async (request, response) => {
    try {
     
-     const { address_line, city, state,  addressType,deliverylocation,landmark, userId } = request.body;
+     const { address_line, city, state, pincode, country, mobile, addressType,deliverylocation,landmark, userId } = request.body;
      
+     
+
+     
+
+    
+  // if (
+        
+   // !address_line || city || state || pincode || country || mobile  
+        
+ // ){
+     // return response.json({       
+           // message: "Please Provide All The Fields",
+           // error:false,
+          // success:true
+      // })  
+        
+  //  }
+    
+    
+    
     const address = new AddressModel({
-        address_line, city, state, addressType,deliverylocation, landmark, userId    
+        address_line, city, state, pincode, country, mobile, addressType,deliverylocation, landmark, userId    
         
     })
     
@@ -22,6 +42,9 @@ export const addAddressController = async (request, response) => {
      }
      
  })
+    
+    
+    
     
      return response.status(200).json({  
             data: savedAddress,                                
@@ -131,7 +154,7 @@ export const selectAddressController = async (request, response) => {
      
      try{
     
-   const { address_line, city, state,  addressType,deliverylocation,landmark, userId } = request.body;
+   const { address_line, city, state, pincode, country, mobile, addressType,deliverylocation,landmark, userId } = request.body;
       
 
          const id = request.params.id;
@@ -143,7 +166,9 @@ export const selectAddressController = async (request, response) => {
                 address_line: address_line,
                           city: city,
                           state: state,
-                         
+                          pincode: pincode,
+                          country: country,
+                          mobile: mobile,
                           addressType: addressType,
                           deliverylocation: deliverylocation,
                           landmark: landmark
