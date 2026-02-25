@@ -36,7 +36,7 @@ const VerifyOtp = () => {
     }
 
     setIsLoading(true);
-    const res = await postData("/auth/verify-mobile-otp", { mobile, otp });
+    const res = await postData("/auth/verify-otp", { mobile, otp });
     setIsLoading(false);
 
     if (!res?.error) {
