@@ -80,11 +80,6 @@ const register = async (req, res) => {
   }
 };
 
-
-
-
-
-
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
@@ -527,10 +522,6 @@ export async function loginPanelUserController(request, response) {
            
          }
          
-         
-         
-  
-    
          const options = {
             use_filename: true,
             unique_filename: false,
