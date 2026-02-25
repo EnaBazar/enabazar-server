@@ -322,7 +322,7 @@ const Footer = () => {
 
   {/* Content */}
   <div className="p-4 overflow-y-auto max-h-[70vh]">
-    <VerifyOtpPanel/>
+    <VerifyOtpPanel />
   </div>
 </Dialog>
 

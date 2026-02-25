@@ -49,7 +49,7 @@ const App =() => {
   });
   const [fullWidth, setFullWidth] = useState(true);
   const [maxWidth, setMaxWidth] = useState('lg');
-
+const [otpData, setOtpData] = useState(null);
   const [catData, setCatData]= useState([]);
   const [cartData, setCartData]= useState([]);
   const [addressMode, setAddressMode]= useState("add");
@@ -72,7 +72,10 @@ const App =() => {
   mobile: ""
 });
   
-  
+  const openOtpPanel = (data) => {
+  setOtpData(data);           // data = { mobile: "017xxxxxxx" }
+  setOpenVerifyOtpPanel(true); // OTP Panel খোলা হবে
+};
   const handleOpenProductDetailsModel = (status, item) => {
 
 
@@ -128,7 +131,7 @@ const [userData, setUserData] = useState(() => {
  const toggleVerifyOtpPanel = (newOpen) => () => {
   setOpenVerifyOtpPanel(newOpen);
   };
-  
+
   const toggleAddressPanel = (newOpen) => () => {
 
     if(newOpen === false){
@@ -313,7 +316,9 @@ toggleRegisterPanel,
     setLoginPrefill,
     openVerifyOtpPanel, 
     setOpenVerifyOtpPanel,
-    toggleVerifyOtpPanel
+    toggleVerifyOtpPanel,
+     otpData,
+  openOtpPanel,
 };
 return (
 <>

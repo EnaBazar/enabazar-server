@@ -83,7 +83,9 @@ if(res?.error !== true){
 
   // ✅ Add this line for OTP redirect
 
-   context?.setOpenVerifyOtpPanel(true);
+  context?.openOtpPanel({
+  mobile: formFields.mobile,  // যেই মোবাইল দিয়ে register করছে
+});
 
 
   setFormFields({
