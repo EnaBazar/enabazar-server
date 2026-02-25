@@ -72,7 +72,7 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+ 
     return res.status(500).json({
       error: true,
       message: "Server error",
@@ -85,7 +85,7 @@ export async function verifyMobileOtp(req, res) {
     const { mobile, otp } = req.body;
 
     const user = await usermodel.findOne({ mobile }); // no lean
-
+console.log(user)
     if (!user) {
       return res.status(400).json({
         error: true,
@@ -106,7 +106,7 @@ export async function verifyMobileOtp(req, res) {
         message: "OTP expired",
       });
     }
-console.log(user)
+
     // ✅ verified - update using findOneAndUpdate
     const updatedUser = await usermodel.findOneAndUpdate(
       { mobile },
