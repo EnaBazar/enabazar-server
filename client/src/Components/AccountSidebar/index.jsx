@@ -7,7 +7,7 @@ import { MyContext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
 import { fetchDataFromApi, uploadImage } from "../../utils/api";
 import { LuMapPinCheck } from "react-icons/lu";
-
+import { IoBagCheckOutline } from "react-icons/io5";
 const AccountSidebar = () => {
   const [previews, setPreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
