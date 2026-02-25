@@ -491,8 +491,8 @@ export async function loginPanelUserController(request, response) {
 export async function userAvatarController(req, res) {
   try {
     const userId = req.userId;
-    const user = await usermodel.findById(userId);
 
+    const user = await usermodel.findById(userId);
     if (!user) {
       return res.status(404).json({
         message: "User Not Found",
@@ -501,33 +501,35 @@ export async function userAvatarController(req, res) {
       });
     }
 
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No file uploaded",
+        error: true,
+        success: false,
+      });
+    }
+
     // পুরাতন avatar delete
     if (user.avatar) {
-      const publicId = user.avatar
-        .split("/")
-        .slice(-1)[0]
-        .split(".")[0];
-
+      const publicId = user.avatar.split("/").pop().split(".")[0];
       await cloudinary.uploader.destroy(publicId);
     }
 
-    // নতুন avatar upload
-    const result = await cloudinary.uploader.upload(
-      req.file.path,
-      {
-        folder: "avatars",
-      }
-    );
+    // upload new image
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "avatars",
+    });
 
     user.avatar = result.secure_url;
     await user.save();
 
     return res.status(200).json({
-      _id: userId,
+      success: true,
       avatar: result.secure_url,
     });
 
   } catch (error) {
+    console.log("UPLOAD ERROR:", error); // 🔥 এটা দেখো
     return res.status(500).json({
       message: error.message,
       error: true,
@@ -535,7 +537,6 @@ export async function userAvatarController(req, res) {
     });
   }
 }
- 
  //image remove from cloudinary Data
  
  export async function removeimageFromCloudinary(request,response) {
