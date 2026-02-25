@@ -4,24 +4,26 @@ import { postData } from "../../utils/api";
 
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
-  const mobile = context.otpData?.mobile; // Context থেকে ফোন নাম্বার
+  const mobile = context?.otpData?.mobile || "";
 
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Countdown
+  // Countdown Timer
   useEffect(() => {
+    if (!context?.openVerifyOtpPanel) return;
+
     if (seconds > 0) {
-      const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
+      const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else {
       setCanResend(true);
     }
-  }, [seconds]);
+  }, [seconds, context?.openVerifyOtpPanel]);
 
-  // OTP verify
+  // OTP Verify
   const handleVerify = async () => {
     if (!mobile) {
       context.openAlertBox("error", "Mobile number missing!");
@@ -33,67 +35,148 @@ const VerifyOtpPanel = () => {
       return;
     }
 
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-    const payload = {
-      mobile: mobile.toString(), // string হিসেবে পাঠাও
-      otp: otp.toString(),
-    };
+      const payload = {
+        mobile: String(mobile),
+        otp: String(otp),
+      };
 
-    console.log("Sending OTP verify request:", payload);
+      console.log("Verify Payload:", payload);
 
-    const res = await postData("https://api.goroabazar.com/auth/verify-otp", payload);
+      const res = await postData(
+        "https://api.goroabazar.com/auth/verify-otp",
+        payload
+      );
 
-    setIsLoading(false);
+      setIsLoading(false);
 
-    if (!res?.error) {
-      context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
-      context.closeOtpPanel();
-      
-    } else {
-      context.openAlertBox("error", res?.message || "OTP verification failed");
+      if (!res?.error) {
+        context.openAlertBox(
+          "success",
+          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+        );
+
+        setOtp("");
+        context.closeOtpPanel();
+      } else {
+        context.openAlertBox(
+          "error",
+          res?.message || "OTP verification failed"
+        );
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Verify Error:", error);
+      context.openAlertBox("error", "Server error. Please try again.");
     }
   };
 
+  // Resend OTP
   const handleResend = async () => {
-    setIsLoading(true);
-    const res = await postData("https://api.goroabazar.com/auth/resend-otp", {
-      mobile: mobile.toString(),
-    });
-    setIsLoading(false);
+    if (!mobile) return;
 
-    if (!res?.error) {
-      context.openAlertBox("success", "নতুন OTP পাঠানো হয়েছে!");
-      setSeconds(60);
-      setCanResend(false);
-    } else {
-      context.openAlertBox("error", res?.message || "Failed to resend OTP");
+    try {
+      setIsLoading(true);
+
+      const res = await postData(
+        "https://api.goroabazar.com/auth/resend-otp",
+        { mobile: String(mobile) }
+      );
+
+      setIsLoading(false);
+
+      if (!res?.error) {
+        context.openAlertBox("success", "নতুন OTP পাঠানো হয়েছে!");
+        setSeconds(60);
+        setCanResend(false);
+      } else {
+        context.openAlertBox(
+          "error",
+          res?.message || "Failed to resend OTP"
+        );
+      }
+    } catch (error) {
+      setIsLoading(false);
+      context.openAlertBox("error", "Server error. Please try again.");
     }
   };
 
-  if (!context.openVerifyOtpPanel) return null; // panel বন্ধ থাকলে কিছু দেখাবে না
+  if (!context?.openVerifyOtpPanel) return null;
 
   return (
-    <div style={{ padding: 20, maxWidth: 400, margin: "auto", background: "#fff", borderRadius: 8 }}>
-      <h3>Verify OTP for {mobile}</h3>
+    <div
+      style={{
+        padding: 20,
+        maxWidth: 400,
+        margin: "auto",
+        background: "#fff",
+        borderRadius: 8,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+      }}
+    >
+      <h3 style={{ textAlign: "center" }}>
+        Verify OTP {mobile && `for ${mobile}`}
+      </h3>
+
       <input
         type="text"
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
         maxLength={6}
-        placeholder="Enter OTP"
+        placeholder="Enter 6 digit OTP"
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "15px",
+          marginBottom: "15px",
+          fontSize: "16px",
+        }}
       />
-      <button onClick={handleVerify} disabled={isLoading}>
-        {isLoading ? "Loading..." : "Verify"}
+
+      <button
+        onClick={handleVerify}
+        disabled={isLoading}
+        style={{
+          width: "100%",
+          padding: "10px",
+          background: "#ff5252",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {isLoading ? "Verifying..." : "Verify"}
       </button>
 
-      {canResend ? (
-        <button onClick={handleResend} disabled={isLoading}>Resend OTP</button>
-      ) : (
-        <p>Resend in {seconds}s</p>
-      )}
+      <div style={{ textAlign: "center", marginTop: "15px" }}>
+        {canResend ? (
+          <button
+            onClick={handleResend}
+            disabled={isLoading}
+            style={{ border: "none", background: "none", color: "blue" }}
+          >
+            Resend OTP
+          </button>
+        ) : (
+          <p>Resend in {seconds}s</p>
+        )}
+      </div>
 
-      <button onClick={context.closeOtpPanel}>Cancel</button>
+      <button
+        onClick={context.closeOtpPanel}
+        style={{
+          marginTop: "10px",
+          width: "100%",
+          background: "gray",
+          color: "#fff",
+          border: "none",
+          padding: "8px",
+        }}
+      >
+        Cancel
+      </button>
     </div>
   );
 };
