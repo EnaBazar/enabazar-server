@@ -49,6 +49,7 @@ const VerifyOtpPanel = () => {
     if (!res?.error) {
       context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
       context.closeOtpPanel();
+      
     } else {
       context.openAlertBox("error", res?.message || "OTP verification failed");
     }

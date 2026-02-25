@@ -76,6 +76,12 @@ const [otpData, setOtpData] = useState(null);
   setOtpData(data);           // data = { mobile: "017xxxxxxx" }
   setOpenVerifyOtpPanel(true); // OTP Panel খোলা হবে
 };
+  const closeOtpPanel = () => {
+    setOpenVerifyOtpPanel(false);
+    setOtpData(null);
+  };
+
+
   const handleOpenProductDetailsModel = (status, item) => {
 
 
@@ -319,6 +325,7 @@ toggleRegisterPanel,
     toggleVerifyOtpPanel,
      otpData,
   openOtpPanel,
+  closeOtpPanel
 };
 return (
 <>
