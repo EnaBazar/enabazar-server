@@ -7,7 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { MyContext } from "../../App";
 import { Box, Typography } from "@mui/material";
 
-const VerifyOtp = () => {
+const VerifyOtpPanel = () => {
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -54,8 +54,8 @@ const VerifyOtp = () => {
         context.setIsLogin(true);
         context.setUserData(res.data.user);
       }
-
  navigate("/login");
+     
     } else {
       context.openAlertBox("error", res?.message || "OTP verification failed");
     }
@@ -126,4 +126,4 @@ const VerifyOtp = () => {
   );
 };
 
-export default VerifyOtp;
+export default VerifyOtpPanel;

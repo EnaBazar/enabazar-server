@@ -58,8 +58,9 @@ const App =() => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [openCartPanel, setOpenCartPanel] = useState(false);
   const [openAddressPanel, setOpenAddressPanel] = useState(false);
-    const [openLoginPanel, setOpenLoginPanel] = useState(false);
-       const [openRegisterPanel, setOpenRegisterPanel] = useState(false);
+  const [openLoginPanel, setOpenLoginPanel] = useState(false);
+  const [openRegisterPanel, setOpenRegisterPanel] = useState(false);
+   const [openVerifyOtpPanel, setOpenVerifyOtpPanel] = useState(false);
   const [isOpenSearchPanel,setIsOpenSearchPanel] = useState(false);
   const [searchData, setSearchData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -124,6 +125,9 @@ const [userData, setUserData] = useState(() => {
   setOpenRegisterPanel(newOpen);
   };
 
+ const toggleVerifyOtpPanel = (newOpen) => () => {
+  setOpenVerifyOtpPanel(newOpen);
+  };
   const toggleAddressPanel = (newOpen) => () => {
 
     if(newOpen === false){
@@ -306,6 +310,9 @@ setOpenRegisterPanel,
 toggleRegisterPanel,
     loginPrefill, 
     setLoginPrefill,
+    openVerifyOtpPanel, 
+    setOpenVerifyOtpPanel,
+    toggleVerifyOtpPanel
 };
 return (
 <>

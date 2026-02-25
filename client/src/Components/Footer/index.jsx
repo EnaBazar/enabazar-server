@@ -26,6 +26,7 @@ import Login from '../../Pages/Login';
 import LoginPanel from '../../Pages/Loginpanel';
 import RegisterPanel from '../../Pages/RegisterPanel';
 import Register from '../../Pages/Register';
+import VerifyOtpPanel from '../../Pages/Register/VerifyOtpPanel';
 
 const Footer = () => {
   const context = useContext(MyContext);
@@ -295,8 +296,35 @@ const Footer = () => {
   </div>
 </Dialog>
 
+ {/*verify otp panel*/} 
+<Dialog
+  open={context.openVerifyOtpPanel}
+  onClose={() => context.toggleVerifyOtpPanel(false)}
+  PaperProps={{
+    sx: {
+      width: "90%",            // smaller on mobile
+      maxWidth: 380,           // desktop small size
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)", // glass blur effect
+      background: "rgba(255, 255, 255, 0.2)", // semi-transparent
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Header */}
+  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
+    <IoCloseSharp
+      className="text-[22px] text-red-600 cursor-pointer"
+      onClick={context.toggleVerifyOtpPanel(false)}
 
+    />
+  </div>
 
+  {/* Content */}
+  <div className="p-4 overflow-y-auto max-h-[70vh]">
+    <VerifyOtpPanel/>
+  </div>
+</Dialog>
 
  <Dialog
  fullWidth={context?.fullWidth}

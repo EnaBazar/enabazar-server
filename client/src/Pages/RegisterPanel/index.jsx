@@ -82,7 +82,10 @@ if(res?.error !== true){
   localStorage.setItem("userEmail",formFields.mobile)
 
   // ✅ Add this line for OTP redirect
-  navigate("/verify-otp", { state: { mobile: formFields.mobile } });
+        setTimeout(()=>{
+       context?.setOpenRegisterPanel(true);
+               
+  },1000)
 
   setFormFields({
     name:"",
