@@ -33,7 +33,7 @@ import Delivery from './Pages/Delivery/delivery';
 import LegalNotice from './Pages/LagelNotice/lagelNotice';
 import HelpCenter from './Pages/HelpCenter/helpCenter';
 import SecurePayment from './Pages/SequrePayment/sequrePayment';
-
+import OrderReceipt from "./Pages/Orders/OrderReceipt";
 import { fetchDataFromApi, postData } from './utils/api';
 
 // Create context
