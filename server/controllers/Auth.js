@@ -84,7 +84,7 @@ export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
-    const user = await usermodel.findOne({ mobile });
+    const user = await usermodel.findOne({ mobile }); // no lean
 
     if (!user) {
       return res.status(400).json({
@@ -107,16 +107,26 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    // ✅ verified
-    user.verify_mobile = true;
-    user.otp = "";
-    user.otpExpires = null;
+    // ✅ verified - update using findOneAndUpdate
+    const updatedUser = await usermodel.findOneAndUpdate(
+      { mobile },
+      { verify_mobile: true, otp: "", otpExpires: null },
+      { new: true }
+    );
 
-    await user.save();
+    if (!updatedUser) {
+      return res.status(500).json({
+        error: true,
+        message: "Failed to update user",
+      });
+    }
 
     return res.json({
       success: true,
       message: "Mobile verified successfully",
+      data: {
+        user: updatedUser
+      }
     });
 
   } catch (error) {
