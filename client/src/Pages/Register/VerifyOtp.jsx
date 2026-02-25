@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { postData } from "../../utils/api";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { MyContext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
+import { MyContext } from "../../App";
+import { Box, Typography } from "@mui/material";
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState("");
@@ -16,10 +17,9 @@ const VerifyOtp = () => {
   const navigate = useNavigate();
   const context = useContext(MyContext);
 
-  const mobile = location.state?.mobile; // Register থেকে পাঠানো mobile
-  const redirectTo = location.state?.from || "/"; // previous page or home
+  const mobile = location.state?.mobile; 
+  const redirectTo = location.state?.from || "/"; 
 
-  // Countdown for resend
   useEffect(() => {
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
@@ -29,7 +29,6 @@ const VerifyOtp = () => {
     }
   }, [seconds]);
 
-  // OTP verify + automatic login
   const handleVerify = async () => {
     if (otp.length !== 6) {
       context.openAlertBox("error", "Please enter a 6-digit OTP");
@@ -38,28 +37,22 @@ const VerifyOtp = () => {
 
     setIsLoading(true);
     const res = await postData("/auth/verify-mobile-otp", { mobile, otp });
-
     setIsLoading(false);
+
     if (!res?.error) {
       context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
-
-      // Save tokens to localStorage
       if (res?.data?.accesstoken) {
         localStorage.setItem("accesstoken", res.data.accesstoken);
         localStorage.setItem("refreshtoken", res.data.refreshtoken);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-
         context.setIsLogin(true);
       }
-
-      // Redirect back to previous page
       navigate(redirectTo, { replace: true });
     } else {
       context.openAlertBox("error", res?.message);
     }
   };
 
-  // Resend OTP
   const handleResend = async () => {
     setIsLoading(true);
     const res = await postData("/auth/resend-otp", { mobile });
@@ -75,17 +68,30 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div style={{ width: "400px", margin: "100px auto" }}>
-      <h3 className="text-center !mb-5">Verify OTP</h3>
+    <Box
+      sx={{
+        maxWidth: 400,
+        width: "90%",
+        mx: "auto",
+        mt: { xs: 8, sm: 12 },
+        p: { xs: 2, sm: 4 },
+        boxShadow: 3,
+        borderRadius: 2,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Typography variant="h5" align="center" gutterBottom>
+        Verify OTP
+      </Typography>
 
       <TextField
         label="Enter OTP"
-       
         fullWidth
         inputProps={{ maxLength: 6 }}
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-        className="!mb-5"
+        sx={{ mb: 3 }}
       />
 
       <Button
@@ -93,21 +99,21 @@ const VerifyOtp = () => {
         fullWidth
         onClick={handleVerify}
         disabled={isLoading}
-        style={{ marginBottom: "20px" }}
+        sx={{ mb: 2 }}
       >
         {isLoading ? <CircularProgress color="inherit" size={24} /> : "Verify"}
       </Button>
 
-      <div style={{ textAlign: "center" }}>
+      <Box sx={{ textAlign: "center" }}>
         {canResend ? (
           <Button onClick={handleResend} disabled={isLoading}>
             Resend OTP
           </Button>
         ) : (
-          <p>Resend in {seconds}s</p>
+          <Typography variant="body2">Resend in {seconds}s</Typography>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
