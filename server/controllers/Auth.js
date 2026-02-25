@@ -6,9 +6,6 @@ import generatedAccessToken from "../utils/generatedAccessToken.js";
 import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
-import Reviewsmodel from "../models/reviews.model.js";
-import sendSMS from "../utils/sendSMS.js";
-
 
 
 
@@ -25,189 +22,53 @@ cloudinary.config({
 });
  //registration//
       
-
-const register = async (req, res) => {
-  try {
-    const { mobile, password, name } = req.body;
-
-    if (!mobile || !password || !name) {
-      return res.status(400).json({
-        error: true,
-        message: "সব ফিল্ড লাগবে",
-      });
-    }
-
-    const exist = await usermodel.findOne({ mobile });
-    if (exist) {
-      return res.status(400).json({
-        error: true,
-        message: "User already exists",
-      });
-    }
-
-    // 🔐 password hash
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
-
-    // 🔢 OTP generate
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const user = new usermodel({
-      name,
-      mobile,
-      password: hashPassword,
-      otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
-      verify_mobile: false,
-    });
-
-    await user.save();
-
-    // 📩 SMS send
-    await sendSMS(mobile,otp);
-
-    return res.json({
-      success: true,
-      message: "OTP পাঠানো হয়েছে",
-    });
-
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      error: true,
-      message: "Server error",
-    });
-  }
-};
-
-
-
-
-
-
-export async function verifyMobileOtp(req, res) {
-  try {
-    const { mobile, otp } = req.body;
-
-    const user = await usermodel.findOne({ mobile });
-
-    if (!user) {
-      return res.status(400).json({
-        error: true,
-        message: "User not found",
-      });
-    }
-
-    if (user.otp !== otp.toString()) {
-      return res.status(400).json({
-        error: true,
-        message: "Invalid OTP",
-      });
-    }
-
-    if (user.otpExpires < Date.now()) {
-      return res.status(400).json({
-        error: true,
-        message: "OTP expired",
-      });
-    }
-
-    // ✅ verified
-    user.verify_mobile = true;
-    user.otp = "";
-    user.otpExpires = null;
-
-    await user.save();
-
-    return res.json({
-      success: true,
-      message: "Mobile verified successfully",
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message,
-    });
-  }
-}
-
-export async function resendOtp(req, res) {
-  try {
-    const { mobile } = req.body;
-
-    const user = await usermodel.findOne({ mobile });
-
-    if (!user) {
-      return res.status(400).json({
-        error: true,
-        message: "User not found",
-      });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    user.otp = otp;
-    user.otpExpires = Date.now() + 5 * 60 * 1000;
-
-    await user.save();
-
-    await sendSMS(mobile, `Your new OTP is ${otp}`);
-
-    return res.json({
-      success: true,
-      message: "New OTP sent",
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message,
-    });
-  }
-}
-
-
-
-const  registerPanel=async(req,res)=>{
+const  register=async(req,res)=>{
     
     try{
         
-   const {mobile,password,name}=req.body
+   const {email,password,name}=req.body
    
-        if (!mobile || !password || !name){
+        if (!email || !password || !name){
             
             return res.status(400).json({error:true,success:false,message:"All fields are required"})
         }
-        const ExistsUser= await usermodel.findOne({mobile})
+        const ExistsUser= await usermodel.findOne({email})
         if (ExistsUser){
-        return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
+            return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
             
         }
         const salt = await bcryptjs.genSalt(10)
         const hashPassword =await bcryptjs.hash(password,salt)
-  
+       
+        const verificationCode= Math.floor(100000 + Math.random() * 900000).toString()
         const user= new usermodel({
-            mobile,
+            email,
             password:hashPassword,
             name,
-            otp : "",
-            otpExpires : Date.now() + 600000,  
+            otp : verificationCode,
+            otpExpires : Date.now() + 600000,
+          
+            verificationCode
+            
+            
         })
         const token =jwt.sign(
-        {
-        mobile: user.mobile, id: user._id },
-        process.env.JSON_WEB_TOKEN_SECRET_KEY  
+      
+            {
+                email: user.email, id: user._id },
+            process.env.JSON_WEB_TOKEN_SECRET_KEY
+            
         )
         await user.save()
-        return res.status(200).json({success:true,error:false,message:"User Register Successfuly", token: token, user})
-        }catch(error){
+       
+        SendVerficationCode(user.email,verificationCode)
+        
+        return res.status(200).json({success:true,error:false,message:"User Register Successfuly,Please verify Your Email", token: token, user})
+    }catch(error){
         console.log(error)
         return res.status(500).json({success:false,error:true,message:"internet Server error"})
-        }
-        }
-
-
+    }
+}
 // verify email
 const VerifyEmail=async(req,res)=>{
     
@@ -233,32 +94,55 @@ const VerifyEmail=async(req,res)=>{
     }
     
 }
-
-
-export async function authWithGoogle(request,response){
-    const {name, email, password, avatar, mobile, role} = request.body;
+//login user
+export async function loginUserController(request,response) {
+   try{
+    const {email,password} = request.body;
     
-    try {
-        const existingUser = await usermodel.findOne({email: email});
-       
-        if (!existingUser){
-            const user = await usermodel.create({
-                name: name,
-                mobile: mobile,
-                email: email,
-                password: "null",
-                avatar: avatar,
-                role: role,
-                verify_email:true,
-                signUpWithGoogle:true
-            });
-              
-              await user.save();
-              
+    const user = await usermodel.findOne({email:email});
+    
+    if(!user){
+        
+        return response.status(400).json({
+               message:"User Not register",
+               error:true,
+               success:false               
+           })
+       }
+    
+    if(user.status !== "Active"){
+        
+     return response.status(400).json({
+            message:"Connect to admin",
+            error:false,
+            success:true               
+        })
+    }
+    
+    if(user.verify_email !== true){
+        
+        return response.status(400).json({
+               message:"Your Email is not Verify yet please verify your email frist",
+               error:true,
+               success:false               
+           })
+       }
+    
+    
+    const checkPassword = await bcryptjs.compare(password,user.password)  
+    if(!checkPassword){
+        
+      return response.status(400).json({
+            message:"Check your password",
+            error:true,
+            success:false               
+        })
+    }
+    
     const accesstoken = await generatedAccessToken(user._id)
     const refreshtoken = await generatedRefreshToken(user._id)
     
-  await usermodel.findByIdAndUpdate(user?._id,{
+    const updateUser = await usermodel.findByIdAndUpdate(user?._id,{
         last_login_date : new Date()
     })
  
@@ -279,180 +163,17 @@ export async function authWithGoogle(request,response){
            refreshtoken
        }       
    })
-        }else{
-            
-            
-    const accesstoken = await generatedAccessToken(existingUser._id)
-    const refreshtoken = await generatedRefreshToken(existingUser._id)
-    
-  await usermodel.findByIdAndUpdate(existingUser?._id,{
-        last_login_date : new Date()
-    })
- 
-    const cookiesOption = {
-        
-        httpOnly :true,
-        secure :true,
-        sameSite :"none"
-    }
-   response.cookie('accessToken',accesstoken,cookiesOption) 
-   response.cookie('refreshToken',refreshtoken,cookiesOption)   
-   return response.json({   
-       message : "Login Sccessfully",
-       error : false,
-       success : true,
-       data :{       
-           accesstoken,
-           refreshtoken
-       }       
-   }) 
-            
-        }
-    } catch (error) {
-    
-        return response.status(500).json({
-        error:true,
-        success:false,
-        message: error.message || error}) 
-    }
-}
-
-//login user
-export async function loginUserController(request, response) {
-   try {
-      const { mobile,name } = request.body;
-
-      // 1. Find user
-      const user = await usermodel.findOne({ mobile,name });
-
-      if (!user) {
-         return response.status(400).json({
-            message: "User Not Registered",
-            error: true,
-            success: false
-         });
-      }
-
-      // 2. Check status
-      if (user.status !== "Active") {
-         return response.status(400).json({
-            message: "Connect to admin",
-            error: true,
-            success: false
-         });
-      }
-
-      // ❌ bcrypt compare লাগবে না
-      // কারণ আপনি mobile = mobile মিলিয়ে login করাতে চান
-
-      // 3. Generate tokens
-      const accesstoken = await generatedAccessToken(user._id);
-      const refreshtoken = await generatedRefreshToken(user._id);
-
-      // 4. Update last login
-      await usermodel.findByIdAndUpdate(user._id, {
-         last_login_date: new Date()
-      });
-
-      // 5. Cookie settings
-      const cookiesOption = {
-         httpOnly: true,
-         secure: true,
-         sameSite: "none"
-      };
-
-      response.cookie("accessToken", accesstoken, cookiesOption);
-      response.cookie("refreshToken", refreshtoken, cookiesOption);
-
-      // 6. Success response
-      return response.json({
-         message: "Login Successfully",
-         error: false,
-         success: true,
-         data: {
-            accesstoken,
-            refreshtoken
-         }
-      });
-
-   } catch (error) {
-      return response.status(500).json({
-         message: error.message || error,
-         error: true,
-         success: false
-      });
+       
+   } catch(error){
+       
+       return response.status(500).json({
+        message : error.message || error ,
+        error : true,
+        success : false
+           
+       })
    }
-}
-
-//loginPanel user
-export async function loginPanelUserController(request, response) {
-   try {
-      const { mobile } = request.body;
-
-      // 1. User find
-      const user = await usermodel.findOne({ mobile });
-
-      if (!user) {
-         return response.status(400).json({
-            message: "User not registered",
-            error: true,
-            success: false
-         });
-      }
-
-      // 2. Status check
-      if (user.status !== "Active") {
-         return response.status(400).json({
-            message: "Connect to admin",
-            error: true,
-            success: false
-         });
-      }
-
-      // 3. এখানে আর কিছু compare করার দরকার নেই
-      // কারণ আপনি শুধু mobile দিয়ে login করতে চান
-
-      // 4. Tokens generate
-      const accessToken = await generatedAccessToken(user._id);
-      const refreshToken = await generatedRefreshToken(user._id);
-
-      // 5. Update last login
-      await usermodel.findByIdAndUpdate(user._id, {
-         last_login_date: new Date()
-      });
-
-      // 6. Cookie options
-      const cookiesOption = {
-         httpOnly: true,
-         secure: true,
-         sameSite: "none"
-      };
-
-      // 7. Set cookies
-      response.cookie("accessToken", accessToken, cookiesOption);
-      response.cookie("refreshToken", refreshToken, cookiesOption);
-
-      return response.json({
-         message: "Login Successfully",
-         error: false,
-         success: true,
-         data: {
-            accessToken,
-            refreshToken
-         }
-      });
-
-   } catch (error) {
-      return response.status(500).json({
-         message: error.message || error,
-         error: true,
-         success: false
-      });
-   }
-}
-
-
-
+ }
 //logout user
  export async function logoutController(request,response) {   
     try{
@@ -488,55 +209,87 @@ export async function loginPanelUserController(request, response) {
  
  var imagesArr = [];
  
-export async function userAvatarController(req, res) {
-  try {
-    const userId = req.userId;
-
-    const user = await usermodel.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        message: "User Not Found",
-        error: true,
-        success: false,
-      });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({
-        message: "No file uploaded",
-        error: true,
-        success: false,
-      });
-    }
-
-    // পুরাতন avatar delete
-    if (user.avatar) {
-      const publicId = user.avatar.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(publicId);
-    }
-
-    // upload new image
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "avatars",
-    });
-
-    user.avatar = result.secure_url;
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      avatar: result.secure_url,
-    });
-
-  } catch (error) {
-    console.log("UPLOAD ERROR:", error); // 🔥 এটা দেখো
-    return res.status(500).json({
-      message: error.message,
-      error: true,
-      success: false,
-    });
-  }
-}
+ export async function userAvatarController(request,response) {
+     
+     try {
+         imagesArr = [];
+         
+         const userId = request.userId;
+         const image = request.files;
+         
+         const user = await usermodel.findOne({_id: userId});
+      
+         if (!user){
+            return response.status(500).json({       
+                message: "User Not Found",
+                error: true,
+                success: false
+            })
+              
+          }
+      
+      //Frist Remove image fro cloudinary
+      
+      
+         const imgUrl = user.avatar;
+         
+         const urlArr =imgUrl.split("/");
+         const Avatar_image = urlArr[urlArr.length -1];
+         const imageName = Avatar_image.split(".")[0];
+         
+         if (imageName) {
+             
+           const res = await cloudinary.uploader.destroy(
+             imageName,
+             (error,result)=> {
+                 
+             }
+         );
+           
+         }
+         
+         
+         
+  
+    
+         const options = {
+            use_filename: true,
+            unique_filename: false,
+            overwrite: false,
+        }  
+         
+         for (let i = 0; i < image?.length; i++){
+     
+             const img = await cloudinary.uploader.upload(
+                image[i].path,
+                 options,
+                                 
+                 function (error,result){  
+                       
+                    imagesArr.push(result.secure_url);
+                    fs.unlinkSync(`uploads/${request.files[i].filename}`);
+                   
+                 }
+             );
+         }
+         
+         user.avatar = imagesArr[0];
+         await user.save();
+         
+         return response.status(200).json({
+             _id: userId,
+             avtar: imagesArr[0]
+         });
+         
+     } catch (error) {
+         return response.status(500).json({       
+             message: error.message || error,
+             error: true,
+             success: false
+         })
+     };
+ };
+ 
  //image remove from cloudinary Data
  
  export async function removeimageFromCloudinary(request,response) {
@@ -574,14 +327,19 @@ export async function userAvatarController(req, res) {
      
      try{
        const userId = request.userId 
-       const {name,mobile,password}= request.body;
+       const {name,email,mobile,password}= request.body;
        const userExist = await usermodel.findById(userId);
        
        
        if (!userExist)
        return response.status(400).send("The user cannot be Updated!")
        
-   
+       let verifyCode=""  ;
+       if(email !== userExist.email){
+           
+           verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+           
+       }
          let hashPassword =""
          
          if(password){
@@ -601,8 +359,11 @@ export async function userAvatarController(req, res) {
              {
                name:name,
                mobile: mobile,
+               email: email,
+               verify_email:email !== userExist.email ? false : true,
                password: hashPassword,
-        
+               otp:verifyCode!== "" ? verifyCode : null,
+               otpExpires:verifyCode!=="" ? Date.now() + 600000 : ''
               
              },
              {new: true}
@@ -613,9 +374,12 @@ export async function userAvatarController(req, res) {
          
          /// send  Verification email
          
-         const user = await usermodel.findOne({mobile:mobile})
+         const user = await usermodel.findOne({email:email})
          
-    
+         if(email !== userExist.email){
+            SendVerficationCode(user.email,verifyCode)
+             
+         }
          
          
     
@@ -632,7 +396,7 @@ export async function userAvatarController(req, res) {
                  
                  name:updateUser?.name,
                  _id:updateUser?._id,
-      
+                 email:updateUser?.email,
                  mobile:updateUser?.mobile,
                  avatar:updateUser?.avatar
                 
@@ -790,8 +554,8 @@ export async function userAvatarController(req, res) {
   
   export async function resetpassword(request,response) {
     try{
-        const { newPassword, confirmPassword } = request.body;
-        if ( !newPassword || !confirmPassword) {
+        const { email, newPassword, confirmPassword } = request.body;
+        if (!email || !newPassword || !confirmPassword) {
             
             return response.status(400).json({
                 error:true,
@@ -799,7 +563,7 @@ export async function userAvatarController(req, res) {
                 message : "Provide required fields email, newPassword,confirmPassword"
             })
         }
-        const user = await usermodel.findOne({ mobile });
+        const user = await usermodel.findOne({ email });
         if(!user){
             return response.status(400).json({
                 
@@ -866,12 +630,7 @@ export async function userAvatarController(req, res) {
             })
         }
         
-        
-        
-        
-        
-        if(user?.signUpWithGoogle===false){
-               const checkPassword = await bcryptjs.compare(oldpassword, user.password);
+        const checkPassword = await bcryptjs.compare(oldpassword, user.password);
         
         if(!checkPassword){
                 return response.status(400).json({
@@ -880,9 +639,7 @@ export async function userAvatarController(req, res) {
                 success:false
             })
             
-        }  
         }
-   
         
         if(newPassword !== confirmPassword){
             return response.status(400).json({
@@ -897,14 +654,13 @@ export async function userAvatarController(req, res) {
         const hashPassword = await bcryptjs.hash(confirmPassword, salt)
         
         user.password = hashPassword;
-        user.signUpWithGoogle = false;
          await user.save();
         
      
         
         return response.json({
                 
-            message: "Password is successfully",
+            message: "Password Reset successfully",
             error:false,
             success:true
         })
@@ -1003,246 +759,5 @@ export async function userAvatarController(req, res) {
  }
  
 
-// Reviews Controller
- export async function addReviews(request,response) {
-     try {
-        const {image,userName,review,rating,userId,productId} = request.body;
-        const userReview = new Reviewsmodel({
-            image:image,
-            userName:userName,
-            review:review,
-            rating:rating,
-            userId:userId,
-            productId:productId
-        })
-        
-        await userReview.save();
-        
-          return response.json({
-                
-            message: "Reviews added successfully",
-            error:false,
-            success:true,
-          
-        })
-        
-     } catch (error) {
-        return response.json({       
-            message: "Somthins is wrong",
-            error:true,
-            success:false
-        })
-     }
-     
-     
- }
-// Get Reviews 
- export async function getReviews(request,response) {
-     try {
-        const productId = request.query.productId;
-        const reviews = await Reviewsmodel.find({productId:productId})
-        
-        if(!reviews){
-          return response.status(400).json({       
-    
-            error:true,
-            success:false
-        })  
-        }
-    return response.status(200).json({       
-    
-            error:false,
-            success:true,
-            reviews:reviews
-        })  
-        
-     } catch (error) {
-         return response.json({       
-            message: "Somthins is wrong",
-            error:true,
-            success:false
-        })
-     }
- }
-
  
-
-// Get All Users 
- export async function getAllusers(request,response) {
-     try {
-
-        const users = await usermodel.find();
-        
-        if(!users){
-          return response.status(400).json({       
-    
-            error:true,
-            success:false
-        })  
-        }
-    return response.status(200).json({       
-    
-            error:false,
-            success:true,
-            users:users
-        })  
-        
-     } catch (error) {
-         return response.json({       
-            message: "Somthins is wrong",
-            error:true,
-            success:false
-        })
-     }
- }
-
- // Get All Users 
- export async function getAllReviews(request,response) {
-     try {
-
-        const reviews = await Reviewsmodel.find();
-        
-        if(!reviews){
-          return response.status(400).json({       
-    
-            error:true,
-            success:false
-        })  
-        }
-    return response.status(200).json({       
-    
-            error:false,
-            success:true,
-            reviews:reviews
-        })  
-        
-     } catch (error) {
-         return response.json({       
-            message: "Somthins is wrong",
-            error:true,
-            success:false
-        })
-     }
- }
-
-
-
-      //DeletemultipleProducts
-              
-export async function deletemultipleUsers(request, response) {
-  const { ids } = request.body;
-
-  // ইনপুট যাচাই
-  if (!ids || !Array.isArray(ids)) {
-    return response.status(400).json({
-      error: true,
-      success: false,
-      message: "ভুল ইনপুট দেওয়া হয়েছে",
-    });
-  }
-
-  try {
-    // সব প্রোডাক্ট একসাথে খোঁজা
-    const users = await usermodel.find({ _id: { $in: ids } });
-
-    const imageDeletionPromises = [];
-
-    for (const user of users) {
-      if (!user || !user.images) continue;
-
-      for (const imgUrl of user.images) {
-        try {
-          // ইমেজ URL থেকে publicId বের করা
-          const urlArr = imgUrl.split("/");
-          const lastSegment = urlArr[urlArr.length - 1];
-          const publicIdWithExtension = lastSegment.split(",")[0];
-          const publicId = publicIdWithExtension.split(".")[0];
-
-          if (publicId) {
-            // ইমেজ ডিলিটের প্রমিস তৈরি
-            imageDeletionPromises.push(cloudinary.uploader.destroy(publicId));
-          }
-        } catch (err) {
-          console.error("ইমেজ URL পার্স করতে সমস্যা:", err);
-        }
-      }
-    }
-
-    // সব ইমেজ একসাথে ডিলিট করো
-    await Promise.all(imageDeletionPromises);
-
-    // সব প্রোডাক্ট একসাথে ডিলিট করো
-    await usermodel.deleteMany({ _id: { $in: ids } });
-
-    return response.status(200).json({
-      error: false,
-      success: true,
-      message: "All User Are Deleted",
-    });
-  } catch (error) {
-    console.error("ডিলিট করার সময় সমস্যা:", error);
-    return response.status(500).json({
-      error: true,
-      success: false,
-      message: error.message || "সার্ভারে সমস্যা হয়েছে",
-    });
-  }
-}
-
-  
-  
-    //Delete Product 
-  
- export async function DeleteUsers(request,response) { 
-                                                                      
-                  const users = await usermodel.findById(request.params.id) ;
-                  
-                  if (!users){
-                    response.status(500).json({  
-                        message:"Users Not found",          
-                        error: true,
-                        success: false
-                    })
-                    
-                      
-                  }  
-                  
-                  
-                  const images = users.avatar;
-                  
-                  let img="";
-                  for (img of images){
-                           const imgUrl = img;
-                  const urlArr =imgUrl.split("/");
-                  const image = urlArr[urlArr.length -1];
-                  const imageName = image.split(".")[0];
-                    
-                      
-                        if (imageName) {
-                      
-                 cloudinary.uploader.destroy(
-                      imageName,
-                      (error,result)=> {
-                          
-                      });
-                   
-                      
-                  }
-                  }
-                  
-                   const deleteUser = await usermodel.findByIdAndDelete(request.params.id);                 
-                   if(!deleteUser){
-                    response.status(404).json({  
-                        message:"User Not deleted",          
-                        error: true,
-                        success: false
-                    })
-                       
-                   }
-                  return response.status(200).json({  
-                    message:"User  deleted",          
-                    error: false,
-                    success: true
-                })
-            }
-export {register, VerifyEmail,registerPanel}
+export {register,VerifyEmail}
