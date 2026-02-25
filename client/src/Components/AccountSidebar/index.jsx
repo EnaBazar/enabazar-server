@@ -92,8 +92,8 @@ const AccountSidebar = () => {
               uploadImage("/auth/user-avatar",formdata).then((res)=>{
                 setUploading(false);
                 let avatar=[];
-                console.log(res?.data?.avtar)
-                avatar.push(res?.data?.avtar);
+                console.log(res?.data?.avatar)
+                avatar.push(res?.data?.avatar);
                 setPreviews(avatar);
                
               })
