@@ -127,7 +127,6 @@ const AccountSidebar = () => {
       )
     })
     :
-    
     <img src={"/user.png"}
      className='w-full h-full object-cover'
     

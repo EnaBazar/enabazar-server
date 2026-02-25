@@ -161,8 +161,14 @@ const Header =() => {
       <Button className="myAccountWrap !text-black flex items-center gap-3 cursor-pointer" onClick={handleClick}>
 
       <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
+      <img
+  src={context?.userData?.avatar || "/user.png"} // ✅ যদি avatar না থাকে default দেখাবে
+  className="w-full h-full object-cover"
+/>
+
+
+
          
-         <img src={context?.userData?.avatar} className='w-full h-full object-cover'/>
          </div> 
 
 
