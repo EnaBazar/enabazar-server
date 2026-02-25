@@ -17,21 +17,7 @@ const addressSchema = mongoose.Schema({
         type : String,
         default : ""
     },
-                pincode :{
-        
-        type : String
-      
-    },
-                
-   country :{
-        
-        type : String,
-       
-    },
-   mobile: {
-  type: String, // or Number, depending on your use case
-  required: true
-   },
+
        addressType :{
         type : String,   
         enum: ["Home","Work"],   

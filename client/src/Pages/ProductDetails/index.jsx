@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import { Link, useParams } from 'react-router-dom';
 import ProductZoom from '../../Components/ProductZoom';
-import ProductsSlider from '../../components/ProductsSlider';
+import ProductsSlider from '../../Components/ProductsSlider';
 import ProductDetailsComponant from '../../Components/ProductDetailsComponant';
-import { fetchDataFromApi } from '../../utils/api';
+import { fetchDataFromApi } from '../../utils/api'; 
 import CircularProgress from '@mui/material/CircularProgress';
 import { Reviews } from './addReviews';
 
@@ -127,14 +127,21 @@ const ProductDetails = () => {
 
         {/* Description Tab */}
         {activeTab === 0 && (
-          <div className="shadow-md py-4 sm:py-5 px-4 sm:px-8 w-full rounded-md border border-[rgba(0,0,0,0.2)] text-[14px] sm:text-[15px]">
-            {productData?.description}
+          <div className="shadow-md py-4 sm:py-5 px-4 sm:px-8 w-full 
+          rounded-md border border-[rgba(0,0,0,0.2)] text-[14px] sm:text-[15px]">
+        <div
+        
+  dangerouslySetInnerHTML={{
+    __html: productData?.description
+  }}
+/>
           </div>
         )}
 
         {/* Reviews Tab */}
         {activeTab === 1 && (
-          <div className="shadow-md py-4 sm:py-5 px-4 sm:px-8 w-full lg:w-[80%] rounded-md border border-[rgba(0,0,0,0.2)]">
+          <div className="shadow-md py-4 sm:py-5 px-4 sm:px-8 w-full lg:w-[80%] 
+          rounded-md border border-[rgba(0,0,0,0.2)]">
             {productData && (
               <Reviews
                 productId={productData?._id}

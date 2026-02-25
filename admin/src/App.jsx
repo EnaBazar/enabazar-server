@@ -26,6 +26,9 @@ import BlogList from './Pages/Blog';
 
 import { fetchDataFromApi } from './utils/api';
 import Layout from './Components/Layout';   // নতুন Layout ইউজ করবো
+import BannerV2List from './Pages/Banners2/BannerV2List';
+import BannerV3List from './Pages/Banners3/BannerV3List';
+import AdminChat from './Components/AdminChat';
 
 const MyContext = createContext();
 
@@ -37,15 +40,15 @@ function App() {
   const [catData, setCatData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 const [orderCount, setOrderCount] = useState(0);
-
-
+ const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [autoreload, setAutoreload] = useState([]);
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
     model: '',
     id: ""
   });
-console.log(isOpenFullScreenPanel)
+
 
 
   const openAlertBox = (status, msg) => {
@@ -57,27 +60,46 @@ console.log(isOpenFullScreenPanel)
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('accesstoken');
-    if (token) {
-      setIsLogin(true);
+const handleSessionExpire = () => {
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
+  setIsLogin(false);
+  setUserData(null);
+  openAlertBox("error", "Your session is expired, please login again!");
+};
 
-      fetchDataFromApi(`/auth/user-dtails`).then((res) => {
-        setUserData(res.data);
 
-        if (res?.response?.data?.error === true) {
-          if (res?.response?.data?.message === "You have not login") {
-            localStorage.removeItem("accesstoken");
-            localStorage.removeItem("refreshtoken");
-            openAlertBox("error", "Your session is closed please login again!");
-            setIsLogin(false);
-          }
+
+
+useEffect(() => {
+  const token = localStorage.getItem("accesstoken");
+
+  if (token) {
+    setIsLogin(true);
+
+    fetchDataFromApi("/auth/user-dtails", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then((res) => {
+        if (res?.error === false) {
+          setUserData(res.data);
+        } else {
+          // যদি error থাকে
+          handleSessionExpire();
         }
+      })
+      .catch(() => {
+        handleSessionExpire();
       });
-    } else {
-      setIsLogin(false);
-    }
-  }, [isLogin]);
+  } else {
+    setIsLogin(false);
+  }
+}, []);
+
+
+
 
   useEffect(() => {
     getCat();
@@ -116,7 +138,10 @@ console.log(isOpenFullScreenPanel)
     setWindowWidth,
     windowWidth,
     setOrderCount,
-    orderCount
+    orderCount,
+    chatUnreadCount,
+     setChatUnreadCount,
+  
     
  
   };
@@ -128,7 +153,6 @@ console.log(isOpenFullScreenPanel)
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-account", element: <VerifyAccount /> },
     { path: "/change-password", element: <ChangePassword /> },
-
     { path: "/products", element: <Layout><Products /></Layout> },
     { path: "/homeSliderlist", element: <Layout><HomeSliderBanners /></Layout> },
     { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
@@ -136,14 +160,15 @@ console.log(isOpenFullScreenPanel)
     { path: "/users", element: <Layout><Users /></Layout> },
     { path: "/orders", element: <Layout><Orders /></Layout> },
     { path: "/profile", element: <Layout><Profile /></Layout> },
-
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
     { path: "/product/addRams", element: <Layout><AddRams /></Layout> },
     { path: "/product/addSize", element: <Layout><AddSize /></Layout> },
     { path: "/product/addWieght", element: <Layout><AddWieght /></Layout> },
-
     { path: "/bannerV1/list", element: <Layout><BannerV1List /></Layout> },
+    { path: "/bannerV2/list", element: <Layout><BannerV2List /></Layout> },
+    { path: "/bannerV3/list", element: <Layout><BannerV3List/></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
+ { path: "/chat", element: <Layout><AdminChat /></Layout> },
   ]);
 
   return (

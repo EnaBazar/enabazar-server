@@ -18,8 +18,8 @@ const HomeCatSlider = (props)=> {
  
         breakpoints={{
             340: {          
-              slidesPerView: 4,
-              spaceBetween:5
+              slidesPerView: 5,
+              spaceBetween:3
               
             },
             820: {
@@ -46,11 +46,12 @@ const HomeCatSlider = (props)=> {
   <div className="item p-3 text-center flex items-center justify-center flex-col">
     <Link to={`/product?catId=${cat?._id}`}>
       <img
-        src={cat?.images[0]}
+        src={cat?.images[0]
+        }
         alt={cat?.name}
-        className="w-[70px] h-[70px] lg:w-[100px] lg:h-[100px] rounded-full object-cover border border-gray-200 shadow-sm"
+        className="w-[60px] h-[60px] lg:w-[100px] lg:h-[100px] rounded-full object-cover border border-gray-200 shadow-sm"
       />
-      <h3 className="!mt-3 text-[14px] lg:text-[16px] font-medium">{cat?.name}</h3>
+      <h3 className="!mt-3 text-[10px] lg:text-[14px] font-medium">{cat?.name}</h3>
     </Link>
   </div>
 </SwiperSlide>

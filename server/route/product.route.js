@@ -28,7 +28,7 @@ const productRoutes=express.Router()
 productRoutes.post('/uploadimages',auth,upload.array('images'),uploadImages);
 productRoutes.post('/uploadBannerimages',auth,upload.array('bannerimages'),uploadBannerImages);
 productRoutes.post('/create',auth,createProduct);
-productRoutes.get('/getAllProduct',auth,getAllProducts);
+productRoutes.get('/getAllProduct',getAllProducts);
 productRoutes.get('/getAllProductByCatId/:id',getAllProductsByCatId);
 
 productRoutes.get('/getAllProductByCatName',getAllProductsByName);

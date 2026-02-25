@@ -1,58 +1,51 @@
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/effect-fade';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import { EffectFade, Pagination, Navigation, Autoplay } from 'swiper/modules';
-import BannerBoxV2 from '../BannarBoxV2';
-import { useContext } from 'react';
-import { MyContext } from '../../App';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { useContext } from "react";
+import { MyContext } from "../../App";
+import BannerBoxV4 from "../BannarBoxV4";
 
 const AdsBannerSliderV2 = ({ data = [] }) => {
+  const context = useContext(MyContext);
 
-    const context = useContext(MyContext);
   return (
     <div className="py-5 w-full">
-      <Swiper
-        loop={true}
-        autoplay={{
-          delay: 2500,
-          disableOnInteraction: false,
-        }}
-        breakpoints={{
-          0: {          // ✅ ছোট মোবাইল
-            slidesPerView: 2,
-            spaceBetween: 10,
-          },
-          480: {        // ✅ মাঝারি মোবাইল
-            slidesPerView: 2,
-            spaceBetween: 10,
-          },
-          768: {        // ✅ ট্যাবলেট
-            slidesPerView: 3,
-            spaceBetween: 15,
-          },
-          1024: {       // ✅ ল্যাপটপ
-            slidesPerView: 4,
-            spaceBetween: 20,
-          },
-          1280: {       // ✅ বড় স্ক্রিন
-            slidesPerView: 5,
-            spaceBetween: 20,
-          },
-        }}
-        navigation={context?.windowWidth < 992 ? false : true}
-        modules={[EffectFade, Pagination, Navigation, Autoplay]}
-        className="mySwiper smlBtn"
-      >
+  <Swiper
+  loop={true}
+  autoHeight={true}
+  autoplay={{ delay: 2500, disableOnInteraction: false }}
+
+  /* 🔥 MOBILE SCROLL FIX */
+  touchStartPreventDefault={true}
+  touchMoveStopPropagation={true}
+  simulateTouch={true}
+  resistanceRatio={0}
+  grabCursor={true}
+
+  breakpoints={{
+    0: { slidesPerView: 1, spaceBetween: 5 },
+    480: { slidesPerView: 1, spaceBetween: 5 },
+    768: { slidesPerView: 2, spaceBetween: 15 },
+    1024: { slidesPerView: 3, spaceBetween: 20 },
+    1280: { slidesPerView: 3, spaceBetween: 20 },
+  }}
+  navigation={context?.windowWidth < 992 ? false : true}
+  pagination={{ clickable: true }}
+  modules={[Navigation, Pagination, Autoplay]}
+  className="mySwiper smlBtn"
+>
+
         {data.length > 0 ? (
           data.map((item, index) => (
-            <SwiperSlide key={item?._id || index}>
-              <BannerBoxV2
-                info={item?.alignInfo}
-                image={item?.images?.[0]}
-                item={item}
-              />
+            <SwiperSlide
+              key={item?._id || index}
+              className="flex justify-center items-stretch"
+            >
+              {/* Full height banner */}
+              <BannerBoxV4 
+              info={item?.alignInfo} image={item?.images?.[0]} item={item} />
             </SwiperSlide>
           ))
         ) : (

@@ -20,7 +20,8 @@ const Orders = () => {
   useEffect(() => {
     fetchDataFromApi('/order/order-list').then((res) => {
       console.log(res)
-      if (res?.error === false) setOrders(res?.data)
+      if (res?.error === false) 
+        setOrders(res?.data)
     })
   }, [])
 
@@ -56,11 +57,9 @@ const Orders = () => {
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Phone</th>
                 <th className="px-4 py-2">Address</th>
-                <th className="px-4 py-2">Pincode</th>
                 <th className="px-4 py-2">SubTotal</th>
                 <th className="px-4 py-2">D.Charge</th>
                 <th className="px-4 py-2">Total</th>
-                <th className="px-4 py-2">Email</th>
                 <th className="px-4 py-2">User Id</th>
                 <th className="px-4 py-2">Order Status</th>
                 <th className="px-4 py-2">Date</th>
@@ -89,15 +88,14 @@ const Orders = () => {
                         {order?.paymentId || 'CASH ON DELIVERY'}
                       </td>
                       <td className="px-4 py-2">{order?.userId?.name}</td>
-                      <td className="px-4 py-2">{order?.delivery_address?.mobile || '--'}</td>
+                      <td className="px-4 py-2">{order?.userId?.mobile || '--'}</td>
                       <td className="px-4 py-2 max-w-[200px] truncate">
-                        {`${order?.delivery_address?.address_line}, ${order?.delivery_address?.city}, ${order?.delivery_address?.landmark}, ${order?.delivery_address?.state}, ${order?.delivery_address?.country}`}
+                        {`${order?.delivery_address?.address_line}, ${order?.delivery_address?.city}, ${order?.delivery_address?.landmark}, ${order?.delivery_address?.state}`}
                       </td>
-                      <td className="px-4 py-2">{order?.delivery_address?.pincode || '--'}</td>
                       <td className="px-4 py-2">{order?.subTotalAmt}</td>
                       <td className="px-4 py-2">{order?.delivery_charge}</td>
                       <td className="px-4 py-2">{order?.totalAmt}</td>
-                      <td className="px-4 py-2">{order?.userId?.email}</td>
+      
                       <td className="px-4 py-2 text-[#ff5252]">{order?.userId?._id}</td>
                       <td className="px-4 py-2"><Badge status={order?.order_status} /></td>
                       <td className="px-4 py-2">{new Date(order?.createdAt).toLocaleDateString()}</td>

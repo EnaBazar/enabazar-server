@@ -1,42 +1,48 @@
-import React, { useEffect, useRef, useState} from 'react'
-import  { useNavigate, useParams } from 'react-router-dom';
-import InnerImageZoom from 'react-inner-image-zoom';
-import 'react-inner-image-zoom/lib/styles.min.css';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import { Navigation } from 'swiper/modules';
-import {fetchDataFromApi } from '../../utils/api';
-import {MdBrandingWatermark} from 'react-icons/md';
-import {BiSolidCategoryAlt} from 'react-icons/bi';
-import {MdFilterVintage} from 'react-icons/md';
-import {MdRateReview} from 'react-icons/md';
-import {BsPatchCheckFill} from 'react-icons/bs';
-import Rating from '@mui/material/Rating';
-import { Button, CircularProgress } from '@mui/material';
-import { FaCloudUploadAlt } from 'react-icons/fa';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import InnerImageZoom from "react-inner-image-zoom";
+import "react-inner-image-zoom/lib/styles.min.css";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/navigation";
+import { Navigation } from "swiper/modules";
+import { fetchDataFromApi } from "../../utils/api";
+import {
+  MdBrandingWatermark,
+  MdFilterVintage,
+  MdRateReview,
+} from "react-icons/md";
+import { BiSolidCategoryAlt } from "react-icons/bi";
+import { BsPatchCheckFill } from "react-icons/bs";
+import Rating from "@mui/material/Rating";
+import { Button, CircularProgress } from "@mui/material";
 
+const ProductDetails = () => {
+  const [product, setProduct] = useState();
+  const [slideIndex, setSlideIndex] = useState(0);
+  const zoomSliderBig = useRef();
+  const zoomSliderSml = useRef();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [loading, setLoading] = useState(false);
+   const [reviewsData, setReviewsData] = useState();
+  const goto = (index) => {
+    setSlideIndex(index);
+    zoomSliderBig.current.swiper.slideTo(index);
+    zoomSliderSml.current.swiper.slideTo(index);
+  };
 
+    const getReviews=()=>{
+        fetchDataFromApi(`/auth/getReviews?productId=${id}`).then((res)=> {
+            if( res?.error == false){
+               setReviewsData(res?.reviews) 
+             
+            }
+        })
+    }
 
-const ProductDetails =() => {
-    
-    const [product, setProduct] = useState();
-const [slideIndex,setslideIndex] = useState(0);
-const zoomSliderBig = useRef();
-const zoomSliderSml = useRef();
-const history = useNavigate();
-const {id} = useParams();
-const [loading, setLoading] = useState(false);
-const goto =(index) => {
-  
-  setslideIndex(index);
-  zoomSliderBig.current.swiper.slideTo(index);
-  zoomSliderSml.current.swiper.slideTo(index);
-  
-}
-    
-    
-      useEffect(() => {
+  // Fetch product
+  useEffect(() => {
     setLoading(true);
     fetchDataFromApi(`/product/${id}`)
       .then((res) => {
@@ -46,6 +52,7 @@ const goto =(index) => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+      getReviews()
   }, [id]);
 
   if (loading) {
@@ -64,299 +71,217 @@ const goto =(index) => {
     );
   }
 
-    
-    
-     return(
-     <>
-       <div className='flex items-center  justify-between  py-0 mt-3'>
-       <h2 className='text-[20px] font[600]'>Products Deatils  <span className='text-[12px] font-[600]'></span></h2>
-       </div>
-     <br/>
-     
-     
-     <div className='productDetails flex gap-10'> 
-     <div className='w-[40%]'>
-     
-     {
-       product?.images?.length!==0 &&
+  return (
+    <>
+      {/* HEADER */}
+      <div className="flex items-center justify-between py-0 mt-3">
+        <h2 className="text-[18px] md:text-[20px] font-[600]">
+          Product Details
+        </h2>
+      </div>
+
+      <br />
+
+      {/* PRODUCT CONTENT — RESPONSIVE */}
+      <div className="productDetails flex flex-col md:flex-row gap-10">
+
+        {/* LEFT: IMAGES */}
+        <div className="w-full md:w-[40%]">
+          {product?.images?.length !== 0 && (
+            <div className="flex gap-3">
+
+              {/* MAIN IMAGE */}
+              <div className="zoomContainer w-full md:w-[85%] h-[300px] md:h-[500px] rounded-md overflow-hidden">
+                <Swiper
+                  ref={zoomSliderBig}
+                  slidesPerView={1}
+                  navigation={false}
+                >
+                  {product.images.map((item, index) => (
+                    <SwiperSlide key={index}>
+                      <InnerImageZoom
+                        zoomType="hover"
+                        zoomScale={1}
+                        src={item}
+                        className="object-contain w-full h-full"
+                      />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+
+              {/* THUMBNAIL IMAGES (only md+) */}
+              <div className="slider hidden md:block w-[15%]">
+                <Swiper
+                  ref={zoomSliderSml}
+                  direction="vertical"
+                  slidesPerView={4}
+                  spaceBetween={10}
+                  navigation={true}
+                  modules={[Navigation]}
+                  className="productslidezoom !h-[400px]"
+                >
+                  {product.images.map((item, index) => (
+                    <SwiperSlide key={index}>
+                      <div
+                        className={`item rounded-md overflow-hidden cursor-pointer group ${
+                          slideIndex === index
+                            ? "opacity-60"
+                            : "opacity-100"
+                        }`}
+                        onClick={() => goto(index)}
+                      >
+                        <img
+                          src={item}
+                          className="w-full h-[80px] object-cover transition-all group-hover:scale-105"
+                          alt="thumbnail"
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT: DETAILS */}
+        <div className="w-full md:w-[60%]">
+          <h1 className="text-[20px] md:text-[25px] font-[500] mb-5">
+            {product?.name}
+          </h1>
+
+          {/* Brand */}
+          <div className="flex items-center py-2">
+            <span className="w-[40%] md:w-[30%] font-[500] flex items-center gap-2 text-[14px]">
+              <MdBrandingWatermark /> Brand:
+            </span>
+            <span className="text-[13px]">{product?.brand}</span>
+          </div>
+
+          {/* Category */}
+          <div className="flex items-center py-2">
+            <span className="w-[40%] md:w-[30%] font-[500] flex items-center gap-2 text-[14px]">
+              <BiSolidCategoryAlt /> Category:
+            </span>
+            <span className="text-[13px]">{product?.catName}</span>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-center py-2 gap-2">
+            <span className="w-[40%] md:w-[30%] font-[500] flex items-center gap-2 text-[14px]">
+              Price:
+            </span>
+            <span className="text-blue-700 text-[15px] font-[600] bg-gray-200 p-1 rounded-md">
+              ৳ {product?.price}
+            </span>
+            <span className="line-through text-[14px] bg-red-200 p-1 rounded-md">
+              ৳ {product?.oldPrice}
+            </span>
+          </div>
+
+          {/* RAM */}
+          {product?.productRam?.length > 0 && (
+            <div className="flex items-center py-2">
+              <span className="w-[40%] md:w-[30%] font-[500] flex items-center gap-2 text-[14px]">
+                <MdFilterVintage /> RAM:
+              </span>
+              <div className="flex items-center gap-2">
+                {product.productRam.map((ram, i) => (
+                  <span key={i} className="text-[12px] bg-gray-200 p-1 rounded-md">
+                    {ram}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          <br />
+          <h2 className="text-[18px] md:text-[20px] font-[500] mb-3">
+            Product Description
+          </h2>
+<div
+  dangerouslySetInnerHTML={{
+    __html: product?.description
+  }}
+/>
+
        
-  <div className='flex gap-3'>
-      
-  <div className='zoomContainer w-[85%] !h-[500px]  rounded-md overflow-hidden'>
-  <Swiper
-     ref={zoomSliderBig}
-        slidesPerView={1}
-        spaceBetween={0}
-        navigation={false} 
-       >
-        {
-        
-         product?.images?.map((item,index)=>{
-           
-        return(
-    
-        
-        
-        <SwiperSlide key={index}> 
-        <InnerImageZoom 
-    zoomType='hover'
-    zoomScale={1}
-    src={
-      
-      item
-    }  />
- 
-        </SwiperSlide>      
-        
-            )
-           
-         })
-        
-        
-      }
- </Swiper>
-  </div> 
 
-  <div className='slider w-[15%]'>
-  <br/>
-  <Swiper
-  ref={zoomSliderSml}
-        direction={'vertical'}
-        slidesPerView={4}
-        spaceBetween={10}
-        navigation={
-        true
-        } 
-        modules={[Navigation]}
-        className="productslidezoom !h-[400px]"
-      >
-      
-      {
-        
-         product?.images?.map((item,index)=>{
-           
-        return(
-              <SwiperSlide key={index}>
-        <div className={`item rounded-md overflow-hidden cursor-pointer 
-        group ${slideIndex === index? 'opacity-60' : 'opacity-100'}`} onClick={() => goto(index)}>
-        <img src={item} className='w-full transition-all group-hover:scale-105' alt='pictue'/>
-        </div> 
-        </SwiperSlide>
-        )
-           
-         })
-        
-        
-      }
-       
-       
-        
-  </Swiper>
-  </div>
+        </div>
+      </div>
 
+      <br />
+      <br />
 
-  
-  </div>
-     }
-   
-     </div>
-     
-     
-       
-     <div className='w-[60%]'>
-     <br/>
-     <h1 className='text-[25px] font-[500] mb-5'>{product?.name}</h1>
-     
-     
-     
-     <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <MdBrandingWatermark className='opacity-55'/>Brand :</span>
-     <span className='text-[12px]'>{product?.brand}</span>
-     </div>
-     
-         <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <BiSolidCategoryAlt className='opacity-55'/>Category :</span>
-     <span className='text-[12px]'>{product?.catName}</span>
-     </div>
-         <div className='flex items-center py-2 gap-2'>
-         <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <BiSolidCategoryAlt className='opacity-55'/>Price :</span>
-                       
-                    <span className='text-blue-700 text-[15px] font-[600] inline-block p-1 shadow-sm bg-gray-300 rounded-md'>&#2547; {product?.price}</span>
-                     <span className='line-through text-[15px]  font-[600] inline-block p-1 shadow-sm bg-red-300 rounded-md'>&#2547; {product?.oldPrice}</span>
-     </div>
-   
-     
-  {
-    product?.productRam?.length !== 0 && 
-      <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <MdFilterVintage className='opacity-55'/>Ram :</span>
-     <div className='flex items-center gap-2'>
+      {/* Back Button */}
+      <div className="w-full md:w-[80%] flex items-center justify-end">
+        <Button
+          type="button"
+          className="btn-blue btn-sm"
+          onClick={() => navigate("/Products")}
+        >
+          Back
+        </Button>
+      </div>
+
+      <h2 className="text-[16px] md:text-[18px] font-[500] mt-3">
+        Customer Reviews
+      </h2>
+
+      {/* Sample Review UI */}
+      <div className="reviewsWrap mt-3 !mb-3">
      {
-       product?.productRam?.map((ram, index) =>{
-         
-         return(
-             <span className='text-[12px] inline-block p-1 shadow-sm bg-gray-300 rounded-md' key={index}>{ram}</span>
-         )
-       })
-     }
-     </div>
-   
-     </div>
-  }
-   
-     
-       {
-    product?.size?.length !== 0 && 
-      <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <MdFilterVintage className='opacity-55'/>Size :</span>
-     <div className='flex items-center gap-2'>
-     {
-       product?.size?.map((size, index) =>{
-         
-         return(
-             <span className='text-[12px] inline-block p-1 shadow-sm bg-gray-300 rounded-md' key={index}>{size}</span>
-         )
-       })
-     }
-     </div>
-   
-     </div>
-  }
-     
-     
-       {
-    product?.productWeight?.length !== 0 && 
-      <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <MdFilterVintage className='opacity-55'/>Weight :</span>
-     <div className='flex items-center gap-2'>
-     {
-       product?.productWeight?.map((weight, index) =>{
-         
-         return(
-             <span className='text-[12px] inline-block p-1 shadow-sm bg-gray-300 rounded-md' key={index}>{weight}</span>
-         )
-       })
-     }
-     </div>
-   
-     </div>
-  }
-      
-      
-             <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <MdRateReview className='opacity-55'/>Reviews :</span>
-     <span className='text-[12px]'>({product?.reviws?.length>0 ? product?.reviws?.length : 0}) Reviews</span>
-     </div> 
-     
-     
-     
-             <div className='flex items-center py-2'>
-     <span className='w-[30%] font-[500] flex items-center gap-2 text-[14px]'> 
-     <BsPatchCheckFill className='opacity-55'/>Publish :</span>
-     <span className='text-[12px]'>{product?.createdAt?.split("T")[0]}</span>
-     </div> 
-     <br/>
+        reviewsData?.length!==0 &&
+        <div className='scroll w-full max-h-[300px] overflow-y-scroll overflow-x-hidden !mt-5 '>   
+    {
+        reviewsData?.map((review,index)=>{
+  return(
+     <div className="reviews w-full p-4 bg-white shadow-sm border rounded-md flex items-center gap-5 mb-3">
 
-     
-        <br/>
-     <h2 className='text-[20px] font-[500] mb-3'>Product Discription</h2>
-   
-   {
-     product?.description && <p className=' text-[14px]'>{ product?.description}</p>
-   }
-     </div>
-     
+          {/* Avatar */}
+          <img
+            src={review?.image}
+            alt="avatar"
+            className="w-[60px] h-[60px] md:w-[75px] md:h-[75px] rounded-full border"
+          />
 
-     </div>
-     
+          {/* Review Info */}
+          <div className="info w-full">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[14px] md:text-[15px] font-[500]">
+              {review?.userName}
+              </h4>
+              <Rating defaultValue={review?.rating}  readOnly size="small" />
+            </div>
 
+            <span className="text-[11px] md:text-[12px] font-[500]">
+             {review?.createdAt.split("T")[0]}
+            </span>
 
-     <br/>
-     <br/>
-     
-          <br/>
-   <div className='w-[80%] flex items-center justify-end'>
-  <Button 
-  type='button' 
-  className='btn-blue btn-sm' 
-  onClick={() => history('/Products')}
->
-  Back
-</Button>
-</div>
-
-     <h2 className='text-[18px] font-[500]'>Customer Reviews</h2>
-     
-     <div className='reviewsWrap mt-3'>
-     <div className='reviews w-full h-auto p-4 rounded-md mb-3 bg-white shadow-sm flex 
-     items-center justify-between border  border-[#bebaba]'>
-     
-     <div className='flex items-center gap-8'
-     >
-     <div className='img w-[75px] h-[75px] rounded-full overflow-hidden border-2 border-[#a09f9f] '>
-     
-     <img src='https://mironcoder-hotash.netlify.app/images/avatar/01.webp' className='w-full h-full object-cover'/>
-     </div>
+            <p className="text-[12px] md:text-[13px] mt-2">
+             {review?.review}
+            </p>
+          </div>
+          
+        </div>
+  )   
+            
+        })
+    }
      
      
-     
-     <div className='info w-[80%]'>
-     <div className='flex items-center justify-between'>
-      <h4 className='text-[15px] font-[500]'>Ibrahim Khalil</h4>
-     <Rating name='half-rating' defaultValue={1} precision={0.5} size='small'/>
-     
-     </div>
-    
-     <span className='text-[12px] font-[500]'>2025-01-08</span>
-     <p className='text-[12px] mt-2'>প্রাকৃতিক চিনির উৎস হওয়ায় এটি শিশু থেকে বৃদ্ধ—সবার জন্য নিরাপদ ও উপকারী। স্বাদটা কেমন? বাজারের খেজুরের মতো চিপচিপে বা শুকনা না তো?</p>
-     </div>
-     </div>
-     
-     </div>
-     
-     
-     
-       <div className='reviews w-full h-auto p-4 rounded-md mb-3 bg-white shadow-sm flex 
-     items-center justify-between border  border-[#bebaba]'>
-     
-     <div className='flex items-center gap-8'
-     >
-     <div className='img w-[75px] h-[75px] rounded-full overflow-hidden border-2 border-[#a09f9f] '>
-     
-     <img src='https://mironcoder-hotash.netlify.app/images/avatar/01.webp' className='w-full h-full object-cover'/>
-     </div>
-     
-     
-     
-     <div className='info w-[80%]'>
-     <div className='flex items-center justify-between'>
-      <h4 className='text-[15px] font-[500]'>Ibrahim Khalil</h4>
-     <Rating name='half-rating' defaultValue={1} precision={0.5} size='small'/>
-     
-     </div>
-    
-     <span className='text-[12px] font-[500]'>2025-01-08</span>
-     <p className='text-[12px] mt-2'>প্রাকৃতিক চিনির উৎস হওয়ায় এটি শিশু থেকে বৃদ্ধ—সবার জন্য নিরাপদ ও উপকারী। স্বাদটা কেমন? বাজারের খেজুরের মতো চিপচিপে বা শুকনা না তো?</p>
-     </div>
-     </div>
-     
-     </div>
-     </div>
+    </div> 
+    }
+      </div>
 
    
-  
-     
-     
-     </>
-     ) 
-      
-   
-}
+
+
+      <br />
+    </>
+  );
+};
+
 export default ProductDetails;

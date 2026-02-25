@@ -7,7 +7,8 @@ import usermodel from "../models/User.js";
   export async function AddToCartItemController(request,response) {
       try {
         const userId = request.userId
-        const {productTitle, image, rating, price, oldprice, discount, size, weight, Ram, quantity, subTotal, productId, countInStock,brand} = request.body
+        const {productTitle, image, rating, price, oldprice, discount, size, 
+            weight, Ram, quantity, subTotal, productId, countInStock,brand} = request.body
         
         if(!productId){
             return response.status(402).json({       

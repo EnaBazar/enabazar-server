@@ -1,3 +1,4 @@
+
 import React, { useContext } from 'react';
 import { LiaShippingFastSolid } from 'react-icons/lia';
 import { TbTruckReturn } from "react-icons/tb";
@@ -21,6 +22,10 @@ import ProductZoom from '../ProductZoom';
 import ProductDetailsComponant from '../ProductDetailsComponant';
 import Addaddress from '../../Pages/MyAccount/addAddress';
 import { MdQuestionAnswer } from 'react-icons/md';
+import Login from '../../Pages/Login';
+import LoginPanel from '../../Pages/Loginpanel';
+import RegisterPanel from '../../Pages/RegisterPanel';
+import Register from '../../Pages/Register';
 
 const Footer = () => {
   const context = useContext(MyContext);
@@ -32,11 +37,11 @@ const Footer = () => {
 <div className="bg-white border-t border-b py-8">
   <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
     {[
-      { icon: LiaShippingFastSolid, title: "Free Shipping", desc: "For all Order Over $100" },
-      { icon: TbTruckReturn, title: "30 Days Returns", desc: "For Exchange Product" },
-      { icon: BsWallet2, title: "Secured Payment", desc: "Payment Cards Accepted" },
-      { icon: LiaGiftSolid, title: "Special Gifts", desc: "Our First Product Order" },
-      { icon: RiCustomerService2Line, title: "Support 24/7", desc: "Contact us anytime" },
+      { icon: LiaShippingFastSolid, title: "ফ্রী ডেলিভারি", desc: "১৫০০ টাকার বেশী পন্য় ক্রয় করলে ডেলিভারি ফ্রী!" },
+      { icon: TbTruckReturn, title: "৭ দিনের মধ্য়ে রিটান", desc: "পন্য ৭ দিনের মধ্যে পরির্বতন করার সুবিধা!" },
+      { icon: BsWallet2, title: "কেশ অন ডেলিভেরি", desc: "পন্য হাতে পাওয়ার পর দাম পরিশোধের সুবিধা!" },
+      { icon: LiaGiftSolid, title: "বিশেষ কুপন সুবিধা", desc: "পন্য ক্রয়ের উপর কেশ কুপন সুবিধা! " },
+      { icon: RiCustomerService2Line, title: "২৪/৭ অন লাইন সার্বিস", desc: "২৪/৭ আমাদের অন লাইন সার্বিস চালু থাকে!" },
     ].map((item, idx) => {
       const Icon = item.icon;
       return (
@@ -68,32 +73,20 @@ const Footer = () => {
     <div className="lg:w-1/4 flex flex-col gap-4">
       <h2 className="font-semibold text-lg mb-2 text-[#FC8934]">Contact Us</h2>
       <p>
-        Ena Bazar.com<br />
+        EnaBazars.com<br />
         Islampur Road-3900 <br />
         Bangladesh
       </p>
       <Link className="text-[#FC8934] hover:underline" to="mailto:ikhalil7446@gmail.com">
         ikhalil7446@gmail.com
       </Link>
-      <span className="text-[#FC8934] font-semibold block mt-2 mb-2">+880167-4847446</span>
-      <div className="flex items-center gap-2">
-        <IoChatboxOutline className="text-3xl text-[#FC8934]" />
-        <span className="text-sm">Online Chat <br />Get Expert Help</span>
-      </div>
+      <span className="text-[#FC8934] font-semibold block  mb-2">+880167-4847446</span>
+     
     </div>
 
     {/* Products & Company */}
     <div className="lg:w-2/5 flex flex-row justify-between gap-4">
-      <div>
-        <h2 className="font-semibold text-lg mb-3 text-[#FC8934]">Products</h2>
-        <ul className="flex flex-col gap-1">
-          {["Price drop","New Products","Best Sales","Contact Us","Site Map","Stores"].map((item, idx) => (
-            <li key={idx}>
-              <Link className="text-sm hover:text-[#FC8934]" to="/">{item}</Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+     
       <div>
         <h2 className="font-semibold text-lg mb-3 text-[#FC8934]">Our Company</h2>
         <ul className="flex flex-col gap-1">
@@ -135,27 +128,11 @@ const Footer = () => {
         </ul>
       </div>
     </div>
+ <div className="flex items-center gap-2">
+        <IoChatboxOutline className="text-3xl text-[#FC8934]" />
+        <span className="text-bg">Online Chat <br />Get Expert Help</span>
+      </div>
 
-    {/* Newsletter */}
-    <div className="lg:w-1/3 flex flex-col gap-4">
-      <h2 className="font-semibold text-lg mb-2 text-[#FC8934]">Subscribe To Newsletters</h2>
-      <p className="text-sm mb-2">
-        Subscribe to our latest newsletters to get news about special discounts
-      </p>
-      <form className="flex flex-col gap-2">
-        <input
-          type="email"
-          placeholder="Your Email Address"
-          className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#FC8934]"
-        />
-        <Button className="bg-[#FC8934] text-white hover:bg-[#e67300] py-2">SUBSCRIBE</Button>
-        <FormControlLabel
-          control={<Checkbox defaultChecked />}
-          label="I agree to the terms and conditions and the privacy policy"
-          className="text-sm"
-        />
-      </form>
-    </div>
 
   </div>
 </div>
@@ -182,7 +159,7 @@ const Footer = () => {
     </ul>
 
     {/* Copy Text */}
-    <p className="text-center text-sm mb-0">© 2025 - EnaBazar.com By Ibrahim Khalil</p>
+    <p className="text-center text-sm mb-0">© 2025 - EanBazar.com By Ibrahim Khalil</p>
 
     {/* Payment Image */}
     <div className="flex items-center justify-center">
@@ -255,7 +232,68 @@ const Footer = () => {
   </div>
 </Drawer>
 
+  {/*Login panel*/}  
+<Dialog
+  open={context.openLoginPanel}
+  onClose={() => context.toggleLoginPanel(false)}
+  PaperProps={{
+    sx: {
+      width: "90%",            // smaller on mobile
+      maxWidth: 380,           // desktop small size
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)", // glass blur effect
+      background: "rgba(255, 255, 255, 0.2)", // semi-transparent
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Close button */}
+  <div className="flex items-center justify-between py-3 px-4 border-b border-gray-300">
+<IoCloseSharp className='text-[25px] !text-[red] cursor-pointer' 
+ onClick={context.toggleLoginPanel(false)}/>
+  </div>
 
+  {/* Content */}
+  <div className="p-4">
+    <LoginPanel/>
+  </div>
+</Dialog>
+
+
+
+  {/*Register panel*/}      
+
+
+
+
+<Dialog
+  open={context.openRegisterPanel}
+  onClose={() => context.toggleRegisterPanel(false)}
+  PaperProps={{
+    sx: {
+      width: "90%",            // smaller on mobile
+      maxWidth: 380,           // desktop small size
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)", // glass blur effect
+      background: "rgba(255, 255, 255, 0.2)", // semi-transparent
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Header */}
+  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
+    <IoCloseSharp
+      className="text-[22px] text-red-600 cursor-pointer"
+      onClick={context.toggleRegisterPanel(false)}
+
+    />
+  </div>
+
+  {/* Content */}
+  <div className="p-4 overflow-y-auto max-h-[70vh]">
+    <RegisterPanel/>
+  </div>
+</Dialog>
 
 
 
@@ -314,3 +352,6 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+

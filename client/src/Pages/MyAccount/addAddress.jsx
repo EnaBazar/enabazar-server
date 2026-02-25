@@ -20,9 +20,7 @@ const AddAddress = () => {
     address_line: "",
     city: "",
     state: "",
-    pincode: "",
-    country: "",
-    mobile: "",
+ 
     userId: context?.userData?._id || "",
     addressType: "",
     deliverylocation: "",
@@ -50,9 +48,6 @@ const AddAddress = () => {
       address_line,
       city,
       state,
-      pincode,
-      country,
-      mobile,
       landmark,
       addressType,
       deliverylocation,
@@ -61,9 +56,7 @@ const AddAddress = () => {
     if (!address_line) return "Please enter your Address Line";
     if (!city) return "Please enter your City";
     if (!state) return "Please enter your State";
-    if (!pincode) return "Please enter your Pincode";
-    if (!country) return "Please enter your Country";
-    if (!mobile) return "Please enter your Mobile Number";
+ 
     if (!landmark) return "Please enter your Landmark";
     if (!addressType) return "Please select Address Type";
     if (!deliverylocation) return "Please select Delivery Location";
@@ -80,9 +73,6 @@ const AddAddress = () => {
             address_line: addr.address_line || "",
             city: addr.city || "",
             state: addr.state || "",
-            pincode: addr.pincode || "",
-            country: addr.country || "",
-            mobile: addr.mobile || "",
             userId: addr.userId || "",
             addressType: addr.addressType || "",
             deliverylocation: addr.deliverylocation || "",
@@ -154,86 +144,76 @@ const AddAddress = () => {
   };
 
   return (
+    
 <form
   className="flex flex-col h-screen 
   lg:h-[80vh] p-4 bg-white rounded-xl shadow-md"
   onSubmit={handleSubmit}
 >
+  <br/>
   {/* Scrollable Input Section */}
-  <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+  <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 pt-2">
+  <TextField
+  className="w-full"
+  label="আপনার বাড়ি/বাসা/অফিসের নাম"
+  size="small"
+  name="address_line"
+  value={formFields.address_line}
+  disabled={isLoading}
+  onChange={handleChange}
+  InputLabelProps={{
+    style: { fontSize: '12px' }  // Label size small
+  }}
+/>
+
     <TextField
       className="w-full"
-      label="Address Line 1"
-      size="small"
-      name="address_line"
-      value={formFields.address_line}
-      disabled={isLoading}
-      onChange={handleChange}
-    />
-    <TextField
-      className="w-full"
-      label="City"
+      label="রাস্তা"
       size="small"
       name="city"
       value={formFields.city}
       disabled={isLoading}
       onChange={handleChange}
+        InputLabelProps={{
+    style: { fontSize: '12px' }  // Label size small
+  }}
     />
     <TextField
       className="w-full"
-      label="State"
+      label="জেলা"
       size="small"
       name="state"
       value={formFields.state}
       disabled={isLoading}
       onChange={handleChange}
+        InputLabelProps={{
+    style: { fontSize: '12px' }  // Label size small
+  }}
     />
+
+  
+
     <TextField
       className="w-full"
-      label="PinCode"
-      size="small"
-      name="pincode"
-      value={formFields.pincode}
-      disabled={isLoading}
-      onChange={handleChange}
-    />
-    <TextField
-      className="w-full"
-      label="Country"
-      size="small"
-      name="country"
-      value={formFields.country}
-      disabled={isLoading}
-      onChange={handleChange}
-    />
-    <PhoneInput
-      defaultCountry="bd"
-      value={phone}
-      disabled={isLoading}
-      onChange={(phone) => {
-        setPhone(phone);
-        setFormFields((prev) => ({ ...prev, mobile: phone }));
-      }}
-      className="w-full"
-    />
-    <TextField
-      className="w-full"
-      label="LandMark"
+      label="কাছের খুব পরিচিত একটা জায়গার নাম"
       size="small"
       name="landmark"
       value={formFields.landmark}
       disabled={isLoading}
       onChange={handleChange}
+        InputLabelProps={{
+    style: { fontSize: '12px' }  // Label size small
+  }}
     />
 
     {/* Address Type & Delivery Location */}
     <div className="flex flex-col gap-3 mt-4">
-      <h2 className="text-sm font-medium text-gray-700">Address Type</h2>
+      <h2 className="text-sm font-medium text-gray-700">ঠিকানা ধরন</h2>
       <FormControl>
         <RadioGroup row value={formFields.addressType}
          onChange={handleChangeAddressType}>
-          <FormControlLabel value="Home" control={<Radio />} label="Home" />
-          <FormControlLabel value="Work" control={<Radio />} label="Work" />
+          <FormControlLabel value="Home" control={<Radio />} label="বাড়ি" />
+          <FormControlLabel value="Work" control={<Radio />} label="অফিস" />
         </RadioGroup>
       </FormControl>
 
@@ -244,9 +224,9 @@ const AddAddress = () => {
           value={formFields.deliverylocation}
           onChange={handleChangeDeliveryLocation}
         >
-          <FormControlLabel value="70" control={<Radio />} label="In Feni Sadar" />
-          <FormControlLabel value="100" control={<Radio />} label="Out Of Feni Sadar" />
-          <FormControlLabel value="130" control={<Radio />} label="Other Location In Bangladesh" />
+          <FormControlLabel value="70" control={<Radio />} label="ফেনি সদর" />
+          <FormControlLabel value="100" control={<Radio />} label="ফেনি সদরের বাহিরে" />
+          <FormControlLabel value="130" control={<Radio />} label="বাংলাদেশের অন্য়ান্য় শহর" />
         </RadioGroup>
       </FormControl>
     </div>

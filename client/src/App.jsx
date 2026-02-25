@@ -33,21 +33,23 @@ import HelpCenter from './Pages/HelpCenter/helpCenter';
 import SecurePayment from './Pages/SequrePayment/sequrePayment';
 import OrderReceipt from './Pages/Orders/OrderReceipt ';
 
+import CustomerChat from './Components/CustomerChat';
+import VerifyOtp from './Pages/Register/VerifyOtp';
+
+
+
+
+
 
 const MyContext =createContext();
-
-
 const App =() => {
-  
   const [openProductDetailsModel, setOpenProductDetailsModel] = useState({
   open:false,
   item:{}
   });
-  
   const [fullWidth, setFullWidth] = useState(true);
   const [maxWidth, setMaxWidth] = useState('lg');
-  const [isLogin,setIsLogin] = useState(false);
-  const [userData,setUserData] = useState(null);
+
   const [catData, setCatData]= useState([]);
   const [cartData, setCartData]= useState([]);
   const [addressMode, setAddressMode]= useState("add");
@@ -56,10 +58,20 @@ const App =() => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [openCartPanel, setOpenCartPanel] = useState(false);
   const [openAddressPanel, setOpenAddressPanel] = useState(false);
+    const [openLoginPanel, setOpenLoginPanel] = useState(false);
+       const [openRegisterPanel, setOpenRegisterPanel] = useState(false);
   const [isOpenSearchPanel,setIsOpenSearchPanel] = useState(false);
   const [searchData, setSearchData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isAdded, setIsAdded] = useState(false);
+  
+  
+  const [loginPrefill, setLoginPrefill] = useState({
+  name: "",
+  mobile: ""
+});
+  
+  
   const handleOpenProductDetailsModel = (status, item) => {
 
 
@@ -69,8 +81,21 @@ const App =() => {
       });
     }
 
-  
-  
+  const handleSessionExpire = () => {
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
+  localStorage.removeItem("userData");
+
+  setIsLogin(false);
+  setUserData(null);
+
+  openAlertBox("error", "Your session is expired, please login again!");
+
+  window.location.href = "/login";
+};
+
+
+
   const handleCloseProductDetailsModel = () => {
   setOpenProductDetailsModel({
       open: false,
@@ -83,6 +108,22 @@ const App =() => {
   setOpenCartPanel(newOpen);
   };
   
+const [isLogin, setIsLogin] = useState(() => {
+  return localStorage.getItem("isLogin") === "true";
+});
+
+const [userData, setUserData] = useState(() => {
+  const data = localStorage.getItem("userData");
+  return data ? JSON.parse(data) : null;
+});
+    const toggleLoginPanel = (newOpen) => () => {
+  setOpenLoginPanel(newOpen);
+  };
+
+   const toggleRegisterPanel = (newOpen) => () => {
+  setOpenRegisterPanel(newOpen);
+  };
+
   const toggleAddressPanel = (newOpen) => () => {
 
     if(newOpen === false){
@@ -92,45 +133,53 @@ const App =() => {
 
   };
   
+useEffect(() => {
+  const token = localStorage.getItem('accesstoken');
+  if (token) {
+      setIsLogin(true);
+      getCartItems();
+      getMyListData();
+      getUserDeatils();
+  } else {
+      setIsLogin(false);
+  }
+}, []);   // only run on page load
 
-
-
-    useEffect(()=>{
-    const token = localStorage.getItem('accesstoken') ;
-    if(token !== undefined && token !== null && token !== ""){
-    setIsLogin(true);
-        
   
-    getCartItems();
-    getMyListData();
-    getUserDeatils();
-    }else{
-    setIsLogin(false);
-    }
-       
-  },[isLogin])
-  
-const getUserDeatils=()=>{
-    fetchDataFromApi(`/auth/user-dtails`).then((res)=>{    
-    setUserData(res.data);
- 
-    if(res?.response?.data?.error===true){
-            
-    if(res?.response?.data?.message==="You have not login"){
-              
-    localStorage.removeItem("accesstoken");
-    localStorage.removeItem("refreshtoken");
-    openAlertBox("error","Your session is closed please login again!");
-    window.location.href = "/login"
-    setIsLogin(false)
-    }
-    }
+const getUserDeatils = () => {
+  fetchDataFromApi(`/auth/user-dtails`)
+    .then((res) => {
+      if (res?.error === false) {
+        setUserData(res.data);
+        localStorage.setItem("userData", JSON.stringify(res.data));
+      } else {
+        handleSessionExpire();
+      }
     })
-}
+    .catch(() => {
+      handleSessionExpire();
+    });
+};
+
+
+
 
 
 
         useEffect(() => {
+
+  const token = localStorage.getItem("accesstoken");
+
+  if (token) {
+    setIsLogin(true);
+    getCartItems();
+    getMyListData();
+    getUserDeatils();
+  } else {
+    setIsLogin(false);
+  }
+
+
         fetchDataFromApi("/category")
         .then((res) => {
         if (res?.error === false) {
@@ -215,6 +264,7 @@ const values ={
   handleOpenProductDetailsModel,
   setOpenCartPanel,
   toggleCartPanel,
+  toggleLoginPanel,
   openCartPanel,
   setOpenAddressPanel,
   toggleAddressPanel,
@@ -248,8 +298,14 @@ setWindowWidth,
 isOpenSearchPanel,
 setIsOpenSearchPanel,
 setIsAdded,
-isAdded
-
+isAdded,
+openLoginPanel, 
+setOpenLoginPanel,
+openRegisterPanel, 
+setOpenRegisterPanel,
+toggleRegisterPanel,
+    loginPrefill, 
+    setLoginPrefill,
 };
 return (
 <>
@@ -275,14 +331,19 @@ return (
 <Route path={"/order/failed"} exact={true} element={<OrderFailed/>}/>
 <Route path={"/order/receipt"} exact={true} element={<OrderReceipt/>}/>
 <Route path={"/address"} exact={true} element={<Address/>}/>
-<Route path={"/search"} exact={true} element={<SearchPage/>}/>
+<Route path={"/verify-otp"} exact={true} element={<VerifyOtp/>}/>
+ <Route path="/search/:keyword" element={<SearchPage />} />
 <Route path={"/aboutUs"} exact={true} element={<About/>}/>
 <Route path={"/Terms_Conditions"} exact={true} element={<Terms/>}/>
 <Route path={"/delivery"} exact={true} element={<Delivery/>}/>
 <Route path={"/ligalNotice"} exact={true} element={<LegalNotice/>}/>
 <Route path={"/helpCenter"} exact={true} element={<HelpCenter/>}/>
 <Route path={"/securePayment"} exact={true} element={<SecurePayment/>}/>
+ 
 </Routes>
+
+<CustomerChat user={userData}/>
+
 <Footer/>
 </MyContext.Provider>
 </BrowserRouter>

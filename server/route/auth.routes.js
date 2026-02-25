@@ -1,8 +1,10 @@
 import express from 'express';
-import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginUserController, logoutController, refreshToken, register, 
-        removeimageFromCloudinary, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
+import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
+        registerPanel, 
+        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
         userDeatils, 
-        VerifyEmail, verifyForgotPasswordOtp }
+        VerifyEmail, verifyForgotPasswordOtp, 
+        verifyMobileOtp}
  from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
@@ -12,9 +14,10 @@ const AuthRoutes=express.Router()
 
 
 AuthRoutes.post('/register',register)
-
+AuthRoutes.post('/registerPanel',registerPanel)
 AuthRoutes.post("/verifyemail",VerifyEmail)
 AuthRoutes.post("/login",loginUserController)
+AuthRoutes.post("/loginPanel",loginPanelUserController)
 AuthRoutes.post("/authWithGoogle",authWithGoogle)
 AuthRoutes.get("/logout",auth,logoutController)
 AuthRoutes.put('/user-avatar',auth,upload.array('avatar'),userAvatarController);
@@ -33,6 +36,8 @@ AuthRoutes.get('/getAllUser',getAllusers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
+AuthRoutes.post("/verify-otp", verifyMobileOtp);
+AuthRoutes.post("/resend-otp", resendOtp);
 export default  AuthRoutes;
 
 

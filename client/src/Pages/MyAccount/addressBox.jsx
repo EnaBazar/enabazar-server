@@ -45,12 +45,12 @@ setAnchorEl(null);
   {/* Name & Mobile */}
   <h4 className="pt-2 text-[13px] sm:text-[15px] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
     <span>{context?.userData?.name}</span>
-    <span>{props?.address?.mobile}</span>
+    <span>{context?.userData?.mobile}</span>
   </h4>
 
   {/* Full Address */}
   <span className="pt-1 text-[12px] sm:text-[14px] block w-full sm:w-[90%] break-words">
-    {props?.address?.address_line}, {props?.address?.city}, {props?.address?.country}, {props?.address?.state}, {props?.address?.pincode}
+    {props?.address?.address_line}, {props?.address?.city}, {props?.address?.state},
   </span>
 
   {/* Action Menu */}

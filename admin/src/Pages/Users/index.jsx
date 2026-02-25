@@ -22,7 +22,7 @@ const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 const columns = [
   { id: 'Userimage', label: 'USER IMAGE', minWidth: 80 },
   { id: 'username', label: 'USER NAME', minWidth: 100 },
-  { id: 'useremail', label: 'USER EMAIL', minWidth: 150 },
+
   { id: 'userph', label: 'USER PHONE', minWidth: 100 },
   { id: 'createddate', label: 'CREATE DATE', minWidth: 100 },
 ];
@@ -68,7 +68,7 @@ const Users = () => {
     users?._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     users?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     users?.mobile?.toString()?.includes(searchQuery) ||
-    users?.email?.toString()?.includes(searchQuery) ||
+ 
     users?.updatedAt?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -211,10 +211,6 @@ const Users = () => {
                       </TableCell>
 
                       <TableCell>{user?.name}</TableCell>
-
-                      <TableCell>
-                        <span className='flex items-center gap-2'><MdOutlineMarkEmailRead className='text-[18px]' />{user?.email}</span>
-                      </TableCell>
 
                       <TableCell>
                         <span className='flex items-center gap-2'><MdLocalPhone className='text-[18px]' />{user?.mobile === null ? 'NONE' : user?.mobile}</span>

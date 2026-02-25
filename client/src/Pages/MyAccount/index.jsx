@@ -16,34 +16,23 @@ const MyAccount = () => {
   
     const [isLoading,setIsLoading]= useState(false);
     const [isLoading2,setIsLoading2]= useState(false);
-    
     const [userId,setUserId] =useState();
     const [phone, setPhone] = useState('');
-    
-   const [ischangePasswordFormShow,setIsChangePasswordFormShow]= useState(false);
-   
-    const [formFields, setFormFields]= useState({
-         
-         name:"",
-         email:"",
-         mobile:""
-         
+    const [ischangePasswordFormShow,setIsChangePasswordFormShow]= useState(false);  
+    const [formFields, setFormFields]= useState({  
+         name:"",    
+         mobile:""  
       });
   
-  
-      const [changePassword, setChangePassword] = useState({
-        email: '',
+      const [changePassword, setChangePassword] = useState({ 
         oldpassword: '',
         newPassword: '',
-        confirmPassword: ''
-        
+        confirmPassword: ''    
      });
-  
-  
   const context = useContext(MyContext);
-  const history = useNavigate();
-  
-useEffect(() => {
+  const history = useNavigate();  
+
+  useEffect(() => {
   const token = localStorage.getItem("accesstoken");
   if(token===null){
     history("/");
@@ -53,20 +42,19 @@ useEffect(() => {
   
   
     useEffect(()=>{
+      
     if(context?.userData?._id!=="" && context?.userData?._id!==undefined){
   
       setUserId(context?.userData?._id)  
-      setFormFields({
-        
+      setFormFields({  
         name:context?.userData?.name,
-        email:context?.userData?.email,
         mobile:context?.userData?.mobile
       })
-      const ph = `"${context?.userData?.mobile}"`
+      const ph = `"${context?.userData?.mobile || ''}"`
       setPhone(ph)
       setChangePassword({
         
-        email: context?.userData?.email
+        mobile: context?.userData?.mobile
       })
       
     } 
@@ -74,8 +62,7 @@ useEffect(() => {
   
   
   
-const onchangeInput=(e)=>{
-      
+const onchangeInput=(e)=>{     
   const {name,value} = e.target;
   setFormFields(()=>{
     return{
@@ -92,11 +79,7 @@ const onchangeInput=(e)=>{
 }
 
       const valideValue = Object.values(formFields).every(el => el)
-      
       const valideValue2 = Object.values(changePassword).every(el => el)
-   
-   
-   
    
       const handleSubmit=(e)=>{     
         e.preventDefault();
@@ -107,28 +90,17 @@ const onchangeInput=(e)=>{
             context.openAlertBox("error","Please entry your Full Name")
             return false
           }
-          
-          if(formFields.email==="")
-            {
-              context.openAlertBox("error","Please entry your Email")
-              return false
-            }
-            
-            if(formFields.mobile==="")
+
+        if(formFields.mobile==="")
               {
                 context.openAlertBox("error","Please entry your Mobile")
                 return false
               }
-        
           editData(`/auth/${userId}`,formFields,{withCredentials:true}).then((res)=>{
-     console.log(res)
-         
-         
-         
+          console.log(res)
           if(res?.error !== true){
             setIsLoading(false)
             context.openAlertBox("success",res?.data?.message);      
-            
           }else{
             context.openAlertBox("error",res?.message);
             setIsLoading(false);
@@ -215,33 +187,25 @@ const onchangeInput=(e)=>{
               label="Full Name"
               variant="outlined"
               size="small"
-              className="flex-1"
+              className="w-[40%]"
               name="name"
               value={formFields.name}
               disabled={isLoading}
               onChange={onchangeInput}
             />
-            <TextField
-              label="Email"
-              variant="outlined"
-              size="small"
-              className="flex-1"
-              name="email"
-              value={formFields.email}
-              disabled={true}
-              onChange={onchangeInput}
-            />
+  
           </div>
 
           <PhoneInput
-            defaultCountry="bd"
+            defaultCountry="BD"
             value={phone}
+            className="!w-[40%]"
             disabled={isLoading}
             onChange={(phone) => {
               setPhone(phone);
               setFormFields((prev) => ({ ...prev, mobile: phone }));
             }}
-            className="w-full"
+             
           />
 
           <div className="flex justify-start mt-4">

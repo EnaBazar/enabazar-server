@@ -5,7 +5,7 @@ import {FaRegUser} from "react-icons/fa6"
 import {FcGoogle} from "react-icons/fc"
 import Button from '@mui/material/Button';
 import { BsFacebook } from 'react-icons/bs';
-import { FormControlLabel, Input } from '@mui/material';
+import { FormControlLabel, Input, TextField } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import  CircularProgress  from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +24,7 @@ const SignUp = () => {
  
      const [formFields,setFormFields]= useState({
       name:"",
-      email:"",
+      mobile:"",
       password:""
     })
     
@@ -50,15 +50,16 @@ const handleSubmit=(e)=>{
   e.preventDefault();
   setIsLoading(true)
   
+  
   if(formFields.name==="")
   {
     context.openAlertBox("error","Please add full name")
     return false
   }
   
-  if(formFields.email==="")
+  if(formFields.mobile==="")
     {
-      context.openAlertBox("error","Please entry your Eamil")
+      context.openAlertBox("error","Please entry your mobile")
       return false
     }
     
@@ -66,7 +67,7 @@ const handleSubmit=(e)=>{
       {
         context.openAlertBox("error","Please entry your Password")
         return false
-      }
+      } 
   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
@@ -75,20 +76,19 @@ const handleSubmit=(e)=>{
     if(res?.error !== true){
       setIsLoading(false)
       context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",formFields.email)
+      localStorage.setItem("userEmail",formFields.mobile)
       setFormFields({
-        name:"",
-        email:"",
-        password:""
+      name:"",
+      mobile:"",
+      password:""
       })
- 
-      history("/verify-account")
+
     }else{
       context.openAlertBox("error",res?.message);
       setFormFields({
-        name:"",
-        email:"",
-        password:""
+     name:"",
+      mobile:"",
+      password:""
       })
       setIsLoading(false);
      
@@ -113,8 +113,12 @@ const handleSubmit=(e)=>{
     <header className='w-full static lg:fixed top-0 left-0 px-4 py-5 flex items-center  justify-center
     sm:justify-between z-50'>
    
-       <Link to="/" className='w-[200px]'> <p><span className='font-[800] text-[32px] text-[#ff5252]'>F
-       <span className=' font-bold text-[25px] text-black'>enix</span></span></p></Link>
+         <div className="col1 w-[50%] lg:w-[10%] flex items-center 
+     justify-end ">
+      <Link to={"/"}> 
+        <img src="/logo.png"/>
+      </Link>
+    </div>
        
        
   <div className='hidden sm:flex items-center gap-0 '>
@@ -173,53 +177,47 @@ const handleSubmit=(e)=>{
        <br/><br/>
        
        <form className='w-full !px-10' onSubmit={handleSubmit}>
-       <div className='form-group mb-4 w-full'>
-       <h4 className='mb-2 text-[14px]  font-[600]'>Full Name
-       <span className='text-[red] font-[500]'> *</span></h4>
-       <Input type='text' placeholder='Enter your Full Name' 
-       className='w-full  h-[40px] border border-[rbga(0,0,0,0.1)]
-        rounded-sm focus:border-[rgba(0,0,0,0.7)] 
-        focus:outline-none px-3'
-     
-         name="name"
-         value={formFields.name}
-         disabled={isLoading===true ? true : false}
-          onChange={onchangeInput}
-        />
-        
+  
+       <div className='form-group w-full !mb-5'>
+       <TextField 
+       type='text'
+       id="name"
+       name="name"
+       value={formFields.name}
+       disabled={isLoading===true ? true : false}
+        label="Full Name"
+         variant="outlined"
+         className='w-full' 
+         onChange={onchangeInput}
+         />
        </div>
+       <div className='form-group w-full !mb-5'>
+       <TextField 
+       type='number'
+       id="mobile"
+       name="mobile"
+       value={formFields.mobile}
+       disabled={isLoading===true ? true : false}
+        label="Mobile"
+         variant="outlined"
+         className='w-full' 
+         onChange={onchangeInput}
+         />
        
-       
-       
-       
-       <div className='form-group mb-4 w-full'>
-       <h4 className='mb-2 text-[14px]  font-[600]'>Email<span className='text-[red] font-[500]'> *</span></h4>
-       <Input type='email' placeholder='Enter your Email' className='w-full  h-[40px] border border-[rbga(0,0,0,0.1)] 
-       rounded-sm focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-         name="email"
-         value={formFields.email}
-         disabled={isLoading===true ? true : false}
-          onChange={onchangeInput}
-       />
        </div>
-       
-       
-       <div className='form-group mb-4 w-full'>
-      
-      
-       <h4 className='mb-2 text-[14px]  font-[600]'>Password<span className='text-[red] font-[500]'> *</span></h4>
-       <div className='relative w-full'>
-       <Input type= {IsShowPassword === false ? 'password' : 'text'} placeholder='Enter your Password' className='w-full  h-[40px] border border-[rbga(0,0,0,0.1)] 
-       rounded-sm focus:border-[rgba(0,0,0,0.7)] focus:outline-none px-3'
-        id="Password"
+       <div className='form-group w-full !mb-5 relative'>
+       <TextField 
+       type={IsShowPassword===false ? 'password': 'text'}
+       id="Password"
         label="Password*"
-         name="password"
-         value={formFields.password}
-         disabled={isLoading===true ? true : false}
-          onChange={onchangeInput}
-       
-       />
-       <Button className='!absolute !top-[5px] !right-[10px] z-50 !w-[35x]
+        name="password"
+        value={formFields.password}
+        disabled={isLoading===true ? true : false}
+         variant="outlined"
+         className='w-full' 
+         onChange={onchangeInput}
+         />
+       <Button className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
         !h-[35px] !min-w-[35px] !rounded-full 
         !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
         {
@@ -227,8 +225,6 @@ const handleSubmit=(e)=>{
         }
        </Button>
        </div>
-       </div>
-       
        
            
        <div className='form-group mb-4 w-full flex items-center justify-between'>

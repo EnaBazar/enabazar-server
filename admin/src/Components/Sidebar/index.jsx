@@ -12,6 +12,7 @@ import { FaAngleDown } from 'react-icons/fa6';
 import { Collapse } from 'react-collapse';
 import { MyContext } from '../../App';
 import { fetchDataFromApi } from '../../utils/api';
+import { useEffect } from 'react';
 
 
 
@@ -37,7 +38,7 @@ import { fetchDataFromApi } from '../../utils/api';
      }
   
    })
-   
+
 
 
       const logout=()=>{
@@ -60,11 +61,12 @@ import { fetchDataFromApi } from '../../utils/api';
     <div className='sidebar  top-0 left-0 bg-[#f1f1f1]
     h-full border-r border-[rgba(0,0,0,0.2)] py-2 px-2 z-50'  >
     
-    <div className='py-2 px-4 w-full h-[30px]  flex items-center '>
-    <Link   to={"/"}> <p><span className='font-[800] text-[32px] text-[#ff5252]'>F
-    <span className=' font-bold text-[25px] text-black'>enix</span></span></p></Link>
-    
-    </div>
+     <div className="col1 w-[40%] lg:w-[50%] flex items-center 
+     justify-end lg:justify-start">
+  <Link to={"/"}> 
+    <img src="/logo.png"/>
+  </Link>
+</div>
     
     <ul className='mt-4'>
     <li>
@@ -129,6 +131,28 @@ import { fetchDataFromApi } from '../../utils/api';
     </Link>
     </li> 
     
+
+
+<li>
+  <Link to="/chat">
+    <Button className="w-full !capitalize !justify-start gap-3 relative">
+      <FiUsers className="text-[16px]" />
+      <span>Chats</span>
+
+      {context.chatUnreadCount > 0 && (
+        <span
+          className="absolute right-3 top-2 min-w-[18px] h-[18px]
+          bg-red-600 text-white text-[10px] rounded-full
+          flex items-center justify-center px-1"
+        >
+          {context.chatUnreadCount}
+        </span>
+      )}
+    </Button>
+  </Link>
+</li>
+
+  
     <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
     onClick={()=>isOpenSubMenu(2)}
@@ -323,7 +347,84 @@ import { fetchDataFromApi } from '../../utils/api';
     </Collapse>
     </li> 
     
+    <li><Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
+    onClick={()=>isOpenSubMenu(7)}
+    >
+    <RiProductHuntLine className='text-[16px]'
+    /><span>BannersV2</span>
+    <span className='ml-auto  w-[30px] h-[30px] flex items-center justify-center'
+    onClick={()=>isOpenSubMenu(2)}
+    ><FaAngleDown  className={`transition-all ${submenuIndex === 7 ? 'rotate-180' : ''}`}/></span>
+    </Button>
+    <Collapse isOpened={submenuIndex===7 ? true : false}>
+    <ul className='w-full bg-[#fff] shadow-md border-t border-[rgba(0,0,0,0.2)] rounded-sm'>
+   
+    <li className='w-full'>
+    <Link to="/bannerV2/list" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full 
+    !text-[12px] !font-[500] !pl-9 flex gap-3'>
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+   BannerV2 List</Button>
+   </Link>
+    </li>
     
+    <li className='w-full' onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full !text-[12px]
+    !font-[500] !pl-9 flex gap-3'
+    onClick={()=>context.setIsOpenFullScreenPanel({
+    open:true,
+    model:"Add BannerV2"
+    })}
+    
+    >
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+    Add BannerV2</Button>
+    </li>
+    </ul>
+    </Collapse>
+    </li> 
+
+    <li><Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
+    onClick={()=>isOpenSubMenu(8)}
+    >
+    <RiProductHuntLine className='text-[16px]'
+    /><span>BannersV3</span>
+    <span className='ml-auto  w-[30px] h-[30px] flex items-center justify-center'
+    onClick={()=>isOpenSubMenu(2)}
+    ><FaAngleDown  className={`transition-all ${submenuIndex === 8 ? 'rotate-180' : ''}`}/></span>
+    </Button>
+    <Collapse isOpened={submenuIndex===8 ? true : false}>
+    <ul className='w-full bg-[#fff] shadow-md border-t border-[rgba(0,0,0,0.2)] rounded-sm'>
+   
+    <li className='w-full'>
+    <Link to="/bannerV3/list" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full 
+    !text-[12px] !font-[500] !pl-9 flex gap-3'>
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+   BannerV3 List</Button>
+   </Link>
+    </li>
+    
+    <li className='w-full' onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    
+    <Button className='!text-[rgba(0,0,0,0.8)] !capitalize !justify-start !w-full !text-[12px]
+    !font-[500] !pl-9 flex gap-3'
+    onClick={()=>context.setIsOpenFullScreenPanel({
+    open:true,
+    model:"Add BannerV3"
+    })}
+    
+    >
+    <span className='block w-[5px] h-[5px] rounded-full bg-[rgba(0,0,0,0.3)]'></span>{""}
+    Add BannerV3</Button>
+    </li>
+    </ul>
+    </Collapse>
+    </li> 
+
     <li><Button className='w-full !capitalize !justify-start gap-3 
     text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'
     onClick={()=>isOpenSubMenu(6)}

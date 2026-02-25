@@ -17,7 +17,6 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Slide from '@mui/material/Slide';
-
 // Pages
 import AddProduct from "../../Pages/AddProduct";
 import AddHomeSlide from '../../Pages/HomeSliderBanners/AddHomeSlide';
@@ -28,9 +27,13 @@ import EditCategory from '../../Pages/Category/EditeCategory.jsx';
 import EditProduct from '../../Pages/AddProduct/editProduct.jsx';
 import AddBannerV1 from '../../Pages/Banners/addBannerV1.jsx';
 import EditBannerV1 from '../../Pages/Banners/EditBannerV1.jsx';
+import AddBannerV2 from '../../Pages/Banners2/addBannerV2.jsx';
+import EditBannerV2 from '../../Pages/Banners2/EditBannerV2.jsx';
 import Addblog from '../../Pages/Blog/Addblog.jsx';
 import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
+import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
+import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
 
 // Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -99,17 +102,19 @@ const handleBellClick = async () => {
   };
 
   // --- Logout ---
-  const logout = () => {
-    setAnchorMyAcc(null);
-    fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`, { withCredentials: true }).then((res) => {
-      if (res?.error === false) {
-        context.setIsLogin(false);
-        localStorage.removeItem("accesstoken");
-        localStorage.removeItem("refreshtoken");
-        history("/");
-      }
-    });
-  };
+const logout = () => {
+    fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`,{withCredentials:true}).then((res)=>{ 
+           if(res?.error === false){
+             context.setIsLogin(false);
+             localStorage.removeItem("accesstoken")     
+              localStorage.removeItem("refreshtoken")
+            window.location.reload();
+              history("/");
+           }    
+         })
+
+};
+
 
   return (
     <>
@@ -119,14 +124,31 @@ const handleBellClick = async () => {
         
         {/* Sidebar Toggle */}
         <div className='part1'>
+          
           <Button
             className='!w-[40px] !h-[40px] !rounded-full !min-w-[40px]
             flex items-center justify-center !text-[rgba(0,0,0,0.8)]'
             onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}
           >
-            <RiMenu2Line className='text-[18px]' />
+            <RiMenu2Line className='text-[18px]' 
+     
+            />
+           <div>
+      {context.chatUnreadCount > 0 &&  (
+        <span 
+          className="absolute  left-8 top-3 min-w-[20px] h-[20px]
+          bg-red-600 text-white text-[12px] rounded-full
+          flex items-center justify-center px-1"
+        > 
+         
+          {context.chatUnreadCount}
+        </span>
+      )}
+      </div>
           </Button>
+   
         </div>
+
 
         {/* Right Side */}
         <div className='part2 w-[40%] flex items-center justify-end gap-4'>
@@ -193,7 +215,7 @@ const handleBellClick = async () => {
                     </div>
                     <div className='info'>
                       <h3 className='text-[16px] font-[500] leading-5'>{context?.userData?.name}</h3>
-                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.email}</p>
+                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.mobile}</p>
                     </div>
                   </div>
                 </MenuItem>
@@ -250,6 +272,10 @@ const handleBellClick = async () => {
         {context?.isOpenFullScreenPanel?.model === "Edit Product" && <EditProduct />}
         {context?.isOpenFullScreenPanel?.model === "Add BannerV1" && <AddBannerV1 />}
         {context?.isOpenFullScreenPanel?.model === "Edit BannerV1" && <EditBannerV1 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV2" && <AddBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV2" && <EditBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV3" && <AddBannerV3 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV3" && <EditBannerV3 />}
         {context?.isOpenFullScreenPanel?.model === "add Blog" && <Addblog />}
         {context?.isOpenFullScreenPanel?.model === "edit Blog" && <Editblog />}
           {context?.isOpenFullScreenPanel?.model === "Order List" && <Orders />}

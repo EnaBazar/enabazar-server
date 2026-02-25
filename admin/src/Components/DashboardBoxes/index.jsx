@@ -9,6 +9,7 @@ import { FiPieChart } from "react-icons/fi";
 import { BsBank } from "react-icons/bs";
 import { RiProductHuntLine } from "react-icons/ri";
 import { MyContext } from '../../App';
+import { Link } from 'react-router-dom';
 
 
 
@@ -35,18 +36,22 @@ const context = useContext(MyContext);
     >
       {/* Users */}
       <SwiperSlide>
+        <Link to="/users">
         <div className='box p-4 bg-blue-500 rounded-md cursor-pointer hover:bg-blue-600 border border-[rgba(0,0,0,0.2)] flex items-center gap-4'>
           <FiGift className='!text-[30px] text-[#fff]' />
           <div className='info !w-[70%] text-[#fff]'>
+            
             <h3>Users</h3>
             <b className='flex justify-center'>{props?.users} </b>
           </div>
           <IoStatsChart className='text-[#fff] text-[50px]' />
         </div>
+        </Link>
       </SwiperSlide>
 
       {/* Orders */}
       <SwiperSlide>
+          <Link to="/orders">
         <div className='box p-4 bg-green-600 rounded-md cursor-pointer hover:bg-green-700 border border-[rgba(0,0,0,0.2)] flex items-center gap-4'>
           <FiPieChart className='!text-[30px] text-[#fff]' />
           <div className='info !w-[70%] text-[#fff]'>
@@ -55,10 +60,12 @@ const context = useContext(MyContext);
           </div>
           <IoStatsChart className='text-[#fff] text-[50px]' />
         </div>
+        </Link>
       </SwiperSlide>
 
       {/* Products */}
       <SwiperSlide>
+         <Link to="/products">
         <div className='box p-4 bg-red-500 rounded-md cursor-pointer hover:bg-red-700 border border-[rgba(0,0,0,0.2)] flex items-center gap-4'>
           <BsBank className='!text-[30px] text-[#fff]' />
           <div className='info !w-[70%] text-[#fff]'>
@@ -67,10 +74,12 @@ const context = useContext(MyContext);
           </div>
           <IoStatsChart className='text-[#fff] text-[50px]' />
         </div>
+        </Link>
       </SwiperSlide>
 
       {/* Category */}
       <SwiperSlide>
+             <Link to="/Categorylist">
         <div className='box p-4 bg-blue-700 rounded-md cursor-pointer hover:bg-blue-800 border border-[rgba(0,0,0,0.2)] flex items-center gap-4'>
           <RiProductHuntLine className='!text-[30px] text-[#fff]' />
           <div className='info !w-[70%] text-[#fff]'>
@@ -79,6 +88,7 @@ const context = useContext(MyContext);
           </div>
           <IoStatsChart className='text-[#fff] text-[50px]' />
         </div>
+        </Link>
       </SwiperSlide>
 
       {/* Sales */}

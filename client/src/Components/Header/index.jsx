@@ -1,3 +1,4 @@
+
 import React, { useContext, useState } from "react";
 import { Link, useNavigate} from "react-router-dom";
 import Search from "../Search";
@@ -70,58 +71,51 @@ const Header =() => {
     return(
         
         <header className="bg-white sticky -top-[47px] z-100"> 
-       <div className="top-strip py-2 !bg-[#FC8934] text-white border-t-[1px] border-gray-100 border-b-[1px]  ">
+       <div className="top-strip py-2 !bg-[#FC8934] text-white 
+       border-t-[1px] border-gray-100 border-b-[1px]  ">
         <div className="container">
-        <div className="flex items-center justify-between ">
-        <div className="col1 w-[50%] hidden lg:block">
-        <p className="text-[12px] font-[500]">Get up to 50% off new season styles, limited time</p>
-        </div>
-        
-        <div className="col2 flex items-center justify-between w-full lg:w-[50%] lg:justify-end">  
-        
-        <ul className="flex items-center gap-3 w-full justify-between lg:w-[200px]">
-        <li className="list-none">
-        <Link to="/helpCenter" className="text-[13px] lg:text-[15px] link font-[500] transition">HelpCenter{""}</Link>
-        </li>
-        <li className="list-none">
-        <Link to="/Order-tracking" className="text-[13px] lg:text-[15px]  link font-[500] transition">OrderTracking{""}</Link>
-        </li>
-        </ul>
-        
-        </div>
-             
-        </div>  
-        </div>
-        </div>
-        
-        
-        
-        
-        <div className="header py-2 pt-3 lg:py-4 pb-3  border-b-[1px] 
-         bg-[#dfd7d7] border-gray-400 ">
+
+<div className="col1 w-full lg:w-[100%] overflow-hidden">
+  <div className="marquee">
+    <div className="marquee-track">
+      <span>আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446_01677190919   
+        এবং সকল পন্যের উপর মোট ১৪০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span>
+
+      {/* duplicate for smooth loop */}
+     <span>আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446_01677190919  
+       এবং সকল পন্যের উপর মোট ১৪০০ টাকার ক্রয় করলে সারা দেশে ডেরিভারি ফ্রী !</span> 
+   </div>  
+   </div>
+   </div>
+   </div>
+   </div>
+   
+   <div className="header header 
+
+  border-b border-gray-400 
+  bg-[#dfd7d7] flex items-center">
         <div className="container flex items-center justify-between">
-         
-          <div className="col1 w-[30%] lg:w-[0]  ">
+          <div className="col1 w-[20%] lg:w-[0]  ">
           {
             context?.windowWidth < 992 &&    
             <Button className="!w-[45px] !min-w-[45px] !h-[45px]
              !min-h-[45px] !rounded-full !text-gray-400 "
              onClick={()=> setisOpenCatPanel(true)}
              > 
-            <HiOutlineMenu className="text-[30px] text-gray-600 "/> 
+            <HiOutlineMenu className="text-[80px] text-gray-900 "/> 
             </Button>
           }
       </div>
       
-  <div className="col1 w-[30%] lg:w-[10%] flex items-center 
+  <div className="col1 w-[25%] lg:w-[20%] flex items-center 
      justify-end lg:justify-start">
   <Link to={"/"}> 
-    <img src="/logo.png" className="" />
+    <img src="/logo.png"/>
   </Link>
 </div>
    {
             context?.windowWidth > 992 && 
- <div className="fixed  h-full p-2 bg-white z-50 block lg:w-[40%] lg:static lg:p-0 ">
+ <div className="fixed  h-full p-2 bg-white rounded-full z-50 block lg:w-[40%] lg:static lg:p-0 ">
   <div className=" h-full flex items-start justify-center">
     <Search />
   </div>
@@ -130,25 +124,28 @@ const Header =() => {
 
 {/* Overlay + Search Panel */}
 <div
-  className={`fixed inset-0 z-50 transition-opacity duration-300 lg:hidden
+  className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300
   ${context.isOpenSearchPanel ? "opacity-100 visible" : "opacity-0 invisible"}`}
 >
   {/* Overlay */}
   <div
     className="absolute inset-0 bg-black/40"
     onClick={() => context.setIsOpenSearchPanel(false)}
-  ></div>
+  />
 
   {/* Search Panel */}
-  <div className="absolute top-[50%] left-1/2 -translate-x-1/2 w-[90%] max-w-md 
-    bg-white rounded-2xl shadow-lg p-4 animate-slideDown">
-    <Search className="w-full" />
+  <div
+    className={`absolute left-1/2 top-1/2 w-[90%] max-w-md 
+    -translate-x-1/2 -translate-y-1/2
+    transition-all duration-300
+    ${context.isOpenSearchPanel ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+  >
+    <Search />
   </div>
 </div>
 
 
-
-      <div className="Reginfo col3 w-[50%] lg:w-[35%] flex items pl-8">
+      <div className="Reginfo col3 w-[40%] lg:w-[35%] flex items pl-8">
     
       <ul className="flex items-center justify-end gap-0 lg:gap-3 w-full">
         
@@ -176,7 +173,7 @@ const Header =() => {
       <h4 className="text-[14px] leading-3 mb-0 capitalize text-left font-[500]
        justify-start text-[rgba(0,0,0,0.6)]">{context?.userData?.name}</h4>
       <span className="text-[13px] capitalize text-left font-[400] 
-      justify-start text-[rgba(0,0,0,0.6)]">{context?.userData?.email}</span>
+      justify-start text-[rgba(0,0,0,0.6)]">{context?.userData?.mobile}</span>
       </div>
          }
  
@@ -292,8 +289,17 @@ const Header =() => {
       </div>
       </div>
         
-     <Navigation setisOpenCatPanel={setisOpenCatPanel} isOpenCatPanel={isOpenCatPanel}/>
+   {/* Navigation */}
+<div className=" lg:block">
+  <Navigation 
+    setisOpenCatPanel={setisOpenCatPanel} 
+    isOpenCatPanel={isOpenCatPanel} 
+  />
+</div>
+
     </header>
     );
 };
 export default Header;
+
+

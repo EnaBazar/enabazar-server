@@ -23,8 +23,8 @@ const googleProvider = new GoogleAuthProvider();
   const [IsShowPassword,setIsShowPassword] = useState(false);
   const [formFields,setFormFields]= useState({
        
-       email:"",
-       password:""
+       mobile:"",
+       name:""
        
     });
     const context = useContext(MyContext)
@@ -35,13 +35,13 @@ window.scrollTo(0,0)
     const forgotPassword =()=>{
 
       
-        if(formFields.email===""){
+        if(formFields.mobile===""){
            
          context.openAlertBox("error","Please entry your Eamil")
          return false; 
         }else{
       
-           localStorage.setItem("userEmail",formFields.email)
+           localStorage.setItem("userEmail",formFields.mobile)
            localStorage.setItem("actionType",'forgot-password')
            
                postData("/auth/forgot-password",
@@ -74,44 +74,47 @@ window.scrollTo(0,0)
     
         const valideValue = Object.values(formFields).every(el => el)
         
-    const handleSubmit=(e)=>{
+   const handleSubmit=(e)=>{
       
       e.preventDefault();
       setIsLoading(true)
       
-      if(formFields.email==="")
+      if(formFields.mobile==="")
         {
-          context.openAlertBox("error","Please entry your Eamil")
+          context.openAlertBox("error","Please entry your Mobile")
           return false
         }
         
-        if(formFields.password==="")
+        if(formFields.name==="")
           {
-            context.openAlertBox("error","Please entry your Password")
+            context.openAlertBox("error","Please entry your name")
             return false
           }
       
       postData("/auth/login",formFields,{withCredentials:true}).then((res)=>{
         console.log(res)
-        if(res?.error !== true){
-          setIsLoading(false)
-          context.openAlertBox("success",res?.message);
-      
-          setFormFields({
-            email: "",
-            password: ""
-          })
-     
-     localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-     localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-     
-     context.setIsLogin(true);
-          history("/")
-        }else{
+    if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+  setFormFields({
+    mobile: "",
+    password: ""
+  })
+/
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+
+  context.setIsLogin(true);
+
+  history("/");       
+  window.location.reload();  // Force Home Page Reload
+}else{
           context.openAlertBox("error",res?.message);
           setFormFields({
-            email: "",
-            password: ""
+            mobile: "",
+            name: ""
           })
           setIsLoading(false);
          
@@ -143,18 +146,24 @@ window.scrollTo(0,0)
         
           postData("/auth/authWithGoogle",fields).then((res)=>{
        
-        if(res?.error !== true){
-          setIsLoading(false)
-          context.openAlertBox("success",res?.message);
-          localStorage.setItem("userEmail",fields.email)
-          
-           localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-         localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-         
-         context.setIsLogin(true);
-     
-          history("/")
-        }else{
+      if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+
+  setFormFields({
+    mobile: "",
+    password: ""
+  })
+
+  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
+  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
+
+  context.setIsLogin(true);
+
+  history("/");       
+  window.location.reload();  // Force Home Page Reload
+}
+else{
           context.openAlertBox("error",res?.message);
           setFormFields({
             name:"",
@@ -192,28 +201,14 @@ window.scrollTo(0,0)
 <h3 className='text-center text-[18px] text-[200]'>Login to your account</h3>
 
 <form className='w-full !mt-5' onSubmit={handleSubmit}>
-<div className='form-group w-full !mb-5'>
-<TextField 
-type='email'
-id="Email"
-name="email"
-value={formFields.email}
-disabled={isLoading===true ? true : false}
-onChange={onchangeInput}
- label="Email ID*"
-  variant="outlined"
-  className='w-full' 
 
-  />
-
-</div>
 <div className='form-group w-full !mb-5 relative'>
 <TextField 
-type={IsShowPassword===false ? 'password': 'text'}
-id="Password"
- label="Password*"
-  name='password'
-value={formFields.password}
+type='text'
+id="name"
+ label="আপনার নাম"
+  name='name'
+value={formFields.name}
 disabled={isLoading===true ? true : false}
 onChange={onchangeInput}
   variant="outlined"
@@ -224,11 +219,26 @@ onChange={onchangeInput}
  !h-[35px] !min-w-[35px] !rounded-full 
  !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
  {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff
+     className="text-[20px] opacity-75"/>
  }
 </Button>
 </div>
+<div className='form-group w-full !mb-5'>
+<TextField 
+type='number'
+id="mobile"
+name="mobile"
+value={formFields.mobile}
+disabled={isLoading===true ? true : false}
+onChange={onchangeInput}
+ label="মোবাইল নাম্বার"
+  variant="outlined"
+  className='w-full' 
 
+  />
+
+</div>
 
 <a className='link cursor-pointer text-[14px] font-[600]' onClick={forgotPassword}>Forget Password</a>
 
@@ -247,7 +257,8 @@ onChange={onchangeInput}
 </Button>
 
 </div>
-<p className='text-center '>Not Registered? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/register">Sign Up </Link></p>
+<p className='text-center '>Not Registered? <Link className='link !text-[14px] cursor-pointer 
+ !font-[600] !text-[#ff5252]' to="/register">Sign Up </Link></p>
 
 <p className='text-center font-[500]'>Or continue with social account</p>
 

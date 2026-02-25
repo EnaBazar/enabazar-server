@@ -7,6 +7,8 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import Reviewsmodel from "../models/reviews.model.js";
+import sendSMS from "../utils/sendSMS.js";
+
 
 
 
@@ -23,53 +25,189 @@ cloudinary.config({
 });
  //registration//
       
-const  register=async(req,res)=>{
+
+const register = async (req, res) => {
+  try {
+    const { mobile, password, name } = req.body;
+
+    if (!mobile || !password || !name) {
+      return res.status(400).json({
+        error: true,
+        message: "সব ফিল্ড লাগবে",
+      });
+    }
+
+    const exist = await usermodel.findOne({ mobile });
+    if (exist) {
+      return res.status(400).json({
+        error: true,
+        message: "User already exists",
+      });
+    }
+
+    // 🔐 password hash
+    const salt = await bcryptjs.genSalt(10);
+    const hashPassword = await bcryptjs.hash(password, salt);
+
+    // 🔢 OTP generate
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const user = new usermodel({
+      name,
+      mobile,
+      password: hashPassword,
+      otp,
+      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+      verify_mobile: false,
+    });
+
+    await user.save();
+
+    // 📩 SMS send
+    await sendSMS(mobile,otp);
+
+    return res.json({
+      success: true,
+      message: "OTP পাঠানো হয়েছে",
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: true,
+      message: "Server error",
+    });
+  }
+};
+
+
+
+
+
+
+export async function verifyMobileOtp(req, res) {
+  try {
+    const { mobile, otp } = req.body;
+
+    const user = await usermodel.findOne({ mobile });
+
+    if (!user) {
+      return res.status(400).json({
+        error: true,
+        message: "User not found",
+      });
+    }
+
+    if (user.otp !== otp.toString()) {
+      return res.status(400).json({
+        error: true,
+        message: "Invalid OTP",
+      });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        error: true,
+        message: "OTP expired",
+      });
+    }
+
+    // ✅ verified
+    user.verify_mobile = true;
+    user.otp = "";
+    user.otpExpires = null;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Mobile verified successfully",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+}
+
+export async function resendOtp(req, res) {
+  try {
+    const { mobile } = req.body;
+
+    const user = await usermodel.findOne({ mobile });
+
+    if (!user) {
+      return res.status(400).json({
+        error: true,
+        message: "User not found",
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000;
+
+    await user.save();
+
+    await sendSMS(mobile, `Your new OTP is ${otp}`);
+
+    return res.json({
+      success: true,
+      message: "New OTP sent",
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: error.message,
+    });
+  }
+}
+
+
+
+const  registerPanel=async(req,res)=>{
     
     try{
         
-   const {email,password,name}=req.body
+   const {mobile,password,name}=req.body
    
-        if (!email || !password || !name){
+        if (!mobile || !password || !name){
             
             return res.status(400).json({error:true,success:false,message:"All fields are required"})
         }
-        const ExistsUser= await usermodel.findOne({email})
+        const ExistsUser= await usermodel.findOne({mobile})
         if (ExistsUser){
-            return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
+        return res.status(400).json({error:true,success:false,message:"User Already Exists Please Login"})
             
         }
         const salt = await bcryptjs.genSalt(10)
         const hashPassword =await bcryptjs.hash(password,salt)
-       
-        const verificationCode= Math.floor(100000 + Math.random() * 900000).toString()
+  
         const user= new usermodel({
-            email,
+            mobile,
             password:hashPassword,
             name,
-            otp : verificationCode,
-            otpExpires : Date.now() + 600000,
-          
-            verificationCode
-            
-            
+            otp : "",
+            otpExpires : Date.now() + 600000,  
         })
         const token =jwt.sign(
-      
-            {
-                email: user.email, id: user._id },
-            process.env.JSON_WEB_TOKEN_SECRET_KEY
-            
+        {
+        mobile: user.mobile, id: user._id },
+        process.env.JSON_WEB_TOKEN_SECRET_KEY  
         )
         await user.save()
-       
-        SendVerficationCode(user.email,verificationCode)
-        
-        return res.status(200).json({success:true,error:false,message:"User Register Successfuly,Please verify Your Email", token: token, user})
-    }catch(error){
+        return res.status(200).json({success:true,error:false,message:"User Register Successfuly", token: token, user})
+        }catch(error){
         console.log(error)
         return res.status(500).json({success:false,error:true,message:"internet Server error"})
-    }
-}
+        }
+        }
+
+
 // verify email
 const VerifyEmail=async(req,res)=>{
     
@@ -180,85 +318,141 @@ export async function authWithGoogle(request,response){
 }
 
 //login user
-export async function loginUserController(request,response) {
-   try{
-    const {email,password} = request.body;
-    
-    const user = await usermodel.findOne({email:email});
-    
-    if(!user){
-        
-        return response.status(400).json({
-               message:"User Not register",
-               error:true,
-               success:false               
-           })
-       }
-    
-    if(user.status !== "Active"){
-        
-     return response.status(400).json({
-            message:"Connect to admin",
-            error:false,
-            success:true               
-        })
-    }
-    
-    if(user.verify_email !== true){
-        
-        return response.status(400).json({
-               message:"Your Email is not Verify yet please verify your email frist",
-               error:true,
-               success:false               
-           })
-       }
-    
-    
-    const checkPassword = await bcryptjs.compare(password,user.password)  
-    if(!checkPassword){
-        
-      return response.status(400).json({
-            message:"Check your password",
-            error:true,
-            success:false               
-        })
-    }
-    
-    const accesstoken = await generatedAccessToken(user._id)
-    const refreshtoken = await generatedRefreshToken(user._id)
-    
-    const updateUser = await usermodel.findByIdAndUpdate(user?._id,{
-        last_login_date : new Date()
-    })
- 
-    const cookiesOption = {
-        
-        httpOnly :true,
-        secure :true,
-        sameSite :"none"
-    }
-   response.cookie('accessToken',accesstoken,cookiesOption) 
-   response.cookie('refreshToken',refreshtoken,cookiesOption)   
-   return response.json({   
-       message : "Login Sccessfully",
-       error : false,
-       success : true,
-       data :{       
-           accesstoken,
-           refreshtoken
-       }       
-   })
-       
-   } catch(error){
-       
-       return response.status(500).json({
-        message : error.message || error ,
-        error : true,
-        success : false
-           
-       })
+export async function loginUserController(request, response) {
+   try {
+      const { mobile,name } = request.body;
+
+      // 1. Find user
+      const user = await usermodel.findOne({ mobile,name });
+
+      if (!user) {
+         return response.status(400).json({
+            message: "User Not Registered",
+            error: true,
+            success: false
+         });
+      }
+
+      // 2. Check status
+      if (user.status !== "Active") {
+         return response.status(400).json({
+            message: "Connect to admin",
+            error: true,
+            success: false
+         });
+      }
+
+      // ❌ bcrypt compare লাগবে না
+      // কারণ আপনি mobile = mobile মিলিয়ে login করাতে চান
+
+      // 3. Generate tokens
+      const accesstoken = await generatedAccessToken(user._id);
+      const refreshtoken = await generatedRefreshToken(user._id);
+
+      // 4. Update last login
+      await usermodel.findByIdAndUpdate(user._id, {
+         last_login_date: new Date()
+      });
+
+      // 5. Cookie settings
+      const cookiesOption = {
+         httpOnly: true,
+         secure: true,
+         sameSite: "none"
+      };
+
+      response.cookie("accessToken", accesstoken, cookiesOption);
+      response.cookie("refreshToken", refreshtoken, cookiesOption);
+
+      // 6. Success response
+      return response.json({
+         message: "Login Successfully",
+         error: false,
+         success: true,
+         data: {
+            accesstoken,
+            refreshtoken
+         }
+      });
+
+   } catch (error) {
+      return response.status(500).json({
+         message: error.message || error,
+         error: true,
+         success: false
+      });
    }
- }
+}
+
+//loginPanel user
+export async function loginPanelUserController(request, response) {
+   try {
+      const { mobile } = request.body;
+
+      // 1. User find
+      const user = await usermodel.findOne({ mobile });
+
+      if (!user) {
+         return response.status(400).json({
+            message: "User not registered",
+            error: true,
+            success: false
+         });
+      }
+
+      // 2. Status check
+      if (user.status !== "Active") {
+         return response.status(400).json({
+            message: "Connect to admin",
+            error: true,
+            success: false
+         });
+      }
+
+      // 3. এখানে আর কিছু compare করার দরকার নেই
+      // কারণ আপনি শুধু mobile দিয়ে login করতে চান
+
+      // 4. Tokens generate
+      const accessToken = await generatedAccessToken(user._id);
+      const refreshToken = await generatedRefreshToken(user._id);
+
+      // 5. Update last login
+      await usermodel.findByIdAndUpdate(user._id, {
+         last_login_date: new Date()
+      });
+
+      // 6. Cookie options
+      const cookiesOption = {
+         httpOnly: true,
+         secure: true,
+         sameSite: "none"
+      };
+
+      // 7. Set cookies
+      response.cookie("accessToken", accessToken, cookiesOption);
+      response.cookie("refreshToken", refreshToken, cookiesOption);
+
+      return response.json({
+         message: "Login Successfully",
+         error: false,
+         success: true,
+         data: {
+            accessToken,
+            refreshToken
+         }
+      });
+
+   } catch (error) {
+      return response.status(500).json({
+         message: error.message || error,
+         error: true,
+         success: false
+      });
+   }
+}
+
+
+
 //logout user
  export async function logoutController(request,response) {   
     try{
@@ -412,19 +606,14 @@ export async function loginUserController(request,response) {
      
      try{
        const userId = request.userId 
-       const {name,email,mobile,password}= request.body;
+       const {name,mobile,password}= request.body;
        const userExist = await usermodel.findById(userId);
        
        
        if (!userExist)
        return response.status(400).send("The user cannot be Updated!")
        
-       let verifyCode=""  ;
-       if(email !== userExist.email){
-           
-           verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-           
-       }
+   
          let hashPassword =""
          
          if(password){
@@ -444,11 +633,8 @@ export async function loginUserController(request,response) {
              {
                name:name,
                mobile: mobile,
-               email: email,
-               verify_email:email !== userExist.email ? false : true,
                password: hashPassword,
-               otp:verifyCode!== "" ? verifyCode : null,
-               otpExpires:verifyCode!=="" ? Date.now() + 600000 : ''
+        
               
              },
              {new: true}
@@ -459,12 +645,9 @@ export async function loginUserController(request,response) {
          
          /// send  Verification email
          
-         const user = await usermodel.findOne({email:email})
+         const user = await usermodel.findOne({mobile:mobile})
          
-         if(email !== userExist.email){
-            SendVerficationCode(user.email,verifyCode)
-             
-         }
+    
          
          
     
@@ -481,7 +664,7 @@ export async function loginUserController(request,response) {
                  
                  name:updateUser?.name,
                  _id:updateUser?._id,
-                 email:updateUser?.email,
+      
                  mobile:updateUser?.mobile,
                  avatar:updateUser?.avatar
                 
@@ -639,8 +822,8 @@ export async function loginUserController(request,response) {
   
   export async function resetpassword(request,response) {
     try{
-        const { email, newPassword, confirmPassword } = request.body;
-        if (!email || !newPassword || !confirmPassword) {
+        const { newPassword, confirmPassword } = request.body;
+        if ( !newPassword || !confirmPassword) {
             
             return response.status(400).json({
                 error:true,
@@ -648,7 +831,7 @@ export async function loginUserController(request,response) {
                 message : "Provide required fields email, newPassword,confirmPassword"
             })
         }
-        const user = await usermodel.findOne({ email });
+        const user = await usermodel.findOne({ mobile });
         if(!user){
             return response.status(400).json({
                 
@@ -1094,4 +1277,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {register,VerifyEmail}
+export {register, VerifyEmail,registerPanel}
