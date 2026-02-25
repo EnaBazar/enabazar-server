@@ -128,6 +128,7 @@ const [userData, setUserData] = useState(() => {
  const toggleVerifyOtpPanel = (newOpen) => () => {
   setOpenVerifyOtpPanel(newOpen);
   };
+  
   const toggleAddressPanel = (newOpen) => () => {
 
     if(newOpen === false){
