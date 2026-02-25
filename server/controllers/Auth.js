@@ -483,50 +483,82 @@ export async function loginPanelUserController(request, response) {
  
  var imagesArr = [];
  
-export async function userAvatarController(request, response) {
-  try {
-    const userId = request.userId;
-    const files = request.files;
-
-    if (!files || files.length === 0) {
-      return response.status(400).json({
-        message: "No file uploaded",
-        error: true,
-      });
-    }
-
-    const user = await usermodel.findById(userId);
-    if (!user) {
-      return response.status(404).json({
-        message: "User not found",
-        error: true,
-      });
-    }
-
-    // 👉 upload to cloudinary
-    const result = await cloudinary.uploader.upload(files[0].path);
-
-    // 👉 upload successful হলে local file delete
-    fs.unlinkSync(files[0].path);
-
-    // 👉 save cloudinary url
-    user.avatar = result.secure_url;
-    await user.save();
-
-    return response.json({
-      success: true,
-      message: "Image uploaded & local file removed",
-      avatar: result.secure_url,
-    });
-
-  } catch (error) {
-    console.log(error);
-    return response.status(500).json({
-      message: error.message,
-      error: true,
-    });
-  }
-}
+ export async function userAvatarController(request,response) {
+     
+     try {
+         imagesArr = [];
+         
+         const userId = request.userId;
+         const image = request.files;
+         
+         const user = await usermodel.findOne({_id: userId});
+      
+         if (!user){
+            return response.status(500).json({       
+                message: "User Not Found",
+                error: true,
+                success: false
+            })
+              
+          }
+      
+      //Frist Remove image fro cloudinary
+      
+      
+         const imgUrl = user.avatar;
+         
+         const urlArr =imgUrl.split("/");
+         const Avatar_image = urlArr[urlArr.length -1];
+         const imageName = Avatar_image.split(".")[0];
+         
+         if (imageName) {
+             
+           const res = await cloudinary.uploader.destroy(
+             imageName,
+             (error,result)=> {
+                 
+             }
+         );
+           
+         }
+         
+         const options = {
+            use_filename: true,
+            unique_filename: false,
+            overwrite: false,
+        }  
+         
+         for (let i = 0; i < image?.length; i++){
+     
+             const img = await cloudinary.uploader.upload(
+                image[i].path,
+                 options,
+                                 
+                 function (error,result){  
+                       
+                    imagesArr.push(result.secure_url);
+                    fs.unlinkSync(`uploads/${request.files[i].filename}`);
+                   
+                 }
+             );
+         }
+         
+         user.avatar = imagesArr[0];
+         await user.save();
+         
+         return response.status(200).json({
+             _id: userId,
+             avatar: imagesArr[0]
+         });
+         
+     } catch (error) {
+         return response.status(500).json({       
+             message: error.message || error,
+             error: true,
+             success: false
+         })
+     };
+ };
  
  //image remove from cloudinary Data
  

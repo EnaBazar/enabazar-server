@@ -13,11 +13,6 @@ import { LuMapPinCheck } from 'react-icons/lu';
 
 
 
-
-
-
-
-
 const AccountSidebar = () => {
   const [previews, setPreviews] = useState([]);
   const [uploading,setUploading] = useState(false);
