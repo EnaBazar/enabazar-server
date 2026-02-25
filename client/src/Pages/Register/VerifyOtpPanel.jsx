@@ -45,10 +45,7 @@ const VerifyOtpPanel = () => {
 
       console.log("Verify Payload:", payload);
 
-      const res = await postData(
-        "https://api.goroabazar.com/auth/verify-otp",
-        payload
-      );
+    const res = await postData("/auth/verify-otp", payload);
 
       setIsLoading(false);
 
