@@ -80,7 +80,10 @@ const [otpData, setOtpData] = useState(null);
     setOpenVerifyOtpPanel(false);
     setOtpData(null);
   };
-
+  const closeragisterPanel = () => {
+    setOpenRegisterPanel(false);
+   
+  };
 
   const handleOpenProductDetailsModel = (status, item) => {
 
@@ -325,7 +328,8 @@ toggleRegisterPanel,
     toggleVerifyOtpPanel,
      otpData,
   openOtpPanel,
-  closeOtpPanel
+  closeOtpPanel,
+  closeragisterPanel
 };
 return (
 <>

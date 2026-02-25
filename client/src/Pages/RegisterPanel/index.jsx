@@ -228,7 +228,9 @@ id="Password"
   className='w-full' 
   onChange={onchangeInput}
   />
-<Button className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
+<Button 
+
+className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
  !h-[35px] !min-w-[35px] !rounded-full 
  !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
  {
@@ -241,7 +243,10 @@ id="Password"
 
 <div className='flex items-center w-full !mt-3 !mb-3'>
 
-<Button type='submit' disabled={!valideValue} className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
+<Button
+onClick={context.closeOtpPanel}
+type='submit' disabled={!valideValue} 
+className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
 {
   
   isLoading === true ? <CircularProgress color="inherit"/>

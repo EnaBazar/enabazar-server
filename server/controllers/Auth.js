@@ -80,11 +80,20 @@ const register = async (req, res) => {
   }
 };
 
+
+
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
-    const user = await usermodel.findOne({ mobile }); // no lean
+    if (!mobile || !otp) {
+      return res.status(400).json({
+        error: true,
+        message: "Mobile and OTP are required",
+      });
+    }
+
+    const user = await usermodel.findOne({ mobile });
 
     if (!user) {
       return res.status(400).json({
@@ -93,40 +102,48 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    if (user.otp !== otp.toString()) {
+    if (!user.otp || user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
         message: "Invalid OTP",
       });
     }
 
-    if (user.otpExpires < Date.now()) {
+    if (!user.otpExpires || user.otpExpires < Date.now()) {
       return res.status(400).json({
         error: true,
         message: "OTP expired",
       });
     }
 
-    // ✅ verified - update using findOneAndUpdate
-    const updatedUser = await usermodel.findOneAndUpdate(
-      { mobile },
-      { verify_mobile: true, otp: "", otpExpires: null },
-      { new: true }
+    // ✅ Update user
+    user.verify_mobile = true;
+    user.otp = "";
+    user.otpExpires = null;
+
+    await user.save();
+
+    // 🔥 Generate Tokens
+    const accesstoken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "1d" }
     );
 
-    if (!updatedUser) {
-      return res.status(500).json({
-        error: true,
-        message: "Failed to update user",
-      });
-    }
+    const refreshtoken = jwt.sign(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    return res.json({
-      success: true,
+    return res.status(200).json({
+      error: false,
       message: "Mobile verified successfully",
       data: {
-        user: updatedUser
-      }
+        accesstoken,
+        refreshtoken,
+        user,
+      },
     });
 
   } catch (error) {
