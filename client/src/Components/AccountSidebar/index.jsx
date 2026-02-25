@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import { FaCloudDownloadAlt, FaRegUser } from "react-icons/fa";
-import { IoBagCheckOutline, IoMdHeartEmpty, IoIosLogOut } from "react-icons/io";
+import {  IoMdHeartEmpty, IoIosLogOut } from "react-icons/io";
 import { NavLink, useNavigate } from "react-router-dom";
 import { MyContext } from "../../App";
 import CircularProgress from "@mui/material/CircularProgress";
