@@ -72,7 +72,7 @@ const VerifyOtpPanel = () => {
   context.closeOtpPanel();
 
   // Home page এ redirect
-  window.location.href = "/";
+  
 } else {
         context.openAlertBox(
           "error",

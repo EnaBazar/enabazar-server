@@ -244,7 +244,7 @@ className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
 <div className='flex items-center w-full !mt-3 !mb-3'>
 
 <Button
-onClick={context.closeOtpPanel}
+onClick={context.closeragisterPanel}
 type='submit' disabled={!valideValue} 
 className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
 {
