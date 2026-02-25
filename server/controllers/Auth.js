@@ -106,7 +106,7 @@ export async function verifyMobileOtp(req, res) {
         message: "OTP expired",
       });
     }
-
+console.log(user)
     // ✅ verified - update using findOneAndUpdate
     const updatedUser = await usermodel.findOneAndUpdate(
       { mobile },
