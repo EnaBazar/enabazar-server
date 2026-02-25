@@ -484,51 +484,48 @@ export async function loginPanelUserController(request, response) {
  var imagesArr = [];
  
 export async function userAvatarController(request, response) {
-   try {
+  try {
+    const userId = request.userId;
+    const files = request.files;
 
-      const userId = request.userId;
-      const image = request.files;
-
-      if (!image || image.length === 0) {
-         return response.status(400).json({
-            message: "No image uploaded",
-            error: true,
-            success: false
-         });
-      }
-
-      const user = await usermodel.findById(userId);
-
-      if (!user) {
-         return response.status(404).json({
-            message: "User not found",
-            error: true,
-            success: false
-         });
-      }
-
-      // Upload new image
-      const result = await cloudinary.uploader.upload(image[0].path);
-
-      // Remove local file
-      fs.unlinkSync(image[0].path);
-
-      user.avatar = result.secure_url;
-      await user.save();
-
-      return response.status(200).json({
-         message: "Avatar uploaded successfully",
-         avatar: result.secure_url,
-         success: true
+    if (!files || files.length === 0) {
+      return response.status(400).json({
+        message: "No file uploaded",
+        error: true,
       });
+    }
 
-   } catch (error) {
-      return response.status(500).json({
-         message: error.message,
-         error: true,
-         success: false
+    const user = await usermodel.findById(userId);
+    if (!user) {
+      return response.status(404).json({
+        message: "User not found",
+        error: true,
       });
-   }
+    }
+
+    // 👉 upload to cloudinary
+    const result = await cloudinary.uploader.upload(files[0].path);
+
+    // 👉 upload successful হলে local file delete
+    fs.unlinkSync(files[0].path);
+
+    // 👉 save cloudinary url
+    user.avatar = result.secure_url;
+    await user.save();
+
+    return response.json({
+      success: true,
+      message: "Image uploaded & local file removed",
+      avatar: result.secure_url,
+    });
+
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({
+      message: error.message,
+      error: true,
+    });
+  }
 }
  
  //image remove from cloudinary Data
