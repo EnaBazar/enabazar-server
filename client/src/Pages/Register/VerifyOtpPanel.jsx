@@ -1,27 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
-import { useNavigate } from "react-router-dom";
 
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
-  const navigate = useNavigate();
-
   const mobile = context?.otpData?.mobile || "";
 
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // 🔥 Panel open হলে timer reset হবে
-  useEffect(() => {
-    if (context?.openVerifyOtpPanel) {
-      setSeconds(60);
-      setCanResend(false);
-      setOtp("");
-    }
-  }, [context?.openVerifyOtpPanel]);
 
   // Countdown Timer
   useEffect(() => {
@@ -35,7 +23,7 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // ✅ OTP Verify + Auto Login
+  // OTP Verify
   const handleVerify = async () => {
     if (!mobile) {
       context.openAlertBox("error", "Mobile number missing!");
@@ -50,39 +38,42 @@ const VerifyOtpPanel = () => {
     try {
       setIsLoading(true);
 
-      const res = await postData("/auth/verify-otp", {
+      const payload = {
         mobile: String(mobile),
         otp: String(otp),
-      });
+      };
+
+      console.log("Verify Payload:", payload);
+
+    const res = await postData("/auth/verify-otp", payload);
 
       setIsLoading(false);
 
-      if (!res?.error) {
-        context.openAlertBox(
-          "success",
-          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
-        );
+    if (!res?.error) {
 
-        // 🔥 Auto Login
-        if (res?.data?.accesstoken) {
-          localStorage.setItem("accesstoken", res.data.accesstoken);
-          localStorage.setItem("refreshtoken", res.data.refreshtoken);
-          localStorage.setItem(
-            "userData",
-            JSON.stringify(res.data.user)
-          );
-          localStorage.setItem("isLogin", "true");
+  context.openAlertBox(
+    "success",
+    "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+  );
 
-          context.setIsLogin(true);
-          context.setUserData(res.data.user);
-        }
+  // 🔥 Auto Login Process
+  if (res?.data?.accesstoken) {
 
-        // Close OTP panel
-        context.closeOtpPanel();
+    localStorage.setItem("accesstoken", res.data.accesstoken);
+    localStorage.setItem("refreshtoken", res.data.refreshtoken);
+    localStorage.setItem("userData", JSON.stringify(res.data.user));
+    localStorage.setItem("isLogin", "true");
 
-        // Redirect Home
-        navigate("/", { replace: true });
-      } else {
+    context.setIsLogin(true);
+    context.setUserData(res.data.user);
+  }
+
+  // OTP panel বন্ধ
+  context.closeOtpPanel();
+
+  // Home page এ redirect
+  window.location.href = "/";
+} else {
         context.openAlertBox(
           "error",
           res?.message || "OTP verification failed"
@@ -95,16 +86,14 @@ const VerifyOtpPanel = () => {
     }
   };
 
-  // 🔄 Resend OTP
+  // Resend OTP
   const handleResend = async () => {
     if (!mobile) return;
 
     try {
       setIsLoading(true);
 
-      const res = await postData("/auth/resend-otp", {
-        mobile: String(mobile),
-      });
+      const res = await postData("/auth/resend-otp",{ mobile: String(mobile) });
 
       setIsLoading(false);
 
@@ -144,9 +133,7 @@ const VerifyOtpPanel = () => {
       <input
         type="text"
         value={otp}
-        onChange={(e) =>
-          setOtp(e.target.value.replace(/\D/g, ""))
-        }
+        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
         maxLength={6}
         placeholder="Enter 6 digit OTP"
         style={{
@@ -178,12 +165,7 @@ const VerifyOtpPanel = () => {
           <button
             onClick={handleResend}
             disabled={isLoading}
-            style={{
-              border: "none",
-              background: "none",
-              color: "blue",
-              cursor: "pointer",
-            }}
+            style={{ border: "none", background: "none", color: "blue" }}
           >
             Resend OTP
           </button>
@@ -201,7 +183,6 @@ const VerifyOtpPanel = () => {
           color: "#fff",
           border: "none",
           padding: "8px",
-          cursor: "pointer",
         }}
       >
         Cancel
