@@ -38,7 +38,7 @@ const VerifyOtp = () => {
     setIsLoading(true);
     const res = await postData("/auth/verify-otp", { mobile, otp });
     setIsLoading(false);
-
+console.log(res)
     if (!res?.error) {
       context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
       if (res?.data?.accesstoken) {
