@@ -20,7 +20,7 @@ AuthRoutes.post("/login",loginUserController)
 AuthRoutes.post("/loginPanel",loginPanelUserController)
 AuthRoutes.post("/authWithGoogle",authWithGoogle)
 AuthRoutes.get("/logout",auth,logoutController)
-AuthRoutes.put('/user-avatar',auth,userAvatarController);
+AuthRoutes.put('/user-avatar',auth,upload.array('avatar'),userAvatarController);
 AuthRoutes.delete('/deleteImage',auth,removeimageFromCloudinary);
 AuthRoutes.put('/:id',auth,updateUserDeatils);
 AuthRoutes.post('/forgot-password',forgotPasswordController);
