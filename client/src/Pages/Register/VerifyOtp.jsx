@@ -17,9 +17,10 @@ const VerifyOtp = () => {
   const navigate = useNavigate();
   const context = useContext(MyContext);
 
-  const mobile = location.state?.mobile; 
-  const redirectTo = location.state?.from || "/"; 
+  const mobile = location.state?.mobile;
+  const redirectTo = location.state?.from || "/";
 
+  // Countdown timer for Resend OTP
   useEffect(() => {
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds(seconds - 1), 1000);
@@ -29,6 +30,7 @@ const VerifyOtp = () => {
     }
   }, [seconds]);
 
+  // Handle OTP verification
   const handleVerify = async () => {
     if (otp.length !== 6) {
       context.openAlertBox("error", "Please enter a 6-digit OTP");
@@ -38,21 +40,28 @@ const VerifyOtp = () => {
     setIsLoading(true);
     const res = await postData("/auth/verify-otp", { mobile, otp });
     setIsLoading(false);
-console.log(res)
+
     if (!res?.error) {
+      // Success → auto login
       context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
+
       if (res?.data?.accesstoken) {
         localStorage.setItem("accesstoken", res.data.accesstoken);
         localStorage.setItem("refreshtoken", res.data.refreshtoken);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("userData", JSON.stringify(res.data.user));
+        localStorage.setItem("isLogin", "true");
+
         context.setIsLogin(true);
+        context.setUserData(res.data.user);
       }
+
       navigate(redirectTo, { replace: true });
     } else {
-      context.openAlertBox("error", res?.message);
+      context.openAlertBox("error", res?.message || "OTP verification failed");
     }
   };
 
+  // Handle Resend OTP
   const handleResend = async () => {
     setIsLoading(true);
     const res = await postData("/auth/resend-otp", { mobile });
@@ -63,7 +72,7 @@ console.log(res)
       setSeconds(60);
       setCanResend(false);
     } else {
-      context.openAlertBox("error", res?.message);
+      context.openAlertBox("error", res?.message || "Failed to resend OTP");
     }
   };
 
