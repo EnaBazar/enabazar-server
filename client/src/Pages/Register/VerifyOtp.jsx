@@ -55,7 +55,7 @@ const VerifyOtp = () => {
         context.setUserData(res.data.user);
       }
 
-
+navigate("/")
     } else {
       context.openAlertBox("error", res?.message || "OTP verification failed");
     }
