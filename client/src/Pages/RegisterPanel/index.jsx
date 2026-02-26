@@ -45,7 +45,59 @@ const googleProvider = new GoogleAuthProvider();
         }
       })
     }
+
+      const [errors, setErrors] = useState({
+        name: "",
+        mobile: "",
+      });
     
+      const bdMobileRegex = /^01[3-9]\d{8}$/;
+    
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+    
+        if (name === "mobile") {
+          const numericValue = value.replace(/\D/g, "");
+    
+          if (numericValue.length <= 11) {
+            setFormFields((prev) => ({
+              ...prev,
+              mobile: numericValue,
+            }));
+    
+            if (!bdMobileRegex.test(numericValue)) {
+              setErrors((prev) => ({
+                ...prev,
+                mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+              }));
+            } else {
+              setErrors((prev) => ({
+                ...prev,
+                mobile: "",
+              }));
+            }
+          }
+        }
+    
+        if (name === "name") {
+          setFormFields((prev) => ({
+            ...prev,
+            name: value,
+          }));
+    
+          if (value.trim().length < 3) {
+            setErrors((prev) => ({
+              ...prev,
+              name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+            }));
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              name: "",
+            }));
+          }
+        }
+      };
     const valideValue = Object.values(formFields).every(el => el)
     
 const handleSubmit=(e)=>{
@@ -53,17 +105,23 @@ const handleSubmit=(e)=>{
   e.preventDefault();
   setIsLoading(true)
   
-  if(formFields.name==="")
-  {
-    context.openAlertBox("error","Please add full name")
-    return false
-  }
-  
-  if(formFields.mobile==="")
-    {
-      context.openAlertBox("error","Please entry your mobile")
-      return false
+ if (!bdMobileRegex.test(formFields.mobile)) {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+      }));
+      return;
     }
+
+    if (formFields.name.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+      }));
+      return;
+    }
+  
+  
     
     if(formFields.password==="")
       {
@@ -110,50 +168,50 @@ if(res?.error !== true){
 
 
   return (
-   <section className="py-8 flex justify-center">
-  <div
-    className="
-      w-[90%] 
-      max-w-[360px] 
-      bg-white/70 
-      backdrop-blur-md 
-      shadow-xl 
-      rounded-xl 
-      p-6
-    "
-  >
- <h3 className="text-center text-[16px] font-medium mb-4">
-      আপনি প্রথমবার ব্যবহার করছেন, তাই কিছু তথ্য দিন!
-    </h3>
+   <section className="w-full bg-white shadow-2xl rounded-2xl p-8 border border-gray-100">
+  <div>
+  <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-800">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+          আপনার নাম ও মোবাইল নাম্বার দিন !
+          </p>
+        </div>
 
 <form className='w-full !mt-5'onSubmit={handleSubmit}>
 <div className='form-group w-full !mb-5'>
-<TextField 
-type='text'
-id="name"
-name="name"
-value={formFields.name}
-disabled={isLoading===true ? true : false}
- label="আপনার নাম"
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
+ <TextField
+            fullWidth
+            type='text'
+            id="name"
+            label="আপনার নাম"
+            name="name"
+            value={formFields.name}
+            onChange={handleChange}
+            error={!!errors.name}
+            helperText={errors.name}
+          disabled={isLoading===true ? true : false}
+          />
+
 </div>
-<div className='form-group w-full !mb-5'>
-<TextField 
-type='number'
-id="mobile"
-name="mobile"
-value={formFields.mobile}
-disabled={isLoading===true ? true : false}
- label="মোবাইল নাম্বার"
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
- 
-</div>
+
+
+ <TextField
+            fullWidth
+            type='number'
+            id="mobile"
+            label="মোবাইল নাম্বার"
+            name="mobile"
+            value={formFields.mobile}
+            onChange={handleChange}
+            error={!!errors.mobile}
+            helperText={errors.mobile}
+          disabled={isLoading===true ? true : false}
+          />
+
+
+
 <div className='form-group w-full !mb-5 relative'>
 <TextField 
 type={IsShowPassword===false ? 'password': 'text'}
