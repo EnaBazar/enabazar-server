@@ -38,18 +38,25 @@ const register = async (req, res) => {
     }
 
     const exist = await usermodel.findOne({ mobile });
-    if (exist) {
+
+    // ✅ যদি আগে verify হয়ে থাকে → register করতে পারবে না
+    if (exist && exist.verify_mobile === true) {
       return res.status(400).json({
         error: true,
-        message: "User already exists",
+        message: "এই নাম্বার দিয়ে আগে থেকেই একাউন্ট আছে",
       });
+    }
+
+    // ✅ যদি verify না করা থাকে → পুরানোটা delete করে দাও
+    if (exist && exist.verify_mobile === false) {
+      await usermodel.deleteOne({ _id: exist._id });
     }
 
     // 🔐 password hash
     const salt = await bcryptjs.genSalt(10);
     const hashPassword = await bcryptjs.hash(password, salt);
 
-    // 🔢 OTP generate
+    // 🔢 নতুন OTP generate
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = new usermodel({
@@ -57,22 +64,21 @@ const register = async (req, res) => {
       mobile,
       password: hashPassword,
       otp,
-      otpExpires: Date.now() + 5 * 60 * 1000, // 5 min
+      otpExpires: Date.now() + 5 * 60 * 1000,
       verify_mobile: false,
     });
 
     await user.save();
 
     // 📩 SMS send
-    await sendSMS(mobile,otp);
+    await sendSMS(mobile, otp);
 
     return res.json({
       success: true,
-      message: "OTP পাঠানো হয়েছে",
+      message: "নতুন OTP পাঠানো হয়েছে",
     });
 
   } catch (error) {
- 
     return res.status(500).json({
       error: true,
       message: "Server error",
