@@ -12,14 +12,6 @@ import  CircularProgress  from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
 
 
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { firebaseApp } from '../../firebase';
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
-
-
-
-
 
  const RegisterPanel = () => {
     const [isLoading,setIsLoading]= useState(false);
@@ -49,6 +41,7 @@ const googleProvider = new GoogleAuthProvider();
       const [errors, setErrors] = useState({
         name: "",
         mobile: "",
+        password:""
       });
     
       const bdMobileRegex = /^01[3-9]\d{8}$/;
@@ -121,14 +114,15 @@ const handleSubmit=(e)=>{
       return;
     }
   
-  
+    if (formFields.password.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "আপনার পাসওয়াড দিন",
+      }));
+      return;
+    }
     
-    if(formFields.password==="")
-      {
-        context.openAlertBox("error","Please entry your Password")
-        return false
-      }
-  
+   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
 
@@ -174,15 +168,18 @@ if(res?.error !== true){
           <h2 className="text-2xl font-bold text-gray-800">
             Welcome Back
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
-          আপনার নাম ও মোবাইল নাম্বার দিন !
+          <p className="!text-[10px] text-gray-500 mt-1">
+          আপনার নাম ও মোবাইল নাম্বার দিয়ে রেজিস্টেশন করুন !
           </p>
         </div>
 
 <form className='w-full !mt-5'onSubmit={handleSubmit}>
-<div className='form-group w-full !mb-5'>
+
+
  <TextField
             fullWidth
+             className='!mb-4'
+             size='small'
             type='text'
             id="name"
             label="আপনার নাম"
@@ -194,11 +191,13 @@ if(res?.error !== true){
           disabled={isLoading===true ? true : false}
           />
 
-</div>
+
 
 
  <TextField
             fullWidth
+              size='small'
+             className='!mb-4'
             type='number'
             id="mobile"
             label="মোবাইল নাম্বার"
@@ -210,37 +209,30 @@ if(res?.error !== true){
           disabled={isLoading===true ? true : false}
           />
 
+ <TextField
+            fullWidth
+              size='small'
+            className='!mb-4'
+            type={IsShowPassword===false ? 'password': 'text'}
+            id="Password"
+            label="পাসওয়াড দিন"
+            name="password"
+            value={formFields.password}
+            onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
+          disabled={isLoading===true ? true : false}
+          />
 
 
-<div className='form-group w-full !mb-5 relative'>
-<TextField 
-type={IsShowPassword===false ? 'password': 'text'}
-id="Password"
- label="Password*"
- name="password"
- value={formFields.password}
- disabled={isLoading===true ? true : false}
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
-<Button 
 
-className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
- !h-[35px] !min-w-[35px] !rounded-full 
- !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
- {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] 
-    opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
- }
-</Button>
-</div>
 
 
 <div className='flex items-center w-full !mt-3 !mb-3'>
 
 <Button
 onClick={context.closeragisterPanel}
+  size='small'
 type='submit' disabled={!valideValue} 
 className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
 {
@@ -254,7 +246,7 @@ className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
 </Button>
 
 </div>
-<p className='text-center '>Already have an account? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
+<p className='text-center !text-[10px]'>আপনার আগের রেজিস্টেশন থাকলে ? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
 
 
 </form>
