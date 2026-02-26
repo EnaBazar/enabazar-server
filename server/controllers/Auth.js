@@ -100,6 +100,21 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
+    // 🔴 OTP expired হলে user delete
+    if (!user.otpExpires || user.otpExpires < Date.now()) {
+
+      // যদি এখনও verify না হয়ে থাকে
+      if (!user.verify_mobile) {
+        await usermodel.deleteOne({ _id: user._id });
+      }
+
+      return res.status(400).json({
+        error: true,
+        message: "OTP expired. Please register again.",
+      });
+    }
+
+    // 🔴 Invalid OTP
     if (!user.otp || user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
@@ -107,21 +122,14 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    if (!user.otpExpires || user.otpExpires < Date.now()) {
-      return res.status(400).json({
-        error: true,
-        message: "OTP expired",
-      });
-    }
-
-    // ✅ Update user
+    // ✅ Verify success
     user.verify_mobile = true;
-    user.otp = "";
-    user.otpExpires = null;
+    user.otp = undefined;
+    user.otpExpires = undefined;
 
     await user.save();
 
-    // 🔥 Generate Tokens
+    // 🔐 Generate Tokens
     const accesstoken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.SECRET_KEY_ACCESS_TOKEN,
@@ -347,7 +355,7 @@ export async function loginUserController(request, response) {
 
       if (!user) {
          return response.status(400).json({
-            message: "User Not Registered",
+            message: "আপনার রেজিট্রেশন করা নাই",
             error: true,
             success: false
          });
@@ -365,7 +373,7 @@ export async function loginUserController(request, response) {
       // 3️⃣ ✅ Mobile verification check
       if (!user.verify_mobile) {
          return response.status(403).json({
-            message: "Please verify your mobile number first",
+            message: "আপনার মোবাইল নাম্বারটা রেজিট্রেশন করা নাই",
             error: true,
             success: false,
             verifyRequired: true   // 👉 frontend বুঝতে পারবে
