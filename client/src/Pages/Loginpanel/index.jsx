@@ -106,10 +106,7 @@ const LoginPanel = () => {
 
         window.location.reload();
       } else {
-        context.openAlertBox(
-          "error",
-          "আপনার নিবন্ধন নাই! নাম ও মোবাইল নাম্বার দিয়ে রেজিস্টার করুন!"
-        );
+       context.openAlertBox("success", res?.message);
 
         context?.setOpenLoginPanel(false);
         setTimeout(() => {
