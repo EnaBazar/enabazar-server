@@ -1,245 +1,218 @@
-import React, { useContext, useState } from "react";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { MyContext } from "../../App";
-import { postData } from "../../utils/api";
-import { useNavigate } from "react-router-dom";
 
-const RegisterPanel = () => {
-  const context = useContext(MyContext);
-  const navigate = useNavigate();
+import React, { useContext, useState } from 'react'
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import {IoMdEye} from 'react-icons/io';
+import {IoMdEyeOff} from 'react-icons/io';
+import { Link } from "react-router-dom";
+import {FcGoogle} from 'react-icons/fc';
+import { postData } from '../../utils/api';
+import { MyContext } from '../../App';
+import  CircularProgress  from '@mui/material/CircularProgress';
+import { useNavigate } from 'react-router-dom';
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isShowPassword, setIsShowPassword] = useState(false);
 
-  const [formFields, setFormFields] = useState({
-    name: "",
-    mobile: "",
-    password: "",
-  });
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { firebaseApp } from '../../firebase';
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
 
-  const [errors, setErrors] = useState({
-    name: "",
-    mobile: "",
-    password: "",
-  });
 
-  const bdMobileRegex = /^01[3-9]\d{8}$/;
 
-  // Input change handler
-  const handleChange = (e) => {
-    const { name, value } = e.target;
 
-    if (name === "mobile") {
-      const numericValue = value.replace(/\D/g, "");
-      if (numericValue.length <= 11) {
-        setFormFields((prev) => ({ ...prev, mobile: numericValue }));
 
-        if (!bdMobileRegex.test(numericValue)) {
-          setErrors((prev) => ({
-            ...prev,
-            mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
-          }));
-        } else {
-          setErrors((prev) => ({ ...prev, mobile: "" }));
+ const RegisterPanel = () => {
+    const [isLoading,setIsLoading]= useState(false);
+    const navigate = useNavigate();
+    const [IsShowPassword,setIsShowPassword] = useState(false);
+    const [formFields,setFormFields]= useState({
+      name:"",
+      mobile:"",
+      password:""
+    })
+    
+    
+    const context = useContext(MyContext)
+    const history = useNavigate();
+    window.scrollTo(0,0)
+    const onchangeInput=(e)=>{
+      
+      const {name,value} = e.target;
+      setFormFields(()=>{
+        return{
+          ...formFields,
+          [name]:value
         }
+      })
+    }
+    
+    const valideValue = Object.values(formFields).every(el => el)
+    
+const handleSubmit=(e)=>{
+  
+  e.preventDefault();
+  setIsLoading(true)
+  
+  if(formFields.name==="")
+  {
+    context.openAlertBox("error","Please add full name")
+    return false
+  }
+  
+  if(formFields.mobile==="")
+    {
+      context.openAlertBox("error","Please entry your mobile")
+      return false
+    }
+    
+    if(formFields.password==="")
+      {
+        context.openAlertBox("error","Please entry your Password")
+        return false
       }
-      return;
-    }
+  
+  postData("/auth/register",formFields).then((res)=>{
+    console.log(res)
 
-    if (name === "name") {
-      setFormFields((prev) => ({ ...prev, name: value }));
-      if (value.trim().length < 3) {
-        setErrors((prev) => ({
-          ...prev,
-          name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
-        }));
-      } else {
-        setErrors((prev) => ({ ...prev, name: "" }));
-      }
-      return;
-    }
 
-    if (name === "password") {
-      setFormFields((prev) => ({ ...prev, password: value }));
-      if (value.length < 6) {
-        setErrors((prev) => ({
-          ...prev,
-          password: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
-        }));
-      } else {
-        setErrors((prev) => ({ ...prev, password: "" }));
-      }
-      return;
-    }
-  };
+    // Register.jsx এর handleSubmit function এর মধ্যে
+if(res?.error !== true){
+  setIsLoading(false)
+  context.openAlertBox("success",res?.message);
+  localStorage.setItem("userEmail",formFields.mobile)
 
-  // Form submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ✅ Add this line for OTP redirect
 
-    // Validation before API call
-    if (!bdMobileRegex.test(formFields.mobile)) {
-      setErrors((prev) => ({
-        ...prev,
-        mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
-      }));
-      return;
-    }
-    if (formFields.name.trim().length < 3) {
-      setErrors((prev) => ({
-        ...prev,
-        name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
-      }));
-      return;
-    }
-    if (formFields.password.length < 6) {
-      setErrors((prev) => ({
-        ...prev,
-        password: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
-      }));
-      return;
-    }
+  context?.openOtpPanel({
+  mobile: formFields.mobile,  // যেই মোবাইল দিয়ে register করছে
+});
 
-    try {
-      setIsLoading(true);
-      const res = await postData("/auth/register", formFields);
 
-      if (res?.error !== true) {
-        context.openAlertBox("success", res?.message);
-        localStorage.setItem("userEmail", formFields.mobile);
-
-        // OTP redirect
-        navigate("/verify-otp", { state: { mobile: formFields.mobile } });
-
-        setFormFields({
-          name: "",
-          mobile: "",
-          password: "",
-        });
-      } else {
-        context.openAlertBox("error", res?.message);
-      }
-    } catch (err) {
-      context.openAlertBox("error", "Something went wrong!");
-    } finally {
+  setFormFields({
+    name:"",
+    mobile:"",
+    password:""
+  })
+}else{
+      context.openAlertBox("error",res?.message);
+      setFormFields({
+        name:"",
+        mobile:"",
+        password:""
+      })
       setIsLoading(false);
+     
     }
-  };
+   
+  })
+}
+
+
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-4 bg-gray-100">
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8 border border-gray-100">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            প্রথমবার ব্যবহার করতে নাম ও মোবাইল নাম্বার দিন!
-          </p>
-        </div>
+   <section className="py-8 flex justify-center">
+  <div
+    className="
+      w-[90%] 
+      max-w-[360px] 
+      bg-white/70 
+      backdrop-blur-md 
+      shadow-xl 
+      rounded-xl 
+      p-6
+    "
+  >
+ <h3 className="text-center text-[16px] font-medium mb-4">
+      আপনি প্রথমবার ব্যবহার করছেন, তাই কিছু তথ্য দিন!
+    </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
-          <TextField
-            fullWidth
-            label="আপনার নাম"
-            name="name"
-            value={formFields.name}
-            onChange={handleChange}
-            error={!!errors.name}
-            helperText={errors.name}
-            disabled={isLoading}
-            size="small"
-            sx={{
-              "& .MuiOutlinedInput-root": { borderRadius: "10px", height: 42 },
-              "& .MuiInputBase-input": { padding: "10px 12px", fontSize: "14px" },
-            }}
-          />
+<form className='w-full !mt-5'onSubmit={handleSubmit}>
+<div className='form-group w-full !mb-5'>
+<TextField 
+type='text'
+id="name"
+name="name"
+value={formFields.name}
+disabled={isLoading===true ? true : false}
+ label="আপনার নাম"
+  variant="outlined"
+  className='w-full' 
+  onChange={onchangeInput}
+  />
+</div>
+<div className='form-group w-full !mb-5'>
+<TextField 
+type='number'
+id="mobile"
+name="mobile"
+value={formFields.mobile}
+disabled={isLoading===true ? true : false}
+ label="মোবাইল নাম্বার"
+  variant="outlined"
+  className='w-full' 
+  onChange={onchangeInput}
+  />
+ 
+</div>
+<div className='form-group w-full !mb-5 relative'>
+<TextField 
+type={IsShowPassword===false ? 'password': 'text'}
+id="Password"
+ label="Password*"
+ name="password"
+ value={formFields.password}
+ disabled={isLoading===true ? true : false}
+  variant="outlined"
+  className='w-full' 
+  onChange={onchangeInput}
+  />
+<Button 
 
-          {/* Mobile */}
-          <TextField
-            fullWidth
-            label="মোবাইল নাম্বার"
-            name="mobile"
-            value={formFields.mobile}
-            onChange={handleChange}
-            error={!!errors.mobile}
-            helperText={errors.mobile}
-            disabled={isLoading}
-            size="small"
-            inputProps={{ maxLength: 11, inputMode: "numeric" }}
-            sx={{
-              "& .MuiOutlinedInput-root": { borderRadius: "10px", height: 42 },
-              "& .MuiInputBase-input": { padding: "10px 12px", fontSize: "14px" },
-            }}
-          />
+className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
+ !h-[35px] !min-w-[35px] !rounded-full 
+ !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
+ {
+    IsShowPassword===true ?  <IoMdEye className="text-[20px] 
+    opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+ }
+</Button>
+</div>
 
-          {/* Password */}
-          <div className="relative">
-            <TextField
-              fullWidth
-              type={isShowPassword ? "text" : "password"}
-              label="পাসওয়ার্ড"
-              name="password"
-              value={formFields.password}
-              onChange={handleChange}
-              error={!!errors.password}
-              helperText={errors.password}
-              disabled={isLoading}
-              size="small"
-              sx={{
-                "& .MuiOutlinedInput-root": { borderRadius: "10px", height: 42 },
-                "& .MuiInputBase-input": { padding: "10px 12px", fontSize: "14px" },
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => setIsShowPassword(!isShowPassword)}
-              className="absolute top-3 right-3 text-gray-500"
-            >
-              {isShowPassword ? <IoMdEye /> : <IoMdEyeOff />}
-            </button>
-          </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            fullWidth
-            disabled={isLoading}
-            sx={{
-              height: 42,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontSize: "16px",
-              fontWeight: 600,
-              background: "linear-gradient(90deg, #ff4d4d, #ff0000)",
-              boxShadow: "0 8px 20px rgba(255,0,0,0.25)",
-              "&:hover": {
-                background: "linear-gradient(90deg, #e60000, #cc0000)",
-              },
-            }}
-          >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : "Register"}
-          </Button>
+<div className='flex items-center w-full !mt-3 !mb-3'>
 
-          {/* Switch to Login */}
-          <p className="text-center text-sm text-gray-600">
-            Already have an account?{" "}
-            <span
-              onClick={() => {
-                context?.setOpenRegisterPanel(false);
-                context?.setOpenLoginPanel(true);
-              }}
-              className="font-semibold text-red-500 cursor-pointer hover:underline"
-            >
-              Sign In
-            </span>
-          </p>
-        </form>
-      </div>
-    </section>
-  );
-};
+<Button
+onClick={context.closeragisterPanel}
+type='submit' disabled={!valideValue} 
+className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
+{
+  
+  isLoading === true ? <CircularProgress color="inherit"/>
+  
+  :
+  'Register'
+}
 
+</Button>
+
+</div>
+<p className='text-center '>Already have an account? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
+
+
+</form>
+   </div>
+    
+   </section>
+  )
+}
 export default RegisterPanel;
+
+
+
+
+
+
+
+
+
+
