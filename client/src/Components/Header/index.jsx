@@ -152,7 +152,27 @@ const Header =() => {
         {
         context.isLogin === false ?
         <li className="list-none">
-        <Link to="/login" className="link transition text-[14px] font-[500] lgn">Login</Link> | &nbsp;  <Link to="/Register"  className="link transition text-[14px] font-[500] lgn">Register</Link>
+     <span
+  onClick={() => {
+    context?.setOpenLoginPanel(true);
+  
+  }}
+  className="link transition text-[14px] font-[500] lgn cursor-pointer"
+>
+  Login
+</span>
+
+&nbsp; | &nbsp;
+
+<span
+  onClick={() => {
+    context?.setOpenRegisterPanel(true);
+ 
+  }}
+  className="link transition text-[14px] font-[500] lgn cursor-pointer"
+>
+  Register
+</span>
            
       </li>
       : (
