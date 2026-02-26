@@ -19,10 +19,12 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    avatar: {
+   avatar: [
+   {
       type: String,
-      default: "",
-    },
+      default: ""
+   }
+],
 
     // 🔐 Mobile should be String
     mobile: {
