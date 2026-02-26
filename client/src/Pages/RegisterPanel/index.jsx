@@ -90,6 +90,28 @@ import { useNavigate } from 'react-router-dom';
             }));
           }
         }
+
+  if (password === "password") {
+          setFormFields((prev) => ({
+            ...prev,
+            password: value,
+          }));
+    
+          if (value.trim().length < 3) {
+            setErrors((prev) => ({
+              ...prev,
+              password: "আপনার পাসওয়াড দিন",
+            }));
+          } else {
+            setErrors((prev) => ({
+              ...prev,
+              password: "",
+            }));
+          }
+        }
+
+
+
       };
     const valideValue = Object.values(formFields).every(el => el)
     
@@ -208,30 +230,27 @@ if(res?.error !== true){
             helperText={errors.mobile}
           disabled={isLoading===true ? true : false}
           />
-
- <TextField
-  fullWidth
-  size="small"
-  type={IsShowPassword ? "text" : "password"}
-  label="পাসওয়াড দিন"
-  name="password"
-  value={formFields.password}
-  onChange={handleChange}
-  error={!!errors.password}
-  helperText={errors.password}
-  disabled={isLoading}
-  sx={{
-    "& .MuiOutlinedInput-root": { borderRadius: "10px", height: 42 },
-    "& .MuiInputBase-input": { padding: "10px 12px", fontSize: "14px" },
-  }}
-/>
-<Button className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
+<div className='form-group w-full !mb-5 relative'>
+<TextField 
+type={IsShowPassword===false ? 'password': 'text'}
+id="Password"
+size='small'
+ label="পাসওয়াড*"
+ name="password"
+ value={formFields.password}
+ disabled={isLoading===true ? true : false}
+  variant="outlined"
+  className='w-full' 
+  onChange={onchangeInput}
+  />
+<Button className='!absolute !top-[4px] !right-[10px] z-50 !w-[35x]
  !h-[35px] !min-w-[35px] !rounded-full 
  !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
  {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+    IsShowPassword===true ?  <IoMdEye className="text-[18px] opacity-75"/> :  <IoMdEyeOff className="text-[18px] opacity-75"/>
  }
 </Button>
+</div>
 
 
 
