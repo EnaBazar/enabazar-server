@@ -80,8 +80,6 @@ const register = async (req, res) => {
   }
 };
 
-
-
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
@@ -342,10 +340,10 @@ export async function authWithGoogle(request,response){
 //login user
 export async function loginUserController(request, response) {
    try {
-      const { mobile,name } = request.body;
+      const { mobile, name } = request.body;
 
-      // 1. Find user
-      const user = await usermodel.findOne({ mobile,name });
+      // 1️⃣ Find user
+      const user = await usermodel.findOne({ mobile, name });
 
       if (!user) {
          return response.status(400).json({
@@ -355,7 +353,7 @@ export async function loginUserController(request, response) {
          });
       }
 
-      // 2. Check status
+      // 2️⃣ Check account status
       if (user.status !== "Active") {
          return response.status(400).json({
             message: "Connect to admin",
@@ -364,19 +362,26 @@ export async function loginUserController(request, response) {
          });
       }
 
-      // ❌ bcrypt compare লাগবে না
-      // কারণ আপনি mobile = mobile মিলিয়ে login করাতে চান
+      // 3️⃣ ✅ Mobile verification check
+      if (!user.verify_mobile) {
+         return response.status(403).json({
+            message: "Please verify your mobile number first",
+            error: true,
+            success: false,
+            verifyRequired: true   // 👉 frontend বুঝতে পারবে
+         });
+      }
 
-      // 3. Generate tokens
+      // 4️⃣ Generate tokens
       const accesstoken = await generatedAccessToken(user._id);
       const refreshtoken = await generatedRefreshToken(user._id);
 
-      // 4. Update last login
+      // 5️⃣ Update last login
       await usermodel.findByIdAndUpdate(user._id, {
          last_login_date: new Date()
       });
 
-      // 5. Cookie settings
+      // 6️⃣ Cookie settings
       const cookiesOption = {
          httpOnly: true,
          secure: true,
@@ -386,7 +391,7 @@ export async function loginUserController(request, response) {
       response.cookie("accessToken", accesstoken, cookiesOption);
       response.cookie("refreshToken", refreshtoken, cookiesOption);
 
-      // 6. Success response
+      // 7️⃣ Success response
       return response.json({
          message: "Login Successfully",
          error: false,
