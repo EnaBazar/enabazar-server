@@ -210,20 +210,28 @@ if(res?.error !== true){
           />
 
  <TextField
-            fullWidth
-              size='small'
-            className='!mb-4'
-            type={IsShowPassword===false ? 'password': 'text'}
-            id="Password"
-            label="পাসওয়াড দিন"
-            name="password"
-            value={formFields.password}
-            onChange={handleChange}
-            error={!!errors.password}
-            helperText={errors.password}
-          disabled={isLoading===true ? true : false}
-          />
-
+  fullWidth
+  size="small"
+  type={IsShowPassword ? "text" : "password"}
+  label="পাসওয়াড দিন"
+  name="password"
+  value={formFields.password}
+  onChange={handleChange}
+  error={!!errors.password}
+  helperText={errors.password}
+  disabled={isLoading}
+  sx={{
+    "& .MuiOutlinedInput-root": { borderRadius: "10px", height: 42 },
+    "& .MuiInputBase-input": { padding: "10px 12px", fontSize: "14px" },
+  }}
+/>
+<Button className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
+ !h-[35px] !min-w-[35px] !rounded-full 
+ !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
+ {
+    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
+ }
+</Button>
 
 
 
