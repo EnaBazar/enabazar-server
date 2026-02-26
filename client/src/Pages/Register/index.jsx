@@ -102,69 +102,7 @@ if(res?.error !== true){
   })
 }
 
-const authWithGoogle=()=>{
- signInWithPopup(auth, googleProvider)
-  .then((result) => {
-  
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential.accessToken;
-   
-    const user = result.user;
-    
-    const fields = {
-      
-      name: user.providerData[0].displayName,
-      email: user.providerData[0].email,
-       password: null,
-        avatar: user.providerData[0].photoURL,
-         mobile: user.providerData[0].phoneNumber,
-         signUpWithGoogle:true,
-         role:"USER"
-    }
-    
-    
-      postData("/auth/authWithGoogle",fields).then((res)=>{
-   
-    if(res?.error !== true){
-      setIsLoading(false)
-      context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",fields.mobile)
-      
-       localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-     localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-     
-     context.setIsLogin(true);
- 
-      history("/")
-    }else{
-      context.openAlertBox("error",res?.message);
-      setFormFields({
-        name:"",
-        email:"",
-     
-        password:""
-      })
-      setIsLoading(false);
-     
-    }
-   
-  })
-    
-    
-    
-   console.log(user)
-  
-  }).catch((error) => {
-  
-    const errorCode = error.code;
-    const errorMessage = error.message;
 
-    const email = error.customData.mobile;
- 
-    const credential = GoogleAuthProvider.credentialFromError(error);
-    // ...
-  });
-}
 
   return (
    <section className='section py-10'>
@@ -238,11 +176,7 @@ id="Password"
 </div>
 <p className='text-center '>Already have an account? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
 
-<p className='text-center font-[500] '>Or continue with social account</p>
 
-<Button className='flex gap-3 w-full !bg-[f1f1f1] btn-lg !text-black'
-onClick={authWithGoogle}
-><FcGoogle className='text-[20px]'/>SignUp with Google</Button>
 </form>
    </div>
    </div>  

@@ -1,75 +1,126 @@
+import React, { useContext, useState } from "react";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
+import { FcGoogle } from "react-icons/fc";
+import { MyContext } from "../../App";
+import { postData } from "../../utils/api";
 
-import React, { useContext, useState } from 'react'
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import {IoMdEye} from 'react-icons/io';
-import {IoMdEyeOff} from 'react-icons/io';
-import { Link } from "react-router-dom";
-import {FcGoogle} from 'react-icons/fc';
-import { postData } from '../../utils/api';
-import { MyContext } from '../../App';
-import  CircularProgress  from '@mui/material/CircularProgress';
-import { useNavigate } from 'react-router-dom';
+const RegisterPanel = () => {
+  const context = useContext(MyContext);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
 
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { firebaseApp } from '../../firebase';
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
+  const [formFields, setFormFields] = useState({
+    name: "",
+    mobile: "",
+    password: "",
+  });
 
+  const [errors, setErrors] = useState({
+    name: "",
+    mobile: "",
+    password: "",
+  });
 
+  const bdMobileRegex = /^01[3-9]\d{8}$/;
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
+    if (name === "mobile") {
+      const numericValue = value.replace(/\D/g, "");
 
- const RegisterPanel = () => {
-    const [isLoading,setIsLoading]= useState(false);
-    const navigate = useNavigate();
-    const [IsShowPassword,setIsShowPassword] = useState(false);
-    const [formFields,setFormFields]= useState({
-      name:"",
-      mobile:"",
-      password:""
-    })
-    
-    
-    const context = useContext(MyContext)
-    const history = useNavigate();
-    window.scrollTo(0,0)
-    const onchangeInput=(e)=>{
-      
-      const {name,value} = e.target;
-      setFormFields(()=>{
-        return{
-          ...formFields,
-          [name]:value
+      if (numericValue.length <= 11) {
+        setFormFields((prev) => ({
+          ...prev,
+          mobile: numericValue,
+        }));
+
+        if (!bdMobileRegex.test(numericValue)) {
+          setErrors((prev) => ({
+            ...prev,
+            mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            mobile: "",
+          }));
         }
-      })
+      }
     }
-    
-    const valideValue = Object.values(formFields).every(el => el)
-    
+
+    if (name === "name") {
+      setFormFields((prev) => ({
+        ...prev,
+        name: value,
+      }));
+
+      if (value.trim().length < 3) {
+        setErrors((prev) => ({
+          ...prev,
+          name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          name: "",
+        }));
+      }
+    }
+
+    if (name === "password") {
+      setFormFields((prev) => ({
+        ...prev,
+        password: value,
+      }));
+
+      if (value.length < 6) {
+        setErrors((prev) => ({
+          ...prev,
+          password: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          password: "",
+        }));
+      }
+    }
+  };
+
+
 const handleSubmit=(e)=>{
   
   e.preventDefault();
   setIsLoading(true)
   
-  if(formFields.name==="")
-  {
-    context.openAlertBox("error","Please add full name")
-    return false
-  }
-  
-  if(formFields.mobile==="")
-    {
-      context.openAlertBox("error","Please entry your mobile")
-      return false
+    if (!bdMobileRegex.test(formFields.mobile)) {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+      }));
+      return;
     }
-    
-    if(formFields.password==="")
-      {
-        context.openAlertBox("error","Please entry your Password")
-        return false
-      }
+
+    if (formFields.name.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+      }));
+      return;
+    }
+
+    if (formFields.password.length < 6) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+      }));
+      return;
+    }
   
   postData("/auth/register",formFields).then((res)=>{
     console.log(res)
@@ -82,11 +133,7 @@ if(res?.error !== true){
   localStorage.setItem("userEmail",formFields.mobile)
 
   // ✅ Add this line for OTP redirect
-
-  context?.openOtpPanel({
-  mobile: formFields.mobile,  // যেই মোবাইল দিয়ে register করছে
-});
-
+  navigate("/verify-otp", { state: { mobile: formFields.mobile } });
 
   setFormFields({
     name:"",
@@ -107,178 +154,159 @@ if(res?.error !== true){
   })
 }
 
-const authWithGoogle=()=>{
- signInWithPopup(auth, googleProvider)
-  .then((result) => {
-  
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    const token = credential.accessToken;
-   
-    const user = result.user;
-    
-    const fields = {
-      
-      name: user.providerData[0].displayName,
-      email: user.providerData[0].email,
-       password: null,
-        avatar: user.providerData[0].photoURL,
-         mobile: user.providerData[0].phoneNumber,
-         signUpWithGoogle:true,
-         role:"USER"
-    }
-    
-    
-      postData("/auth/authWithGoogle",fields).then((res)=>{
-   
-    if(res?.error !== true){
-      setIsLoading(false)
-      context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",fields.mobile)
-      
-       localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-     localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-     
-     context.setIsLogin(true);
- 
-      history("/")
-    }else{
-      context.openAlertBox("error",res?.message);
-      setFormFields({
-        name:"",
-        email:"",
-     
-        password:""
-      })
-      setIsLoading(false);
-     
-    }
-   
-  })
-    
-    
-    
-   console.log(user)
-  
-  }).catch((error) => {
-  
-    const errorCode = error.code;
-    const errorMessage = error.message;
 
-    const email = error.customData.mobile;
- 
-    const credential = GoogleAuthProvider.credentialFromError(error);
-    // ...
-  });
-}
+
+
+
+
+
+
+
+
+
+
 
   return (
-   <section className="py-8 flex justify-center">
-  <div
-    className="
-      w-[90%] 
-      max-w-[360px] 
-      bg-white/70 
-      backdrop-blur-md 
-      shadow-xl 
-      rounded-xl 
-      p-6
-    "
-  >
- <h3 className="text-center text-[16px] font-medium mb-4">
-      আপনি প্রথমবার ব্যবহার করছেন, তাই কিছু তথ্য দিন!
-    </h3>
+     <section className="w-full h-full bg-white shadow-2xl rounded-2xl p-8 border border-gray-100 ">
+      <div>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-800">
+            Create Account
+          </h2>
+          <p className="!text-[10px] text-gray-500 mt-1">
+            প্রথমবার ব্যবহার করতে নাম ও মোবাইল নাম্বার দিন !
+          </p>
+        </div>  
 
-<form className='w-full !mt-5'onSubmit={handleSubmit}>
-<div className='form-group w-full !mb-5'>
-<TextField 
-type='text'
-id="name"
-name="name"
-value={formFields.name}
-disabled={isLoading===true ? true : false}
- label="আপনার নাম"
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
-</div>
-<div className='form-group w-full !mb-5'>
-<TextField 
-type='number'
-id="mobile"
-name="mobile"
-value={formFields.mobile}
-disabled={isLoading===true ? true : false}
- label="মোবাইল নাম্বার"
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
- 
-</div>
-<div className='form-group w-full !mb-5 relative'>
-<TextField 
-type={IsShowPassword===false ? 'password': 'text'}
-id="Password"
- label="Password*"
- name="password"
- value={formFields.password}
- disabled={isLoading===true ? true : false}
-  variant="outlined"
-  className='w-full' 
-  onChange={onchangeInput}
-  />
-<Button 
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <TextField
+            fullWidth
+        sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+      height: 42,
+    },
+    "& .MuiInputBase-input": {
+      padding: "10px 12px",
+    }
+  }}
+            className="!mb-4"
+            label="আপনার নাম"
+            name="name"
+            value={formFields.name}
+            onChange={handleChange}
+            error={!!errors.name}
+            helperText={errors.name}
+            disabled={isLoading}
+          />
 
-className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
- !h-[35px] !min-w-[35px] !rounded-full 
- !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
- {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] 
-    opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
- }
-</Button>
-</div>
+          <TextField
+            fullWidth
+                   sx={{
+                 "& .MuiInputBase-input": {
+      fontSize: "10px",   // এখানে size কমাও (13px / 12px)
+    },    
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+          fontSize: "16px",
+      height: 42,
+    },
+    "& .MuiInputBase-input": {
+      padding: "10px 12px",
+    }
+  }}
+            className="!mb-4"
+            size="small"
+            label="মোবাইল নাম্বার"
+            name="mobile"
+            value={formFields.mobile}
+            onChange={handleChange}
+            error={!!errors.mobile}
+            helperText={errors.mobile}
+            disabled={isLoading}
+            inputProps={{
+              maxLength: 11,
+              inputMode: "numeric",
+            }}
+          />
 
+          <div className="relative">
+            <TextField
+              fullWidth
+                     sx={{
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+       
+      height: 42,
+    },
+    "& .MuiInputBase-input": {
+      padding: "10px 12px",
+    }
+  }}
+              className="!mb-4"
+              type={isShowPassword ? "text" : "password"}
+              label="Password"
+              name="password"
+              value={formFields.password}
+              onChange={handleChange}
+              error={!!errors.password}
+              helperText={errors.password}
+              disabled={isLoading}
+            />
 
-<div className='flex items-center w-full !mt-3 !mb-3'>
+            <button
+              type="button"
+              onClick={() => setIsShowPassword(!isShowPassword)}
+              className="absolute top-3 right-3 text-gray-500"
+            >
+              {isShowPassword ? <IoMdEye /> : <IoMdEyeOff />}
+            </button>
+          </div>
 
-<Button
-onClick={context.closeragisterPanel}
-type='submit' disabled={!valideValue} 
-className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
-{
-  
-  isLoading === true ? <CircularProgress color="inherit"/>
-  
-  :
-  'Register'
-}
+          <Button
+            type="submit"
+            
+            className="!mb-4"
+            fullWidth
+            variant="contained"
+            size="large"
+            disabled={isLoading}
+            sx={{
+              height: 42,
+              borderRadius: "12px",
+              textTransform: "none",
+              fontSize: "16px",
+              fontWeight: 600,
+              background: "linear-gradient(90deg, #ff4d4d, #ff0000)",
+              boxShadow: "0 8px 20px rgba(255,0,0,0.25)",
+              "&:hover": {
+                background: "linear-gradient(90deg, #e60000, #cc0000)",
+              },
+            }}
+          >
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Register"
+            )}
+          </Button>
 
-</Button>
+          <p className="text-center !text-[8px] text-gray-600">
+            আপনার আগে রেজিস্টেশন আছে ?{" "}
+            <span
+              onClick={() => {
+                context?.setOpenRegisterPanel(false);
+                context?.setOpenLoginPanel(true);
+              }}
+              className="font-semibold !text-[12px] text-red-500 cursor-pointer hover:underline"
+            >
+              Sign In
+            </span>
+          </p>
+        </form>
+      </div>
+    </section>
+  );
+};
 
-</div>
-<p className='text-center '>Already have an account? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
-
-<p className='text-center font-[500] '>Or continue with social account</p>
-
-<Button className='flex gap-3 w-full !bg-[f1f1f1] btn-lg !text-black'
-onClick={authWithGoogle}
-><FcGoogle className='text-[20px]'/>SignUp with Google</Button>
-</form>
-   </div>
-    
-   </section>
-  )
-}
 export default RegisterPanel;
-
-
-
-
-
-
-
-
-
-
