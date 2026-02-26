@@ -273,8 +273,18 @@ className='btn-org btn-lg w-full cursor-pointer flex gap-3'>
 </Button>
 
 </div>
-<p className='text-center !text-[10px]'>আপনার আগের রেজিস্টেশন থাকলে? <Link className='link !text-[14px] cursor-pointer  !font-[600] !text-[#ff5252]' to="/login">Sign In</Link></p>
-
+   <p className="text-center !text-[8px] text-gray-600">
+            আপনার আগের রেজিস্টেশন থাকলে! {" "}
+            <span
+              onClick={() => {
+                context?.setOpenLoginPanel(true);
+                context?.setOpenRegisterPanel(false);
+              }}
+              className="font-semibold !text-[12px] text-red-500 cursor-pointer hover:underline"
+            >
+              Login
+            </span>
+          </p>
 
 </form>
    </div>
