@@ -644,49 +644,47 @@ export async function loginPanelUserController(request, response) {
  // Update user Deatils
 
 
-// Mobile update + OTP logic
 export async function updateUserDetails(req, res) {
   try {
     const userId = req.userId;
     const { name, mobile, password } = req.body;
 
     const userExist = await usermodel.findById(userId);
-    if (!userExist)
-      return res.status(400).json({ error: true, message: "User not found" });
+    if (!userExist) return res.status(400).json({ error: true, message: "User not found" });
 
-    let hashPassword = userExist.password;
-
-    if (password) {
-      const salt = await bcryptjs.genSalt(10);
-      hashPassword = await bcryptjs.hash(password, salt);
-    }
+    // Password hash
+    let hashPassword = password ? await bcryptjs.hash(password, await bcryptjs.genSalt(10)) : userExist.password;
 
     // Check if mobile changed
-    const mobileChanged = mobile && mobile !== userExist.mobile;
+    let otpSent = false;
+    if (mobile && mobile !== userExist.mobile) {
+      // Mobile changed → generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      userExist.otp = otp;
+      userExist.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+      userExist.verify_mobile = false;
+      otpSent = true;
 
-    // Update name and password
-    userExist.name = name;
-    userExist.password = hashPassword;
-
-    if (!mobileChanged) {
-      // Mobile not changed → simple update
-      await userExist.save();
-      return res.json({ success: true, message: "User updated successfully" });
+      await sendSMS(mobile, otp);
     }
 
-    // 🔢 Mobile changed → generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    userExist.otp = otp;
-    userExist.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
-    await userExist.save();
+    // Update user
+    userExist.name = name || userExist.name;
+    userExist.mobile = mobile || userExist.mobile;
+    userExist.password = hashPassword;
 
-    // Send OTP via SMS function (replace with your SMS logic)
-    await sendSMS(mobile, otp);
+    await userExist.save();
 
     return res.json({
       success: true,
-      otpSent: true,
-      message: "নতুন নাম্বারে OTP পাঠানো হয়েছে।",
+      message: otpSent ? "Profile updated. OTP sent to new mobile." : "Profile updated successfully",
+      otpSent,
+      data: {
+        _id: userExist._id,
+        name: userExist.name,
+        mobile: userExist.mobile,
+        avatar: userExist.avatar,
+      },
     });
   } catch (error) {
     return res.status(500).json({ error: true, message: error.message });

@@ -43,30 +43,30 @@ const MyAccount = () => {
 
   const validValue = Object.values(formFields).every((el) => el);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ // MyAccount.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    if (!formFields.name) return context.openAlertBox("error", "Full Name লাগবে");
-    if (!formFields.mobile) return context.openAlertBox("error", "Mobile লাগবে");
+  try {
+    const res = await editData(`/auth/${userId}`, formFields, { withCredentials: true });
+    setIsLoading(false);
 
-    setIsLoading(true);
+    if (!res.error) {
+      context.openAlertBox("success", res.message);
 
-    editData(`/auth/${userId}`, formFields)
-      .then((res) => {
-        setIsLoading(false);
-        if (res?.otpSent) {
-          // OTP panel open
-          context.openOtpPanel(formFields.mobile);
-          context.openAlertBox("success", res.message);
-        } else {
-          context.openAlertBox("success", res.message);
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        context.openAlertBox("error", err?.message || "Server error");
-      });
-  };
+      // যদি mobile change হয়ে OTP পাঠানো হয়
+      if (res.otpSent) {
+        context.openOtpPanel(formFields.mobile); // OTP panel open
+      }
+    } else {
+      context.openAlertBox("error", res.message);
+    }
+  } catch (err) {
+    setIsLoading(false);
+    context.openAlertBox("error", "Server error");
+  }
+};
 
   return (
     <section className="py-10 w-full">
