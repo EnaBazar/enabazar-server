@@ -8,7 +8,8 @@ import { editData } from "../../utils/api";
 import CircularProgress from "@mui/material/CircularProgress";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
-import VerifyOtpPanel from "./VerifyOtpPanel";
+import VerifyOtpPanel from "../Register/VerifyOtpPanel";
+
 
 const MyAccount = () => {
   const context = useContext(MyContext);
@@ -111,7 +112,7 @@ const MyAccount = () => {
       </div>
 
       {/* OTP Panel */}
-      {context.openVerifyOtpPanel && <VerifyOtpPanel />}
+      {context.openVerifyOtpPanel && <VerifyOtpPanel/>}
     </section>
   );
 };
