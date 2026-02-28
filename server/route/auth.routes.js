@@ -1,7 +1,7 @@
 import express from 'express';
 import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
         registerPanel, 
-        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
+        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDetails, userAvatarController, 
         userDeatils, 
         VerifyEmail, verifyForgotPasswordOtp, 
         verifyMobileOtp,
@@ -23,7 +23,7 @@ AuthRoutes.post("/authWithGoogle",authWithGoogle)
 AuthRoutes.get("/logout",auth,logoutController)
 AuthRoutes.put('/user-avatar',auth,upload.array('avatar'),userAvatarController);
 AuthRoutes.delete('/deleteImage',auth,removeimageFromCloudinary);
-AuthRoutes.put('/:id',auth,updateUserDeatils);
+AuthRoutes.put('/:id',auth,updateUserDetails);
 AuthRoutes.post('/forgot-password',forgotPasswordController);
 AuthRoutes.post('/verify-forgot-password-otp',verifyForgotPasswordOtp);
 AuthRoutes.post('/reset-password',resetpassword);
