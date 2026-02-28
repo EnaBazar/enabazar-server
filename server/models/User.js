@@ -19,19 +19,24 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-   avatar: [
-   {
-      type: String,
-      default: ""
-   }
-],
+    avatar: [
+      {
+        type: String,
+        default: "",
+      },
+    ],
 
-    // 🔐 Mobile should be String
     mobile: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+    },
+
+    // 🔥 NEW FIELD (Mobile Update Verification এর জন্য)
+    tempMobile: {
+      type: String,
+      default: null,
     },
 
     verify_mobile: {
@@ -118,7 +123,10 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    verificationCode: String,
+    verificationCode: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

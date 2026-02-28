@@ -4,7 +4,8 @@ import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPas
         removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
         userDeatils, 
         VerifyEmail, verifyForgotPasswordOtp, 
-        verifyMobileOtp}
+        verifyMobileOtp,
+        verifyUpdateMobileOtp}
  from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
@@ -37,6 +38,7 @@ AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
 AuthRoutes.post("/verify-otp", verifyMobileOtp);
+AuthRoutes.post("/verify-update-mobile", verifyUpdateMobileOtp);
 AuthRoutes.post("/resend-otp", resendOtp);
 export default  AuthRoutes;
 
