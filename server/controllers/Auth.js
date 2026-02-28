@@ -694,9 +694,7 @@ export async function updateUserDetails(req, res) {
 }
 
 // Dummy sendSMS function (replace with real SMS service)
-async function sendSMS(mobile, otp) {
-  console.log(`Send OTP ${otp} to mobile ${mobile}`);
-}
+
  
  // forgot password recovery
  
