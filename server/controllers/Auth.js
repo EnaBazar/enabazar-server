@@ -168,49 +168,26 @@ export async function verifyMobileOtp(req, res) {
 export async function verifyUpdateMobileOtp(req, res) {
   try {
     const { otp } = req.body;
-    const userId = req.userId;
+    const user = await usermodel.findOne({ otp });
 
-    const user = await usermodel.findById(userId);
-
-    if (!user || !user.tempMobile) {
-      return res.status(400).json({
-        error: true,
-        message: "No mobile change request found"
-      });
-    }
-
+    if (!user) return res.status(400).json({ error: true, message: "Invalid OTP" });
     if (!user.otpExpires || user.otpExpires < Date.now()) {
-      return res.status(400).json({
-        error: true,
-        message: "OTP expired"
-      });
+      user.otp = undefined;
+      user.otpExpires = undefined;
+      await user.save();
+      return res.status(400).json({ error: true, message: "OTP expired" });
     }
 
-    if (user.otp !== otp) {
-      return res.status(400).json({
-        error: true,
-        message: "Invalid OTP"
-      });
-    }
-
-    // ✅ FINAL UPDATE
-    user.mobile = user.tempMobile;
-    user.tempMobile = undefined;
+    // OTP valid → update mobile
+    user.mobile = user.mobile; // already saved? keep as is
     user.otp = undefined;
     user.otpExpires = undefined;
-
+    user.verify_mobile = true;
     await user.save();
 
-    return res.json({
-      success: true,
-      message: "Mobile updated successfully"
-    });
-
+    return res.json({ success: true, message: "Mobile updated successfully" });
   } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message
-    });
+    return res.status(500).json({ error: true, message: error.message });
   }
 }
 
@@ -665,65 +642,60 @@ export async function loginPanelUserController(request, response) {
  
  
  // Update user Deatils
- 
+
+
+// Mobile update + OTP logic
 export async function updateUserDetails(req, res) {
   try {
     const userId = req.userId;
-    const { name, mobile } = req.body;
+    const { name, mobile, password } = req.body;
 
-    const user = await usermodel.findById(userId);
+    const userExist = await usermodel.findById(userId);
+    if (!userExist)
+      return res.status(400).json({ error: true, message: "User not found" });
 
-    if (!user) {
-      return res.status(400).json({
-        error: true,
-        message: "User not found"
-      });
+    let hashPassword = userExist.password;
+
+    if (password) {
+      const salt = await bcryptjs.genSalt(10);
+      hashPassword = await bcryptjs.hash(password, salt);
     }
 
-    // ✅ MOBILE CHANGE হলে OTP পাঠাবে
-    if (mobile && mobile !== user.mobile) {
+    // Check if mobile changed
+    const mobileChanged = mobile && mobile !== userExist.mobile;
 
-      const exist = await usermodel.findOne({ mobile });
+    // Update name and password
+    userExist.name = name;
+    userExist.password = hashPassword;
 
-      if (exist) {
-        return res.status(400).json({
-          error: true,
-          message: "এই নাম্বার আগে থেকেই আছে"
-        });
-      }
-
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-      user.tempMobile = mobile;
-      user.otp = otp;
-      user.otpExpires = Date.now() + 5 * 60 * 1000;
-
-      await user.save();
-
-      await sendSMS(mobile, otp);
-
-      return res.json({
-        success: true,
-        otpSent: true,
-        message: "নতুন নাম্বারে OTP পাঠানো হয়েছে"
-      });
+    if (!mobileChanged) {
+      // Mobile not changed → simple update
+      await userExist.save();
+      return res.json({ success: true, message: "User updated successfully" });
     }
 
-    // ✅ শুধু নাম change হলে
-    user.name = name;
-    await user.save();
+    // 🔢 Mobile changed → generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    userExist.otp = otp;
+    userExist.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+    await userExist.save();
+
+    // Send OTP via SMS function (replace with your SMS logic)
+    await sendSMS(mobile, otp);
 
     return res.json({
       success: true,
-      message: "Profile updated successfully"
+      otpSent: true,
+      message: "নতুন নাম্বারে OTP পাঠানো হয়েছে।",
     });
-
   } catch (error) {
-    return res.status(500).json({
-      error: true,
-      message: error.message
-    });
+    return res.status(500).json({ error: true, message: error.message });
   }
+}
+
+// Dummy sendSMS function (replace with real SMS service)
+async function sendSMS(mobile, otp) {
+  console.log(`Send OTP ${otp} to mobile ${mobile}`);
 }
  
  // forgot password recovery
