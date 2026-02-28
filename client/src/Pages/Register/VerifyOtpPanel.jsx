@@ -1,5 +1,4 @@
-// VerifyOtpPanel.jsx
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
 
@@ -12,72 +11,182 @@ const VerifyOtpPanel = () => {
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Countdown
+  // Countdown Timer
   useEffect(() => {
     if (!context?.openVerifyOtpPanel) return;
+
     if (seconds > 0) {
-      const timer = setTimeout(() => setSeconds(prev => prev - 1), 1000);
+      const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
-    } else setCanResend(true);
+    } else {
+      setCanResend(true);
+    }
   }, [seconds, context?.openVerifyOtpPanel]);
 
+  // OTP Verify
   const handleVerify = async () => {
-    if (otp.length !== 6) return context.openAlertBox("error", "6-digit OTP লাগবে");
+    if (!mobile) {
+      context.openAlertBox("error", "Mobile number missing!");
+      return;
+    }
 
-    setIsLoading(true);
+    if (otp.length !== 6) {
+      context.openAlertBox("error", "Please enter 6-digit OTP");
+      return;
+    }
+
     try {
-      const res = await postData("/auth/verify-update-mobile", { mobile, otp });
+      setIsLoading(true);
+
+      const payload = {
+        mobile: String(mobile),
+        otp: String(otp),
+      };
+
+      console.log("Verify Payload:", payload);
+
+    const res = await postData("/auth/verify-otp", payload);
+
       setIsLoading(false);
 
-      if (!res.error) {
-        context.openAlertBox("success", res.message);
-        context.closeOtpPanel();
-        window.location.reload();
-      } else {
-        context.openAlertBox("error", res.message);
+    if (!res?.error) {
+
+  context.openAlertBox(
+    "success",
+    "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+  );
+
+  // 🔥 Auto Login Process
+  if (res?.data?.accesstoken) {
+
+    localStorage.setItem("accesstoken", res.data.accesstoken);
+    localStorage.setItem("refreshtoken", res.data.refreshtoken);
+    localStorage.setItem("userData", JSON.stringify(res.data.user));
+    localStorage.setItem("isLogin", "true");
+
+    context.setIsLogin(true);
+    context.setUserData(res.data.user);
+  }
+
+  // OTP panel বন্ধ
+  context.closeOtpPanel();
+
+  // Home page এ redirect
+  
+} else {
+        context.openAlertBox(
+          "error",
+          res?.message || "OTP verification failed"
+        );
       }
-    } catch (err) {
+    } catch (error) {
       setIsLoading(false);
-      context.openAlertBox("error", "Server error");
+      console.error("Verify Error:", error);
+      context.openAlertBox("error", "Server error. Please try again.");
     }
   };
 
+  // Resend OTP
   const handleResend = async () => {
-    setIsLoading(true);
+    if (!mobile) return;
+
     try {
-      const res = await postData("/auth/resend-otp", { mobile });
+      setIsLoading(true);
+
+      const res = await postData("/auth/resend-otp",{ mobile: String(mobile) });
+
       setIsLoading(false);
-      if (!res.error) {
+
+      if (!res?.error) {
         context.openAlertBox("success", "নতুন OTP পাঠানো হয়েছে!");
         setSeconds(60);
         setCanResend(false);
-      } else context.openAlertBox("error", res.message);
-    } catch {
+      } else {
+        context.openAlertBox(
+          "error",
+          res?.message || "Failed to resend OTP"
+        );
+      }
+    } catch (error) {
       setIsLoading(false);
-      context.openAlertBox("error", "Server error");
+      context.openAlertBox("error", "Server error. Please try again.");
     }
   };
 
-  if (!context.openVerifyOtpPanel) return null;
+  if (!context?.openVerifyOtpPanel) return null;
 
   return (
-    <div style={{ padding: 20, maxWidth: 400, margin: "auto", background: "#fff", borderRadius: 8 }}>
-      <h3>Verify OTP for {mobile}</h3>
+    <div
+      style={{
+        padding: 20,
+        maxWidth: 400,
+        margin: "auto",
+        background: "#fff",
+        borderRadius: 8,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+      }}
+    >
+      <h3 style={{ textAlign: "center" }}>
+        Verify OTP {mobile && `for ${mobile}`}
+      </h3>
+
       <input
         type="text"
-        maxLength={6}
         value={otp}
         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-        placeholder="Enter 6-digit OTP"
-        style={{ width: "100%", padding: 10, margin: "15px 0" }}
+        maxLength={6}
+        placeholder="Enter 6 digit OTP"
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "15px",
+          marginBottom: "15px",
+          fontSize: "16px",
+        }}
       />
-      <button onClick={handleVerify} disabled={isLoading}>{isLoading ? "Verifying..." : "Verify"}</button>
-      {canResend ? (
-        <button onClick={handleResend} disabled={isLoading}>Resend OTP</button>
-      ) : (
-        <p>Resend in {seconds}s</p>
-      )}
-      <button onClick={context.closeOtpPanel}>Cancel</button>
+
+      <button
+        onClick={handleVerify}
+        disabled={isLoading}
+        style={{
+          width: "100%",
+          padding: "10px",
+          background: "#ff5252",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        {isLoading ? "Verifying..." : "Verify"}
+      </button>
+
+      <div style={{ textAlign: "center", marginTop: "15px" }}>
+        {canResend ? (
+          <button
+            onClick={handleResend}
+            disabled={isLoading}
+            style={{ border: "none", background: "none", color: "blue" }}
+          >
+            Resend OTP
+          </button>
+        ) : (
+          <p>Resend in {seconds}s</p>
+        )}
+      </div>
+
+      <button
+        onClick={context.closeOtpPanel}
+        style={{
+          marginTop: "10px",
+          width: "100%",
+          background: "gray",
+          color: "#fff",
+          border: "none",
+          padding: "8px",
+        }}
+      >
+        Cancel
+      </button>
     </div>
   );
 };

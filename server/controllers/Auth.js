@@ -165,32 +165,6 @@ export async function verifyMobileOtp(req, res) {
     });
   }
 }
-export async function verifyUpdateMobileOtp(req, res) {
-  try {
-    const { otp } = req.body;
-    const user = await usermodel.findOne({ otp });
-
-    if (!user) return res.status(400).json({ error: true, message: "Invalid OTP" });
-    if (!user.otpExpires || user.otpExpires < Date.now()) {
-      user.otp = undefined;
-      user.otpExpires = undefined;
-      await user.save();
-      return res.status(400).json({ error: true, message: "OTP expired" });
-    }
-
-    // OTP valid → update mobile
-    user.mobile = user.mobile; // already saved? keep as is
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    user.verify_mobile = true;
-    await user.save();
-
-    return res.json({ success: true, message: "Mobile updated successfully" });
-  } catch (error) {
-    return res.status(500).json({ error: true, message: error.message });
-  }
-}
-
 
 export async function resendOtp(req, res) {
   try {
@@ -642,57 +616,89 @@ export async function loginPanelUserController(request, response) {
  
  
  // Update user Deatils
-
-
-export async function updateUserDetails(req, res) {
-  try {
-    const userId = req.userId;
-    const { name, mobile, password } = req.body;
-
-    const userExist = await usermodel.findById(userId);
-    if (!userExist) return res.status(400).json({ error: true, message: "User not found" });
-
-    // Password hash
-    let hashPassword = password ? await bcryptjs.hash(password, await bcryptjs.genSalt(10)) : userExist.password;
-
-    // Check if mobile changed
-    let otpSent = false;
-    if (mobile && mobile !== userExist.mobile) {
-      // Mobile changed → generate OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      userExist.otp = otp;
-      userExist.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
-      userExist.verify_mobile = false;
-      otpSent = true;
-
-      await sendSMS(mobile, otp);
-    }
-
-    // Update user
-    userExist.name = name || userExist.name;
-    userExist.mobile = mobile || userExist.mobile;
-    userExist.password = hashPassword;
-
-    await userExist.save();
-
-    return res.json({
-      success: true,
-      message: otpSent ? "Profile updated. OTP sent to new mobile." : "Profile updated successfully",
-      otpSent,
-      data: {
-        _id: userExist._id,
-        name: userExist.name,
-        mobile: userExist.mobile,
-        avatar: userExist.avatar,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ error: true, message: error.message });
-  }
-}
-
-// Dummy sendSMS function (replace with real SMS service)
-
+ 
+ export async function updateUserDeatils(request,response) {
+     
+     try{
+       const userId = request.userId 
+       const {name,mobile,password}= request.body;
+       const userExist = await usermodel.findById(userId);
+       
+       
+       if (!userExist)
+       return response.status(400).send("The user cannot be Updated!")
+       
+   
+         let hashPassword =""
+         
+         if(password){
+             
+             const salt = await bcryptjs.genSalt(10)
+             hashPassword = await bcryptjs.hash(password,salt)
+         }else{
+             hashPassword = userExist.password;
+             
+         }
+         
+         
+         const updateUser = await usermodel.findByIdAndUpdate(
+             
+             userId,
+             
+             {
+               name:name,
+               mobile: mobile,
+               password: hashPassword,
+        
+              
+             },
+             {new: true}
+         )
+         
+         
+         
+         
+         /// send  Verification email
+         
+         const user = await usermodel.findOne({mobile:mobile})
+         
+    
+         
+         
+    
+         if(!userExist)
+         return res.status(400).send("The user cannot be Updated!")
+         
+         
+         return response.json({
+             
+             message:"User Upadted successfully",
+             error: false,
+             success:true,
+             user: {
+                 
+                 name:updateUser?.name,
+                 _id:updateUser?._id,
+      
+                 mobile:updateUser?.mobile,
+                 avatar:updateUser?.avatar
+                
+             }
+         })
+         
+     }catch(error){
+         
+       return response.status(500).json({
+           
+         message: error.message || error,
+         error: true,
+         success:false  
+           
+       })
+         
+     }
+    
+ }
  
  // forgot password recovery
  

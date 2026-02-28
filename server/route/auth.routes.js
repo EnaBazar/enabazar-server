@@ -1,11 +1,10 @@
 import express from 'express';
 import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
         registerPanel, 
-        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDetails, userAvatarController, 
+        removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, updateUserDeatils, userAvatarController, 
         userDeatils, 
         VerifyEmail, verifyForgotPasswordOtp, 
-        verifyMobileOtp,
-        verifyUpdateMobileOtp}
+        verifyMobileOtp}
  from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
@@ -23,7 +22,7 @@ AuthRoutes.post("/authWithGoogle",authWithGoogle)
 AuthRoutes.get("/logout",auth,logoutController)
 AuthRoutes.put('/user-avatar',auth,upload.array('avatar'),userAvatarController);
 AuthRoutes.delete('/deleteImage',auth,removeimageFromCloudinary);
-AuthRoutes.put('/:id',auth,updateUserDetails);
+AuthRoutes.put('/:id',auth,updateUserDeatils);
 AuthRoutes.post('/forgot-password',forgotPasswordController);
 AuthRoutes.post('/verify-forgot-password-otp',verifyForgotPasswordOtp);
 AuthRoutes.post('/reset-password',resetpassword);
@@ -38,7 +37,6 @@ AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/deleteMultiple',deletemultipleUsers);
 AuthRoutes.delete('/:id',DeleteUsers);
 AuthRoutes.post("/verify-otp", verifyMobileOtp);
-AuthRoutes.post("/verify-update-mobile", verifyUpdateMobileOtp);
 AuthRoutes.post("/resend-otp", resendOtp);
 export default  AuthRoutes;
 

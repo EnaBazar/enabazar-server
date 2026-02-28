@@ -35,7 +35,6 @@ import OrderReceipt from './Pages/Orders/OrderReceipt ';
 
 import CustomerChat from './Components/CustomerChat';
 import VerifyOtp from './Pages/Register/VerifyOtp';
-import VerifyOtpPanel from './Pages/Register/VerifyOtpPanel';
 
 
 
@@ -368,7 +367,6 @@ return (
 </Routes>
 
 <CustomerChat user={userData}/>
-     {openVerifyOtpPanel && <VerifyOtpPanel />}
 
 <Footer/>
 </MyContext.Provider>
