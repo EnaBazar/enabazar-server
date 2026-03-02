@@ -90,48 +90,78 @@ export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
-    const user = await usermodel.findOne({ newMobile: mobile });
+    if (!mobile || !otp) {
+      return res.status(400).json({
+        error: true,
+        message: "Mobile and OTP are required",
+      });
+    }
+
+    const user = await usermodel.findOne({ mobile });
 
     if (!user) {
       return res.status(400).json({
         error: true,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
+    // 🔴 OTP expired হলে user delete
+    if (!user.otpExpires || user.otpExpires < Date.now()) {
+
+      // যদি এখনও verify না হয়ে থাকে
+      if (!user.verify_mobile) {
+        await usermodel.deleteOne({ _id: user._id });
+      }
+
+      return res.status(400).json({
+        error: true,
+        message: "OTP expired. Please register again.",
+      });
+    }
+
+    // 🔴 Invalid OTP
     if (!user.otp || user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
-        message: "Invalid OTP"
+        message: "Invalid OTP",
       });
     }
 
-    if (user.otpExpires < Date.now()) {
-      return res.status(400).json({
-        error: true,
-        message: "OTP expired"
-      });
-    }
-
-    // ✅ Final mobile update
-    user.mobile = user.newMobile;
-    user.newMobile = undefined;
+    // ✅ Verify success
     user.verify_mobile = true;
     user.otp = undefined;
     user.otpExpires = undefined;
 
     await user.save();
 
-    return res.json({
+    // 🔐 Generate Tokens
+    const accesstoken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.SECRET_KEY_ACCESS_TOKEN,
+      { expiresIn: "1d" }
+    );
+
+    const refreshtoken = jwt.sign(
+      { id: user._id },
+      process.env.SECRET_KEY_REFRESH_TOKEN,
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
       error: false,
-      message: "Mobile updated successfully",
-      user
+      message: "Mobile verified successfully",
+      data: {
+        accesstoken,
+        refreshtoken,
+        user,
+      },
     });
 
   } catch (error) {
     return res.status(500).json({
       error: true,
-      message: error.message
+      message: error.message,
     });
   }
 }
