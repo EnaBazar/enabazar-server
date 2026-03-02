@@ -4,7 +4,9 @@ import { postData } from "../../utils/api";
 
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
-  const mobile = context?.otpData?.mobile || "";
+
+  // ব্যাকএন্ডের verify এর জন্য newMobile ব্যবহার করা হচ্ছে
+  const mobile = context?.otpData?.newMobile || context?.otpData?.mobile || "";
 
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
@@ -39,45 +41,33 @@ const VerifyOtpPanel = () => {
       setIsLoading(true);
 
       const payload = {
-        mobile: String(mobile),
-        otp: String(otp),
+        mobile: String(mobile), // newMobile or mobile
+        otp: String(otp).trim(), // OTP trim
       };
 
       console.log("Verify Payload:", payload);
 
-    const res = await postData("/auth/verify-otp", payload);
+      const res = await postData("/auth/verify-otp", payload);
 
       setIsLoading(false);
 
-    if (!res?.error) {
+      if (!res?.error) {
+        context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
 
-  context.openAlertBox(
-    "success",
-    "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
-  );
+        // Auto Login যদি token থাকে
+        if (res?.data?.accesstoken) {
+          localStorage.setItem("accesstoken", res.data.accesstoken);
+          localStorage.setItem("refreshtoken", res.data.refreshtoken);
+          localStorage.setItem("userData", JSON.stringify(res.data.user));
+          localStorage.setItem("isLogin", "true");
 
-  // 🔥 Auto Login Process
-  if (res?.data?.accesstoken) {
+          context.setIsLogin(true);
+          context.setUserData(res.data.user);
+        }
 
-    localStorage.setItem("accesstoken", res.data.accesstoken);
-    localStorage.setItem("refreshtoken", res.data.refreshtoken);
-    localStorage.setItem("userData", JSON.stringify(res.data.user));
-    localStorage.setItem("isLogin", "true");
-
-    context.setIsLogin(true);
-    context.setUserData(res.data.user);
-  }
-
-  // OTP panel বন্ধ
-  context.closeOtpPanel();
-
-  // Home page এ redirect
-  
-} else {
-        context.openAlertBox(
-          "error",
-          res?.message || "OTP verification failed"
-        );
+        context.closeOtpPanel();
+      } else {
+        context.openAlertBox("error", res?.message || "OTP verification failed");
       }
     } catch (error) {
       setIsLoading(false);
@@ -93,7 +83,7 @@ const VerifyOtpPanel = () => {
     try {
       setIsLoading(true);
 
-      const res = await postData("/auth/resend-otp",{ mobile: String(mobile) });
+      const res = await postData("/auth/resend-otp", { mobile: String(mobile) });
 
       setIsLoading(false);
 
@@ -102,10 +92,7 @@ const VerifyOtpPanel = () => {
         setSeconds(60);
         setCanResend(false);
       } else {
-        context.openAlertBox(
-          "error",
-          res?.message || "Failed to resend OTP"
-        );
+        context.openAlertBox("error", res?.message || "Failed to resend OTP");
       }
     } catch (error) {
       setIsLoading(false);
