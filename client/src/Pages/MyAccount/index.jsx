@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { editData, postData } from '../../utils/api';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Collapse } from 'react-collapse';
-import { PhoneInput } from 'react-international-phone';
+
 import 'react-international-phone/style.css';
 
 import VerifyOtp from '../Register/VerifyOtp';
@@ -186,7 +186,7 @@ const handleSubmit = async (e) => {
   id="mobile"
   label="মোবাইল নাম্বার"
   name="mobile"
-  value={formFields.mobile}
+  value={phone}
   onChange={handleChange}
   error={!!errors.mobile}
   helperText={errors.mobile}
