@@ -97,12 +97,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-   const user = await usermodel.findOne({ 
-  $or: [
-    { mobile: mobile },      // রেজিস্টার বা current mobile
-    { newMobile: mobile }    // mobile change
-  ]
-});
+    const user = await usermodel.findOne({ mobile });
 
     if (!user) {
       return res.status(400).json({
@@ -137,13 +132,7 @@ export async function verifyMobileOtp(req, res) {
     user.verify_mobile = true;
     user.otp = undefined;
     user.otpExpires = undefined;
-    user.mobile = user.newMobile;
-   user.newMobile = undefined;
-   user.verify_mobile = true;
-if(user.newMobile && user.otp === otp.toString()) {
-   // mobile change
-   
-}
+
     await user.save();
 
     // 🔐 Generate Tokens
@@ -668,7 +657,7 @@ export async function updateUserDeatils(request, response) {
     await userExist.save();
 
     // এখানে SMS send করবে
-   await sendSMS(mobile,otp);
+   await sendSMS(mobile, otp);
     return response.json({
       error: false,
       message: "OTP sent to new mobile number",
