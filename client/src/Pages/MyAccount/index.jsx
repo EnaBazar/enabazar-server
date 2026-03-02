@@ -8,7 +8,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Collapse } from 'react-collapse';
 import PhoneInput from 'react-international-phone';
 import 'react-international-phone/style.css';
-import OtpModal from '../../Components/OtpModal'; // OTP modal component
+
+import VerifyOtp from '../Register/VerifyOtp';
 
 const MyAccount = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -200,7 +201,7 @@ const MyAccount = () => {
 
       {/* OTP Modal */}
       {otpPanelOpen && (
-        <OtpModal
+        <VerifyOtp
           mobile={otpData.mobile}
           userId={otpData.userId}
           type={otpData.type}
