@@ -86,10 +86,12 @@ const register = async (req, res) => {
   }
 };
 
+
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
+    // Step 1: Validate request
     if (!mobile || !otp) {
       return res.status(400).json({
         error: true,
@@ -97,6 +99,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
+    // Step 2: Find user by mobile
     const user = await usermodel.findOne({ mobile });
 
     if (!user) {
@@ -106,10 +109,9 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    // 🔴 OTP expired হলে user delete
+    // Step 3: Check OTP expiry
     if (!user.otpExpires || user.otpExpires < Date.now()) {
-
-      // যদি এখনও verify না হয়ে থাকে
+      // OTP expired → if mobile not verified, delete user
       if (!user.verify_mobile) {
         await usermodel.deleteOne({ _id: user._id });
       }
@@ -120,7 +122,7 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    // 🔴 Invalid OTP
+    // Step 4: Check OTP correctness
     if (!user.otp || user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
@@ -128,14 +130,20 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    // ✅ Verify success
+    // Step 5: OTP correct → verify mobile
     user.verify_mobile = true;
     user.otp = undefined;
     user.otpExpires = undefined;
 
+    // If there is a temporary newMobile (mobile update case), update it
+    if (user.newMobile) {
+      user.mobile = user.newMobile;
+      user.newMobile = undefined;
+    }
+
     await user.save();
 
-    // 🔐 Generate Tokens
+    // Step 6: Generate tokens
     const accesstoken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.SECRET_KEY_ACCESS_TOKEN,
@@ -148,20 +156,28 @@ export async function verifyMobileOtp(req, res) {
       { expiresIn: "7d" }
     );
 
+    // Step 7: Response
     return res.status(200).json({
       error: false,
       message: "Mobile verified successfully",
       data: {
         accesstoken,
         refreshtoken,
-        user,
+        user: {
+          _id: user._id,
+          name: user.name,
+          mobile: user.mobile,
+          avatar: user.avatar,
+          role: user.role,
+          verify_mobile: user.verify_mobile,
+        },
       },
     });
-
   } catch (error) {
+    // Step 8: Catch all errors
     return res.status(500).json({
       error: true,
-      message: error.message,
+      message: error.message || "Internal server error",
     });
   }
 }
@@ -617,88 +633,60 @@ export async function loginPanelUserController(request, response) {
  
  // Update user Deatils
  
- export async function updateUserDeatils(request,response) {
-     
-     try{
-       const userId = request.userId 
-       const {name,mobile,password}= request.body;
-       const userExist = await usermodel.findById(userId);
-       
-       
-       if (!userExist)
-       return response.status(400).send("The user cannot be Updated!")
-       
-   
-         let hashPassword =""
-         
-         if(password){
-             
-             const salt = await bcryptjs.genSalt(10)
-             hashPassword = await bcryptjs.hash(password,salt)
-         }else{
-             hashPassword = userExist.password;
-             
-         }
-         
-         
-         const updateUser = await usermodel.findByIdAndUpdate(
-             
-             userId,
-             
-             {
-               name:name,
-               mobile: mobile,
-               password: hashPassword,
-        
-              
-             },
-             {new: true}
-         )
-         
-         
-         
-         
-         /// send  Verification email
-         
-         const user = await usermodel.findOne({mobile:mobile})
-         
-    
-         
-         
-    
-         if(!userExist)
-         return res.status(400).send("The user cannot be Updated!")
-         
-         
-         return response.json({
-             
-             message:"User Upadted successfully",
-             error: false,
-             success:true,
-             user: {
-                 
-                 name:updateUser?.name,
-                 _id:updateUser?._id,
-      
-                 mobile:updateUser?.mobile,
-                 avatar:updateUser?.avatar
-                
-             }
-         })
-         
-     }catch(error){
-         
-       return response.status(500).json({
-           
-         message: error.message || error,
-         error: true,
-         success:false  
-           
-       })
-         
-     }
-    
- }
+export async function updateUserDeatils(request, response) {
+  try {
+    const userId = request.userId;
+    const { name, mobile, password } = request.body;
+
+    const userExist = await usermodel.findById(userId);
+    if (!userExist)
+      return response.status(400).json({ error: true, message: "User not found" });
+
+    let hashPassword = userExist.password;
+    if (password) {
+      const salt = await bcryptjs.genSalt(10);
+      hashPassword = await bcryptjs.hash(password, salt);
+    }
+
+    // 🔴 Mobile change detection
+    if (mobile && mobile !== userExist.mobile) {
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      userExist.otp = otp;
+      userExist.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+      userExist.newMobile = mobile; // Temporary new mobile
+      userExist.name = name;
+      userExist.password = hashPassword;
+
+      await userExist.save();
+
+      // Send OTP SMS
+      await sendSMS(mobile, `Your OTP is ${otp}`);
+
+      return response.json({
+        error: false,
+        message: "OTP sent to your new mobile",
+        otpRequired: true,
+      });
+    }
+
+    // 🔹 No mobile change, just update name/password
+    const updateUser = await usermodel.findByIdAndUpdate(
+      userId,
+      { name, password: hashPassword },
+      { new: true }
+    );
+
+    return response.json({
+      error: false,
+      message: "Profile updated successfully",
+      user: updateUser,
+    });
+  } catch (error) {
+    return response.status(500).json({ error: true, message: error.message });
+  }
+}
  
  // forgot password recovery
  

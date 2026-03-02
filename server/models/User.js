@@ -33,7 +33,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-
+newMobile: {
+  type: String,
+  default: null,
+  trim: true,
+},
     verify_mobile: {
       type: Boolean,
       default: false,
