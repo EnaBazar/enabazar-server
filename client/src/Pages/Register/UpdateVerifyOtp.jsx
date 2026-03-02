@@ -13,7 +13,7 @@ const UpdateVerifyOtp = () => {
 
   // Countdown Timer
   useEffect(() => {
-    if (!context?.openVerifyOtpPanel) return;
+    if (!context?.openUpateVerifyOtp) return;
 
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);
@@ -21,7 +21,7 @@ const UpdateVerifyOtp = () => {
     } else {
       setCanResend(true);
     }
-  }, [seconds, context?.openVerifyOtpPanel]);
+  }, [seconds, context?.openUpateVerifyOtp]);
 
   // OTP Verify
   const handleVerify = async () => {
@@ -69,7 +69,7 @@ const UpdateVerifyOtp = () => {
   }
 
   // OTP panel বন্ধ
-  context.closeOtpPanel();
+  context.closeUpdateOtpPanel();
 
   // Home page এ redirect
   
@@ -113,7 +113,7 @@ const UpdateVerifyOtp = () => {
     }
   };
 
-  if (!context?.openVerifyOtpPanel) return null;
+  if (!context?.openUpateVerifyOtp) return null;
 
   return (
     <div
@@ -175,7 +175,7 @@ const UpdateVerifyOtp = () => {
       </div>
 
       <button
-        onClick={context.closeOtpPanel}
+        onClick={context.closeUpdateOtpPanel}
         style={{
           marginTop: "10px",
           width: "100%",
