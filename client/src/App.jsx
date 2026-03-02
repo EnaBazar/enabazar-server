@@ -61,6 +61,7 @@ const [otpData, setOtpData] = useState(null);
   const [openLoginPanel, setOpenLoginPanel] = useState(false);
   const [openRegisterPanel, setOpenRegisterPanel] = useState(false);
    const [openVerifyOtpPanel, setOpenVerifyOtpPanel] = useState(false);
+     const [openUpateVerifyOtp, setOpenUpadteVerifyOtp] = useState(false);
   const [isOpenSearchPanel,setIsOpenSearchPanel] = useState(false);
   const [searchData, setSearchData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -80,6 +81,16 @@ const [otpData, setOtpData] = useState(null);
     setOpenVerifyOtpPanel(false);
     setOtpData(null);
   };
+
+  const openUpdateOtpPanel = (data) => {
+  setOtpData(data);           // data = { mobile: "017xxxxxxx" }
+  setOpenUpadteVerifyOtp(true); // OTP Panel খোলা হবে
+};
+  const closeUpdateOtpPanel = () => {
+    setOpenUpadteVerifyOtp(false);
+    setOtpData(null);
+  };
+
   const closeragisterPanel = () => {
     setOpenRegisterPanel(false);
    
@@ -140,6 +151,11 @@ const [userData, setUserData] = useState(() => {
  const toggleVerifyOtpPanel = (newOpen) => () => {
   setOpenVerifyOtpPanel(newOpen);
   };
+
+ const toggleUpdateVerifyOtp = (newOpen) => () => {
+  setOpenUpadteVerifyOtp(newOpen);
+  };
+
 
   const toggleAddressPanel = (newOpen) => () => {
 
@@ -329,7 +345,12 @@ toggleRegisterPanel,
      otpData,
   openOtpPanel,
   closeOtpPanel,
-  closeragisterPanel
+  closeragisterPanel,
+  openUpateVerifyOtp, 
+  setOpenUpadteVerifyOtp,
+  openUpdateOtpPanel,
+  closeUpdateOtpPanel,
+  toggleUpdateVerifyOtp
 };
 return (
 <>

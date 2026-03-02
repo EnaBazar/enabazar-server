@@ -110,7 +110,7 @@ const MyAccount = () => {
 
       // ✅ Correct check
       if (res?.data?.isMobileChange === true) {
-        context?.openOtpPanel({
+        context?.openUpdateOtpPanel({
           mobile: formFields.mobile
         });
       }
