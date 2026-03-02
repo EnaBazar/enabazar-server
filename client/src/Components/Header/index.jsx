@@ -178,34 +178,32 @@ const Header =() => {
       : (
  <>
  <li>
-      <Button className="myAccountWrap !text-black flex items-center gap-3 cursor-pointer" onClick={handleClick}>
-
-      <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
-      <img
-  src={context?.userData?.avatar || "/user.png"} // ✅ যদি avatar না থাকে default দেখাবে
+      <Button className="myAccountWrap !text-black flex items-center 
+      gap-3 cursor-pointer" onClick={handleClick}>
+      <div className='rounded-full w-[30px] h-[30px] 
+      overflow-hidden cursor-pointer'>
+    <img
+  src={
+    typeof context?.userData?.avatar === "string" &&
+    context.userData.avatar.length > 0
+      ? context.userData.avatar
+      : "/user.png"
+  }
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = "/user.png";
+  }}
   className="w-full h-full object-cover"
 />
-
-
-
-         
          </div> 
-
-
-         {
-            context?.windowWidth > 992 && 
-            
-                 <div className="info flex flex-col">
+         {context?.windowWidth > 992 &&      
+      <div className="info flex flex-col">
       <h4 className="text-[14px] leading-3 mb-0 capitalize text-left font-[500]
        justify-start text-[rgba(0,0,0,0.6)]">{context?.userData?.name}</h4>
       <span className="text-[13px] capitalize text-left font-[400] 
       justify-start text-[rgba(0,0,0,0.6)]">{context?.userData?.mobile}</span>
-      </div>
-         }
- 
-      
+      </div>}
       </Button>
-      
       <Menu
         anchorEl={anchorEl}
         id="account-menu"
@@ -213,7 +211,7 @@ const Header =() => {
         onClose={handleClose}
         onClick={handleClose}
         slotProps={{
-          paper: {
+        paper: {
             elevation: 0,
             sx: {
               overflow: 'visible',
