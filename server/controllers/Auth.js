@@ -137,7 +137,13 @@ export async function verifyMobileOtp(req, res) {
     user.verify_mobile = true;
     user.otp = undefined;
     user.otpExpires = undefined;
-
+    
+if(user.newMobile && user.otp === otp.toString()) {
+   // mobile change
+   user.mobile = user.newMobile;
+   user.newMobile = undefined;
+   user.verify_mobile = true;
+}
     await user.save();
 
     // 🔐 Generate Tokens
