@@ -90,78 +90,48 @@ export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
 
-    if (!mobile || !otp) {
-      return res.status(400).json({
-        error: true,
-        message: "Mobile and OTP are required",
-      });
-    }
-
-    const user = await usermodel.findOne({ mobile });
+    const user = await usermodel.findOne({ newMobile: mobile });
 
     if (!user) {
       return res.status(400).json({
         error: true,
-        message: "User not found",
+        message: "User not found"
       });
     }
 
-    // 🔴 OTP expired হলে user delete
-    if (!user.otpExpires || user.otpExpires < Date.now()) {
-
-      // যদি এখনও verify না হয়ে থাকে
-      if (!user.verify_mobile) {
-        await usermodel.deleteOne({ _id: user._id });
-      }
-
-      return res.status(400).json({
-        error: true,
-        message: "OTP expired. Please register again.",
-      });
-    }
-
-    // 🔴 Invalid OTP
     if (!user.otp || user.otp !== otp.toString()) {
       return res.status(400).json({
         error: true,
-        message: "Invalid OTP",
+        message: "Invalid OTP"
       });
     }
 
-    // ✅ Verify success
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({
+        error: true,
+        message: "OTP expired"
+      });
+    }
+
+    // ✅ Final mobile update
+    user.mobile = user.newMobile;
+    user.newMobile = undefined;
     user.verify_mobile = true;
     user.otp = undefined;
     user.otpExpires = undefined;
 
     await user.save();
 
-    // 🔐 Generate Tokens
-    const accesstoken = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.SECRET_KEY_ACCESS_TOKEN,
-      { expiresIn: "1d" }
-    );
-
-    const refreshtoken = jwt.sign(
-      { id: user._id },
-      process.env.SECRET_KEY_REFRESH_TOKEN,
-      { expiresIn: "7d" }
-    );
-
-    return res.status(200).json({
+    return res.json({
       error: false,
-      message: "Mobile verified successfully",
-      data: {
-        accesstoken,
-        refreshtoken,
-        user,
-      },
+      message: "Mobile updated successfully",
+      user
     });
 
   } catch (error) {
     return res.status(500).json({
       error: true,
-      message: error.message,
+      message: error.message
     });
   }
 }
@@ -617,88 +587,60 @@ export async function loginPanelUserController(request, response) {
  
  // Update user Deatils
  
- export async function updateUserDeatils(request,response) {
-     
-     try{
-       const userId = request.userId 
-       const {name,mobile,password}= request.body;
-       const userExist = await usermodel.findById(userId);
-       
-       
-       if (!userExist)
-       return response.status(400).send("The user cannot be Updated!")
-       
-   
-         let hashPassword =""
-         
-         if(password){
-             
-             const salt = await bcryptjs.genSalt(10)
-             hashPassword = await bcryptjs.hash(password,salt)
-         }else{
-             hashPassword = userExist.password;
-             
-         }
-         
-         
-         const updateUser = await usermodel.findByIdAndUpdate(
-             
-             userId,
-             
-             {
-               name:name,
-               mobile: mobile,
-               password: hashPassword,
-        
-              
-             },
-             {new: true}
-         )
-         
-         
-         
-         
-         /// send  Verification email
-         
-         const user = await usermodel.findOne({mobile:mobile})
-         
-    
-         
-         
-    
-         if(!userExist)
-         return res.status(400).send("The user cannot be Updated!")
-         
-         
-         return response.json({
-             
-             message:"User Upadted successfully",
-             error: false,
-             success:true,
-             user: {
-                 
-                 name:updateUser?.name,
-                 _id:updateUser?._id,
-      
-                 mobile:updateUser?.mobile,
-                 avatar:updateUser?.avatar
-                
-             }
-         })
-         
-     }catch(error){
-         
-       return response.status(500).json({
-           
-         message: error.message || error,
-         error: true,
-         success:false  
-           
-       })
-         
-     }
-    
- }
+export async function updateUserDeatils(request, response) {
+  try {
+    const userId = request.userId;
+    const { name, mobile } = request.body;
+
+    const userExist = await usermodel.findById(userId);
+    if (!userExist) {
+      return response.status(400).json({
+        error: true,
+        message: "User not found"
+      });
+    }
+
+    // যদি mobile change না হয় → শুধু name update
+    if (mobile === userExist.mobile) {
+
+      userExist.name = name;
+      await userExist.save();
+
+      return response.json({
+        error: false,
+        message: "Profile updated successfully",
+        user: userExist
+      });
+    }
+
+    // 🔥 Mobile change হলে
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+
+    userExist.name = name;
+    userExist.newMobile = mobile; // temp field
+    userExist.otp = otp;
+    userExist.otpExpires = otpExpires;
+    userExist.verify_mobile = false;
+
+    await userExist.save();
+
+    // এখানে SMS send করবে
+
+    return response.json({
+      error: false,
+      message: "OTP sent to new mobile number",
+      isMobileChange: true
+    });
+
+  } catch (error) {
+    return response.status(500).json({
+      error: true,
+      message: error.message
+    });
+  }
+}
  
  // forgot password recovery
  
