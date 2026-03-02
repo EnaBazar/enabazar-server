@@ -657,7 +657,8 @@ export async function updateUserDeatils(request, response) {
     await userExist.save();
 
     // এখানে SMS send করবে
-
+   await sendSMS(mobile,otp);
+   
     return response.json({
       error: false,
       message: "OTP sent to new mobile number",
