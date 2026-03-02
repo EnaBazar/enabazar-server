@@ -99,27 +99,28 @@ const MyAccount = () => {
 
     setIsLoading(true);
 
-    editData(`/auth/${userId}`, formFields, { withCredentials: true })
-      .then((res) => {
+   editData(`/auth/${userId}`, formFields, { withCredentials: true })
+  .then((res) => {
 
-        if (res?.error !== true) {
+    console.log("Response:", res);
 
-          setIsLoading(false);
+    if (res?.data?.error === false) {
 
-          context.openAlertBox("success", res?.message);
+      context.openAlertBox("success", res?.data?.message);
 
-          // 🔥 যদি mobile change হয় → OTP panel open
-          if (res?.isMobileChange === true) {
-            context?.openOtpPanel({
-              mobile: formFields.mobile
-            });
-          }
+      // ✅ Correct check
+      if (res?.data?.isMobileChange === true) {
+        context?.openOtpPanel({
+          mobile: formFields.mobile
+        });
+      }
 
-        } else {
-          context.openAlertBox("error", res?.message);
-          setIsLoading(false);
-        }
-      });
+    } else {
+      context.openAlertBox("error", res?.data?.message);
+    }
+
+    setIsLoading(false);
+  });
   };
 
   // Change Password
