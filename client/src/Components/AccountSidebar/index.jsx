@@ -109,32 +109,30 @@ const AccountSidebar = () => {
 <div className='w-[110px] h-[110px] rounded-full overflow-hidden !mb-4 relative group flex items-center justify-center bg-gray-200'>
 
 {
- 
-  uploading === true ? <CircularProgress color="inherit"/> :
-  
-  <>
-  {
-    
-    previews?.length !== 0 ? previews?.map((img, index) => {
-      
-      return (
-        
+  uploading ? (
+    <CircularProgress color="inherit" />
+  ) : (
+    <>
+      {previews?.length > 0 ? (
+        previews.map((img, index) => (
+          <img
+            key={index}
+            src={img || "/user.png"}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/user.png";
+            }}
+            className="w-full h-full object-cover"
+          />
+        ))
+      ) : (
         <img
-        src={img}
-        key={index}
-        className='w-full h-full object-cover'
+          src="/user.png"
+          className="w-full h-full object-cover"
         />
-      )
-    })
-    :
-    <img src={"/user.png"}
-     className='w-full h-full object-cover'
-    
-    />
-  }
- 
-  </>
- 
+      )}
+    </>
+  )
 }
 
 
