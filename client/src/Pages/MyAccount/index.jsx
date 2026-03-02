@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import { editData, postData } from '../../utils/api';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Collapse } from 'react-collapse';
-import PhoneInput from 'react-international-phone';
+import { PhoneInput } from 'react-international-phone';
 import 'react-international-phone/style.css';
 
 import VerifyOtp from '../Register/VerifyOtp';
+import AccountSidebar from '../../Components/AccountSidebar';
 
 const MyAccount = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +34,11 @@ const MyAccount = () => {
   const history = useNavigate();
 
   const bdMobileRegex = /^01[3-9]\d{8}$/;
-
+  const [errors, setErrors] = useState({
+        name: "",
+        mobile: "",
+   
+      });
   // Check login
   useEffect(() => {
     const token = localStorage.getItem('accesstoken');
@@ -63,57 +68,66 @@ const MyAccount = () => {
     setChangePassword((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    // Validation
-    if (!formFields.name.trim()) {
-      context.openAlertBox('error', 'নাম দিন');
-      setIsLoading(false);
-      return;
-    }
-    if (!bdMobileRegex.test(formFields.mobile)) {
-      context.openAlertBox('error', 'সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন');
-      setIsLoading(false);
-      return;
-    }
 
-    // Mobile changed → OTP required
-    if (formFields.mobile !== context.userData.mobile) {
-      postData(`/auth/update-user-details`, formFields)
-        .then((res) => {
-          setIsLoading(false);
-          if (res?.otpRequired) {
-            // Open OTP modal
-            setOtpData({
-              type: 'updateMobile',
-              userId: context.userData._id,
-              mobile: formFields.mobile,
-            });
-            setOtpPanelOpen(true);
-          } else if (!res.error) {
-            context.openAlertBox('success', res.message);
-          } else {
-            context.openAlertBox('error', res.message);
-          }
-        })
-        .catch(() => setIsLoading(false));
-      return;
-    }
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    // Name/password update without mobile change
-    editData(`/auth/${userId}`, formFields, { withCredentials: true })
-      .then((res) => {
-        setIsLoading(false);
-        if (!res.error) {
-          context.openAlertBox('success', res.message);
-        } else {
-          context.openAlertBox('error', res.message);
-        }
-      })
-      .catch(() => setIsLoading(false));
-  };
+  // শুধু মোবাইল এর ক্ষেত্রে numeric validate
+  if (name === "mobile") {
+    const numericValue = value.replace(/\D/g, ""); // non-digit remove
+    if (numericValue.length <= 11) {
+      setFormFields((prev) => ({
+        ...prev,
+        mobile: numericValue,
+      }));
+
+      if (!bdMobileRegex.test(numericValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          mobile: "",
+        }));
+      }
+    }
+  }
+
+  // অন্য field update
+  else {
+    setFormFields((prev) => ({ ...prev, [name]: value }));
+  }
+};
+
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!bdMobileRegex.test(formFields.mobile)) return;
+
+  setIsLoading(true);
+  try {
+    const res = await editData(`/auth/${userId}`, formFields, { withCredentials: true });
+    if (res?.error === false) {
+      context.openAlertBox("success", res.message);
+
+      // Mobile OTP verify করতে হবে
+      if (!res.data?.user.verify_mobile) {
+        context.openOtpPanel({ mobile: formFields.mobile });
+      }
+    } else {
+      context.openAlertBox("error", res.message);
+    }
+  } catch (err) {
+    console.log(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // OTP verification callback
   const handleOtpVerified = (verifiedUser) => {
@@ -130,7 +144,7 @@ const MyAccount = () => {
       <div className="container mx-auto flex flex-col lg:flex-row gap-5 px-4">
         {/* Sidebar */}
         <div className="col1 w-full lg:w-1/4">
-          <context.AccountSidebar />
+          <AccountSidebar />
         </div>
 
         {/* Main Content */}
@@ -163,17 +177,21 @@ const MyAccount = () => {
                 />
               </div>
 
-              <PhoneInput
-                defaultCountry="BD"
-                value={phone}
-                className="!w-[40%]"
-                onChange={(phone) => {
-                  setPhone(phone);
-                  setFormFields((prev) => ({ ...prev, mobile: phone }));
-                }}
-                disabled={isLoading}
-              />
-
+            
+<TextField
+  fullWidth
+  size="small"
+  className="!mb-4 !w-[40%]"
+  type="text" // ✅ number নয়, text
+  id="mobile"
+  label="মোবাইল নাম্বার"
+  name="mobile"
+  value={formFields.mobile}
+  onChange={handleChange}
+  error={!!errors.mobile}
+  helperText={errors.mobile}
+  disabled={isLoading}
+/>
               <div className="flex justify-start mt-4">
                 <Button
                   type="submit"
