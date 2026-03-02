@@ -97,7 +97,12 @@ export async function verifyMobileOtp(req, res) {
       });
     }
 
-    const user = await usermodel.findOne({ mobile });
+   const user = await usermodel.findOne({ 
+  $or: [
+    { mobile: mobile },      // রেজিস্টার বা current mobile
+    { newMobile: mobile }    // mobile change
+  ]
+});
 
     if (!user) {
       return res.status(400).json({
@@ -658,7 +663,6 @@ export async function updateUserDeatils(request, response) {
 
     // এখানে SMS send করবে
    await sendSMS(mobile,otp);
-   
     return response.json({
       error: false,
       message: "OTP sent to new mobile number",
