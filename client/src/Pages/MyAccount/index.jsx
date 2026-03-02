@@ -123,36 +123,7 @@ const MyAccount = () => {
   });
   };
 
-  // Change Password
-  const handleSubmitchangepassword = (e) => {
-    e.preventDefault();
 
-    if (!changePassword.oldpassword ||
-        !changePassword.newPassword ||
-        !changePassword.confirmPassword) {
-      context.openAlertBox("error", "All fields required");
-      return;
-    }
-
-    if (changePassword.newPassword !== changePassword.confirmPassword) {
-      context.openAlertBox("error", "Passwords do not match");
-      return;
-    }
-
-    setIsLoading2(true);
-
-    postData(`/auth/reset-password-account`, changePassword, { withCredentials: true })
-      .then((res) => {
-
-        if (res?.error !== true) {
-          context.openAlertBox("success", res?.message);
-        } else {
-          context.openAlertBox("error", res?.message);
-        }
-
-        setIsLoading2(false);
-      });
-  };
 
   return (
     <section className="py-10 w-full">
@@ -167,16 +138,14 @@ const MyAccount = () => {
           {/* Profile */}
           <div className="bg-white p-5 shadow-md rounded-md">
 
-            <div className="flex justify-between pb-3">
-              <h2 className="text-[14px] font-medium">My Profile</h2>
-              <Button onClick={() => setIsChangePasswordFormShow(!ischangePasswordFormShow)}>
-                Change Password
-              </Button>
+            <div className="flex justify-between ">
+              <h2 className="text-[14px] font-medium ">My Profile</h2>
+             
             </div>
+<hr/><hr/>
+           
 
-            <hr />
-
-            <form className="mt-5 flex flex-col gap-4" onSubmit={handleSubmit}>
+            <form className="!mt-5 flex flex-col gap-4" onSubmit={handleSubmit}>
 
               <TextField
                 label="Full Name"
@@ -205,74 +174,13 @@ const MyAccount = () => {
               >
                 {isLoading
                   ? <CircularProgress size={20} color="inherit" />
-                  : "Update Profile"}
+                  : "Update"}
               </Button>
 
             </form>
           </div>
 
-          {/* Change Password */}
-          <Collapse isOpened={ischangePasswordFormShow}>
-            <div className="bg-white p-5 shadow-md rounded-md">
-
-              <h2 className="text-[14px] font-medium pb-3">Change Password</h2>
-              <hr />
-
-              <form className="mt-5 flex flex-col gap-4"
-                onSubmit={handleSubmitchangepassword}>
-
-                <TextField
-                  type="password"
-                  label="Old Password"
-                  size="small"
-                  name="oldpassword"
-                  value={changePassword.oldpassword}
-                  onChange={(e) =>
-                    setChangePassword(prev => ({
-                      ...prev,
-                      oldpassword: e.target.value
-                    }))
-                  }
-                />
-
-                <TextField
-                  type="password"
-                  label="New Password"
-                  size="small"
-                  name="newPassword"
-                  value={changePassword.newPassword}
-                  onChange={(e) =>
-                    setChangePassword(prev => ({
-                      ...prev,
-                      newPassword: e.target.value
-                    }))
-                  }
-                />
-
-                <TextField
-                  type="password"
-                  label="Confirm Password"
-                  size="small"
-                  name="confirmPassword"
-                  value={changePassword.confirmPassword}
-                  onChange={(e) =>
-                    setChangePassword(prev => ({
-                      ...prev,
-                      confirmPassword: e.target.value
-                    }))
-                  }
-                />
-
-                <Button type="submit" disabled={isLoading2}>
-                  {isLoading2
-                    ? <CircularProgress size={20} color="inherit" />
-                    : "Change Password"}
-                </Button>
-
-              </form>
-
-            </div>
-          </Collapse>
+   
 
         </div>
       </div>
