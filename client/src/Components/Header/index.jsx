@@ -71,11 +71,16 @@ const Header =() => {
     return(
         
         <header className="bg-white sticky -top-[47px] z-100"> 
-       <div className="top-strip py-2 !bg-[#FC8934] text-white 
+      
+      
+       <div className="top-strip py-2 !bg-[#FC8934]  text-white 
        border-t-[1px] border-gray-100 border-b-[1px]  ">
+      
+      
         <div className="container">
 
-<div className="col1 w-full lg:w-[100%] overflow-hidden">
+
+   <div className="col1 w-full lg:w-[100%] overflow-hidden">
   <div className="marquee">
     <div className="marquee-track">
       <span>আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446_01677190919   
@@ -182,16 +187,11 @@ const Header =() => {
       gap-3 cursor-pointer" onClick={handleClick}>
       <div className='rounded-full w-[30px] h-[30px] 
       overflow-hidden cursor-pointer'>
-    <img
-  src={
-    typeof context?.userData?.avatar === "string" &&
-    context.userData.avatar.length > 0
-      ? context.userData.avatar
-      : "/user.png"
-  }
+<img
+  src={context?.userData?.avatar || "/user.png"}
   onError={(e) => {
-    e.target.onerror = null;
-    e.target.src = "/user.png";
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "/user.png";
   }}
   className="w-full h-full object-cover"
 />
