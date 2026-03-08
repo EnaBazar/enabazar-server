@@ -162,7 +162,7 @@ useEffect(() => {
     // Protected Routes (require login)
     {
       path: "/dashboard",
-      element: isLogin ? <Layout><Dashboard /></Layout> : <Navigate to="/login" />
+      element: isLogin ? <Layout><Dashboard/></Layout> : <Navigate to="/login" />
     },
     { path: "/products", element: isLogin ? <Layout><Products /></Layout> : <Navigate to="/login" /> },
     { path: "/homeSliderlist", element: isLogin ? <Layout><HomeSliderBanners /></Layout> : <Navigate to="/login" /> },
