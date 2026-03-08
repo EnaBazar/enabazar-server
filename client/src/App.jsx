@@ -363,8 +363,6 @@ return (
 <Route path={"/:id"} exact={true} element={<ProductListing/>}/>
 <Route path={"/Product/:id"} exact={true} element={<ProductDetails/>}/>
 <Route path={"/blog/:id"} exact={true} element={<BlogDetails />} />
-<Route path={"/login"} exact={true} element={<Login/>}/>
-<Route path={"/register"} exact={true} element={<Register/>}/>
 <Route path={"/cart"} exact={true} element={<CartPage/>}/>
 <Route path={"/verify"} exact={true} element={<Verify/>}/>
 <Route path={"/forgot-password"} exact={true} element={<ForgotPassword/>}/>

@@ -140,7 +140,7 @@ const Header =() => {
 
   {/* Search Panel */}
   <div
-    className={`absolute left-1/2 !top-15 w-[70%] max-w-md 
+    className={`absolute left-1/2 !top-15 w-full max-w-md 
     -translate-x-1/2 -translate-y-1/2
     transition-all duration-300
     ${context.isOpenSearchPanel ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
