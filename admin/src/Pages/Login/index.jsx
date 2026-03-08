@@ -122,7 +122,7 @@ const Login = () => {
 
   context.setIsLogin(true);
 
-  history("/");       
+  history("/dashboard");       
   window.location.reload();  // Force Home Page Reload
 }else{
           context.openAlertBox("error",res?.message);
