@@ -122,7 +122,7 @@ const Login = () => {
   localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
   context.setIsLogin(true);
   history("/dashboard");       
-  window.location.reload();  // Force Home Page Reload
+ // Force Home Page Reload
 }else{
           context.openAlertBox("error",res?.message);
           setFormFields({
