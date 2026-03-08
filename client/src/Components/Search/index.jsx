@@ -73,7 +73,7 @@ const Search = () => {
   return (
     <div className="w-full max-w-xl mx-auto px-3 md:px-0 relative">
       {/* Search Box */}
-      <div className="flex items-center h-[45px] rounded-full border border-gray-300 focus-within:border-[#FC8934] focus-within:shadow-sm transition overflow-hidden bg-white">
+      <div className="flex items-center h-[44px] rounded-full border border-gray-300 focus-within:border-[#FC8934] focus-within:shadow-sm transition overflow-hidden bg-white">
         <input
           type="text"
           placeholder="Search products..."
@@ -92,7 +92,7 @@ const Search = () => {
 
       {/* Autocomplete List */}
       {openList && (
-        <div className="absolute top-full left-0 w-full bg-white border shadow-lg z-[99999] rounded-md overflow-hidden mt-1">
+        <div className="absolute top-full left-0 w-full bg-white border shadow-lg z-[99999] rounded-md overflow-hidden mt-1 max-h-[300px] overflow-y-auto">
           {suggestions.map((item) => (
             <div
               key={item._id}
