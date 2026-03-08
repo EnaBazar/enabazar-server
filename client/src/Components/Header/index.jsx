@@ -309,7 +309,7 @@ const Header =() => {
       </Tooltip>
 
 
-       <Tooltip title="Admin">
+       <Tooltip title="Become Saller">
         <IconButton
           onClick={() =>
             window.open("https://admin.goroabazar.com", "_blank")
