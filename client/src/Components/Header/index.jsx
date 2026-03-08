@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import {IoGitCompareOutline} from "react-icons/io5";
 import {MdOutlineShoppingCart} from "react-icons/md";
-import {FaRegHeart} from "react-icons/fa6";
+import {FaRegHeart, FaUserShield} from "react-icons/fa6";
 import Tooltip from '@mui/material/Tooltip';
 import Navigation from "./Navigation";
 import { MyContext } from "../../App";
@@ -299,7 +299,7 @@ const Header =() => {
       </Tooltip>
   </li>    
 }
- <li>
+ <li className="flex items-center gap-1">
       <Tooltip title="Cart">
       <IconButton aria-label="cart" onClick={()=>context.setOpenCartPanel(true)}>
       <StyledBadge badgeContent={context?.cartData?.length !==0 ? context?.cartData?.length : '0'} color="secondary">
@@ -307,7 +307,23 @@ const Header =() => {
       </StyledBadge>
       </IconButton>
       </Tooltip>
+
+
+       <Tooltip title="Admin">
+        <IconButton
+          onClick={() =>
+            window.open("https://admin.goroabazar.com", "_blank")
+          }
+          className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-full shadow-md"
+          size="small"
+        >
+          <FaUserShield className="text-[18px] !gap-2" />
+        </IconButton>
+      </Tooltip>
       </li>
+
+
+
       </ul>  
       </div>  
       </div>
