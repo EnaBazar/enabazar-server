@@ -1,7 +1,7 @@
 import './App.css'
 import './responsive.css'
 import React, { createContext, useEffect, useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider,Navigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 
 import Dashboard from './Pages/Dashboard';
@@ -146,29 +146,40 @@ useEffect(() => {
  
   };
 
+   // ✅ Router with login-first logic
   const router = createBrowserRouter([
-    { path: "/", element: <Layout><Dashboard /></Layout> },
+    // Root route redirects to login if not logged in
+    {
+      path: "/",
+      element: isLogin ? <Navigate to="/dashboard" /> : <Login />
+    },
     { path: "/login", element: <Login /> },
     { path: "/sign-up", element: <SignUp /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-account", element: <VerifyAccount /> },
     { path: "/change-password", element: <ChangePassword /> },
-    { path: "/products", element: <Layout><Products /></Layout> },
-    { path: "/homeSliderlist", element: <Layout><HomeSliderBanners /></Layout> },
-    { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
-    { path: "/SubCategorylist", element: <Layout><SubCategoryList /></Layout> },
-    { path: "/users", element: <Layout><Users /></Layout> },
-    { path: "/orders", element: <Layout><Orders /></Layout> },
-    { path: "/profile", element: <Layout><Profile /></Layout> },
-    { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
-    { path: "/product/addRams", element: <Layout><AddRams /></Layout> },
-    { path: "/product/addSize", element: <Layout><AddSize /></Layout> },
-    { path: "/product/addWieght", element: <Layout><AddWieght /></Layout> },
-    { path: "/bannerV1/list", element: <Layout><BannerV1List /></Layout> },
-    { path: "/bannerV2/list", element: <Layout><BannerV2List /></Layout> },
-    { path: "/bannerV3/list", element: <Layout><BannerV3List/></Layout> },
-    { path: "/blog/list", element: <Layout><BlogList /></Layout> },
- { path: "/chat", element: <Layout><AdminChat /></Layout> },
+
+    // Protected Routes (require login)
+    {
+      path: "/dashboard",
+      element: isLogin ? <Layout><Dashboard /></Layout> : <Navigate to="/login" />
+    },
+    { path: "/products", element: isLogin ? <Layout><Products /></Layout> : <Navigate to="/login" /> },
+    { path: "/homeSliderlist", element: isLogin ? <Layout><HomeSliderBanners /></Layout> : <Navigate to="/login" /> },
+    { path: "/Categorylist", element: isLogin ? <Layout><CategoryList /></Layout> : <Navigate to="/login" /> },
+    { path: "/SubCategorylist", element: isLogin ? <Layout><SubCategoryList /></Layout> : <Navigate to="/login" /> },
+    { path: "/users", element: isLogin ? <Layout><Users /></Layout> : <Navigate to="/login" /> },
+    { path: "/orders", element: isLogin ? <Layout><Orders /></Layout> : <Navigate to="/login" /> },
+    { path: "/profile", element: isLogin ? <Layout><Profile /></Layout> : <Navigate to="/login" /> },
+    { path: "/product/:id", element: isLogin ? <Layout><ProductDetails /></Layout> : <Navigate to="/login" /> },
+    { path: "/product/addRams", element: isLogin ? <Layout><AddRams /></Layout> : <Navigate to="/login" /> },
+    { path: "/product/addSize", element: isLogin ? <Layout><AddSize /></Layout> : <Navigate to="/login" /> },
+    { path: "/product/addWieght", element: isLogin ? <Layout><AddWieght /></Layout> : <Navigate to="/login" /> },
+    { path: "/bannerV1/list", element: isLogin ? <Layout><BannerV1List /></Layout> : <Navigate to="/login" /> },
+    { path: "/bannerV2/list", element: isLogin ? <Layout><BannerV2List /></Layout> : <Navigate to="/login" /> },
+    { path: "/bannerV3/list", element: isLogin ? <Layout><BannerV3List /></Layout> : <Navigate to="/login" /> },
+    { path: "/blog/list", element: isLogin ? <Layout><BlogList /></Layout> : <Navigate to="/login" /> },
+    { path: "/chat", element: isLogin ? <Layout><AdminChat /></Layout> : <Navigate to="/login" /> },
   ]);
 
   return (
