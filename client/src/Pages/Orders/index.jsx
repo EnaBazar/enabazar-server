@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import AccountSidebar from "../../Components/AccountSidebar";
 import Button from "@mui/material/Button";
 import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
 import Badge from "../../Components/Badge";
 import { fetchDataFromApi } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
+import { MyContext } from '../../App';
 
 const Orders = () => {
   const [isOpenOrderProduct, setIsOpenOrderProduct] = useState(null);
   const [orders, setOrders] = useState([]);
-
+  const context = useContext(MyContext);
   const navigate = useNavigate();
 
   const toggleOrderProduct = (index) => {
@@ -28,7 +29,7 @@ const Orders = () => {
   const getCancelTimeLeft = (createdAt) => {
     const orderTime = new Date(createdAt).getTime();
     const currentTime = new Date().getTime();
-    const limit = 7 * 60 * 60 * 1000; // 7 hours in ms
+    const limit = 10 * 60 * 1000; // 7 hours in ms
     const timeLeft = limit - (currentTime - orderTime);
 
     if (timeLeft <= 0) return null;
@@ -42,11 +43,19 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
+    if (!context) return;
+
     const token = localStorage.getItem("accesstoken");
     if (!token) {
-      alert("You must be logged in to cancel order");
+      context.openAlertBox("error", "You must be logged in to cancel order");
       return;
     }
+
+    // Confirmation
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+    if (!confirmCancel) return;
 
     const res = await fetch("https://api.goroabazar.com/order/cancel", {
       method: "POST",
@@ -58,20 +67,19 @@ const cancelOrder = async (orderId) => {
     });
 
     const data = await res.json();
-    console.log("Cancel response:", data);
-
     if (data?.success) {
-      alert("Order removed successfully");
-      window.location.reload();
+      context.openAlertBox("success", "Order cancelled successfully");
+      setOrders((prevOrders) =>
+        prevOrders.filter((order) => order._id !== orderId)
+      );
     } else {
-      alert(data?.message || "Cancel failed");
+      context.openAlertBox("error", data?.message || "Cancel failed");
     }
   } catch (err) {
-    console.error("Fetch cancel error:", err);
-    alert("Something went wrong");
+    console.error("Cancel error:", err);
+    context.openAlertBox("error", "Something went wrong");
   }
 };
-
   return (
     <section className="py-10 w-full">
       <div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
