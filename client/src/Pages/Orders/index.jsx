@@ -42,11 +42,21 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
+    const token = localStorage.getItem("token"); // assume token stored in localStorage
+    if (!token) {
+      alert("You must be logged in to cancel order");
+      return;
+    }
+
     const res = await fetch("https://api.goroabazar.com/order/cancel", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // ✅ token here
+      },
       body: JSON.stringify({ orderId }),
     });
+
     const data = await res.json();
 
     if (data?.success) {
