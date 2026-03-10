@@ -121,7 +121,7 @@ const Login = () => {
   localStorage.setItem("accesstoken",res?.data?.accesstoken)     
   localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
   context.setIsLogin(true);
-  history("/dashboard");       
+  history("/");       
  // Force Home Page Reload
 }else{
           context.openAlertBox("error",res?.message);
