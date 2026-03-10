@@ -42,7 +42,7 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accesstoken");
     if (!token) {
       alert("You must be logged in to cancel order");
       return;
@@ -147,7 +147,7 @@ const cancelOrder = async (orderId) => {
                               {cancelTime &&
                                 ["pending", "processing"].includes(order?.order_status?.toLowerCase()) && (
                                   <>
-                                    <p className="text-[11px] text-gray-500 mb-1">Cancel in {cancelTime}</p>
+                                    <p className="text-[8px] text-gray-500 mb-1">Cancel in {cancelTime}</p>
                                     <Button
                                       variant="outlined"
                                       color="error"

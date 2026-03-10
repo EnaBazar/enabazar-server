@@ -433,7 +433,7 @@ export async function cancelOrderController(req, res) {
 
     // Optional: 7 hour cancel limit
     const diff = new Date() - new Date(order.createdAt);
-    const limit = 7 * 60 * 60 * 1000; // 7 hours in ms
+    const limit = 10 * 60 * 1000; // 10 min in ms
     if (diff > limit) {
       return res.status(400).json({
         error: true,
