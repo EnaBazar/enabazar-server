@@ -431,10 +431,8 @@ export async function cancelOrderController(req, res) {
       });
     }
 
-    // Optional: 7 hour limit
-    const createdTime = new Date(order.createdAt);
-    const now = new Date();
-    const diff = now - createdTime;
+    // Optional: 7 hour cancel limit
+    const diff = new Date() - new Date(order.createdAt);
     const limit = 7 * 60 * 60 * 1000; // 7 hours in ms
     if (diff > limit) {
       return res.status(400).json({
@@ -446,29 +444,25 @@ export async function cancelOrderController(req, res) {
 
     // Stock back update
     for (let item of order.products) {
-      try {
-        await productmodel.findByIdAndUpdate(item.productId, {
-          $inc: { countInStock: item.quantity },
-        });
-      } catch (err) {
-        console.error("Stock update failed for product:", item.productId, err);
-      }
+      await productmodel.findByIdAndUpdate(item.productId, {
+        $inc: { countInStock: item.quantity },
+      });
     }
 
-    // Delete order
-    await order.remove();
+    // Delete order completely
+    await order.deleteOne(); // ✅ use deleteOne instead of remove
 
     return res.status(200).json({
       error: false,
       success: true,
       message: "Order removed from database successfully",
     });
-  } catch (err) {
-    console.error("Cancel order error:", err);
+  } catch (error) {
+    console.error("Cancel order error:", error);
     return res.status(500).json({
       error: true,
       success: false,
-      message: err.message || "Internal Server Error",
+      message: error.message || "Internal server error",
     });
   }
 }

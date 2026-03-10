@@ -42,7 +42,7 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
-    const token = localStorage.getItem("accesstoken");
+    const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to cancel order");
       return;
@@ -57,10 +57,10 @@ const cancelOrder = async (orderId) => {
       body: JSON.stringify({ orderId }),
     });
 
-    const data = await res.json(); // <-- parse json into data
+    const data = await res.json();
     console.log("Cancel response:", data);
 
-    if (data?.success) { // <-- check data, not res
+    if (data?.success) {
       alert("Order removed successfully");
       window.location.reload();
     } else {
