@@ -53,29 +53,34 @@ return `${hours}h ${minutes}m`
 
 
 // Cancel API
-const cancelOrder = (orderId,reason)=>{
+const cancelOrder = async (orderId, reason) => {
+  if (!reason) {
+    alert("Please select a reason for cancellation");
+    return;
+  }
 
-fetch("/order/cancel",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({orderId,reason})
-})
-.then(res=>res.json())
-.then((res)=>{
+  try {
+    const res = await fetch("/order/cancel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ orderId, reason }),
+    });
+    
+    const data = await res.json();
 
-if(res?.success){
-alert("Order Cancelled Successfully")
-window.location.reload()
-}else{
-alert(res?.message)
-}
-
-})
-
-}
-
+    if (data?.success) {
+      alert("Order cancelled successfully");
+      window.location.reload(); // reload to update table
+    } else {
+      alert(data?.message || "Cancel failed");
+    }
+  } catch (err) {
+    console.log(err);
+    alert("Something went wrong");
+  }
+};
 
 
 return(
@@ -229,7 +234,7 @@ onClick={()=>toggleOrderProduct(index)}
 <td className="px-4 py-3">
 
 {cancelTime &&
-["Pending","Processing"].includes(order?.order_status) &&
+["pending","Processing"].includes(order?.order_status) &&
 
 (
 
