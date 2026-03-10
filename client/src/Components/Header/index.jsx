@@ -308,18 +308,6 @@ const Header =() => {
       </IconButton>
       </Tooltip>
 
-
-       <Tooltip title="Become Saller">
-        <IconButton
-          onClick={() =>
-            window.open("https://admin.goroabazar.com", "_blank")
-          }
-          className="bg-white hover:bg-gray-100 text-gray-700 p-2 rounded-full shadow-md"
-          size="small"
-        >
-          <FaUserShield className="text-[18px] !gap-2" />
-        </IconButton>
-      </Tooltip>
       </li>
 
 
