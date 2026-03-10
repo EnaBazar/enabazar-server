@@ -42,13 +42,10 @@ import { useNavigate } from 'react-router-dom';
         name: "",
         mobile: "",
         password:""
-      });
-    
-      const bdMobileRegex = /^01[3-9]\d{8}$/;
-    
+      }); 
+      const bdMobileRegex = /^01[3-9]\d{8}$/;  
       const handleChange = (e) => {
         const { name, value } = e.target;
-    
         if (name === "mobile") {
           const numericValue = value.replace(/\D/g, "");
     
@@ -71,7 +68,6 @@ import { useNavigate } from 'react-router-dom';
             }
           }
         }
-    
         if (name === "name") {
           setFormFields((prev) => ({
             ...prev,
@@ -90,7 +86,6 @@ import { useNavigate } from 'react-router-dom';
             }));
           }
         }
-
   if (password === "password") {
           setFormFields((prev) => ({
             ...prev,
@@ -109,9 +104,6 @@ import { useNavigate } from 'react-router-dom';
             }));
           }
         }
-
-
-
       };
     const valideValue = Object.values(formFields).every(el => el)
     
@@ -144,24 +136,19 @@ const handleSubmit=(e)=>{
       return;
     }
     
-   
-  postData("/auth/register",formFields).then((res)=>{
+    postData("/auth/register",formFields).then((res)=>{
     console.log(res)
 
-
-    // Register.jsx এর handleSubmit function এর মধ্যে
-if(res?.error !== true){
+// Register.jsx এর handleSubmit function এর মধ্যে
+  if(res?.error !== true){
   setIsLoading(false)
   context.openAlertBox("success",res?.message);
   localStorage.setItem("userEmail",formFields.mobile)
 
   // ✅ Add this line for OTP redirect
-
   context?.openOtpPanel({
   mobile: formFields.mobile,  // যেই মোবাইল দিয়ে register করছে
 });
-
-
   setFormFields({
     name:"",
     mobile:"",
@@ -197,7 +184,6 @@ if(res?.error !== true){
 
 <form className='w-full !mt-5'onSubmit={handleSubmit}>
 
-
  <TextField
             fullWidth
              className='!mb-4'
@@ -212,9 +198,6 @@ if(res?.error !== true){
             helperText={errors.name}
           disabled={isLoading===true ? true : false}
           />
-
-
-
 
  <TextField
             fullWidth
@@ -251,9 +234,6 @@ size='small'
  }
 </Button>
 </div>
-
-
-
 
 <div className='flex items-center w-full !mt-3 !mb-3'>
 

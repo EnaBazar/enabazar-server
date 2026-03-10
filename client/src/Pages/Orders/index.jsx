@@ -120,7 +120,7 @@ const Orders = () => {
                 <thead className="uppercase bg-[rgba(0,0,0,0.08)]">
                   <tr className="text-[12px]">
                     <th className="px-4 py-2"></th>
-                    <th className="px-4 py-2">Order Id</th>
+                    <th className="px-4 py-2">OId</th>
                     <th className="px-4 py-2">Payment</th>
                     <th className="px-4 py-2">Name</th>
                     <th className="px-4 py-2">Phone</th>
