@@ -1,164 +1,445 @@
-import React, { useState, useEffect } from 'react'
-import AccountSidebar from '../../Components/AccountSidebar'
-import Button from '@mui/material/Button'
-import { FaAngleDown, FaAngleUp } from 'react-icons/fa6'
-import Badge from '../../Components/Badge'
-import { fetchDataFromApi } from '../../utils/api'
+import React, { useState, useEffect } from "react";
+import AccountSidebar from "../../Components/AccountSidebar";
+import Button from "@mui/material/Button";
+import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
+import Badge from "../../Components/Badge";
+import { fetchDataFromApi } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const Orders = () => {
-  const [isOpenOrderProduct, setIsOpenOrderProduct] = useState(null)
-  const [orders, setOrders] = useState([])
 
-  const toggleOrderProduct = (index) => {
-    if (isOpenOrderProduct === index) {
-      setIsOpenOrderProduct(null)
-    } else {
-      setIsOpenOrderProduct(index)
-    }
-  }
+const [isOpenOrderProduct,setIsOpenOrderProduct] = useState(null)
+const [orders,setOrders] = useState([])
+const [cancelOrderId,setCancelOrderId] = useState(null)
+const [cancelReason,setCancelReason] = useState("")
 
-  useEffect(() => {
-    fetchDataFromApi('/order/order-list').then((res) => {
-      console.log(res)
-      if (res?.error === false) 
-        setOrders(res?.data)
-    })
-  }, [])
+const navigate = useNavigate()
 
-  return (
-  <section className="py-10 w-full">
-  <div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
+const toggleOrderProduct = (index)=>{
+setIsOpenOrderProduct(isOpenOrderProduct === index ? null : index)
+}
 
-    {/* Sidebar */}
-    <div className="col1 w-full lg:w-[20%]">
-      <AccountSidebar />
-    </div>
+useEffect(()=>{
 
-    {/* Orders Table */}
-    <div className="col2 w-full lg:w-[80%]">
-      <div className="shadow-md rounded-md p-5 bg-white">
+fetchDataFromApi('/order/order-list').then((res)=>{
 
-        {/* Header */}
-        <div className="py-2 px-3 border-b border-[rgba(0,0,0,0.2)]">
-          <h2 className="text-[16px] font-semibold">My Orders</h2>
-          <p className="text-[14px] mt-1">
-            There are <span className="font-bold text-[#ff5252]">{orders?.length}</span> orders in your list
-          </p>
-        </div>
+if(res?.error === false){
+setOrders(res?.data)
+}
 
-        {/* Table */}
-        <div className="relative overflow-x-auto mt-5">
-          <table className="w-full min-w-[800px] text-sm text-left">
-            <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b border-gray-300">
-              <tr className="!text-[12px]">
-                <th className="px-4 py-2">&nbsp;</th>
-                <th className="px-4 py-2">Order Id</th>
-                <th className="px-4 py-2">Payment Status</th>
-                <th className="px-4 py-2">Name</th>
-                <th className="px-4 py-2">Phone</th>
-                <th className="px-4 py-2">Address</th>
-                <th className="px-4 py-2">SubTotal</th>
-                <th className="px-4 py-2">D.Charge</th>
-                <th className="px-4 py-2">Total</th>
-                <th className="px-4 py-2">User Id</th>
-                <th className="px-4 py-2">Order Status</th>
-                <th className="px-4 py-2">Date</th>
-              </tr>
-            </thead>
+})
 
-            <tbody>
-              {orders?.length > 0 ? (
-                orders.map((order, index) => (
-                  <React.Fragment key={order?._id}>
-                    <tr className="bg-white border-b border-[rgba(0,0,0,0.1)]">
-                      <td className="px-4 py-2">
-                        <Button
-                          className="!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !bg-[#f1f1f1]"
-                          onClick={() => toggleOrderProduct(index)}
-                        >
-                          {isOpenOrderProduct === index ? (
-                            <FaAngleUp className="text-[16px] text-[rgba(0,0,0,0.6)]" />
-                          ) : (
-                            <FaAngleDown className="text-[16px] text-[rgba(0,0,0,0.6)]" />
-                          )}
-                        </Button>
-                      </td>
-                      <td className="px-4 py-2 text-[#ff5252]">{order?._id}</td>
-                      <td className="px-4 py-2 text-[#ff5252] text-[12px]">
-                        {order?.paymentId || 'CASH ON DELIVERY'}
-                      </td>
-                      <td className="px-4 py-2">{order?.userId?.name}</td>
-                      <td className="px-4 py-2">{order?.userId?.mobile || '--'}</td>
-                      <td className="px-4 py-2 max-w-[200px] truncate">
-                        {`${order?.delivery_address?.address_line}, ${order?.delivery_address?.city}, ${order?.delivery_address?.landmark}, ${order?.delivery_address?.state}`}
-                      </td>
-                      <td className="px-4 py-2">{order?.subTotalAmt}</td>
-                      <td className="px-4 py-2">{order?.delivery_charge}</td>
-                      <td className="px-4 py-2">{order?.totalAmt}</td>
-      
-                      <td className="px-4 py-2 text-[#ff5252]">{order?.userId?._id}</td>
-                      <td className="px-4 py-2"><Badge status={order?.order_status} /></td>
-                      <td className="px-4 py-2">{new Date(order?.createdAt).toLocaleDateString()}</td>
-                    </tr>
+},[])
 
-                    {/* Expanded Products */}
-                    {isOpenOrderProduct === index && (
-                      <tr>
-                        <td colSpan="14" className="pl-4 bg-[#fafafa]">
-                          <div className="overflow-x-auto">
-                            <table className="w-full min-w-[600px] text-sm">
-                              <thead className="bg-[rgba(0,0,0,0.1)] border-b border-gray-300">
-                                <tr>
-                                  <th className="px-4 py-2">Product Id</th>
-                                  <th className="px-4 py-2">Product Name</th>
-                                  <th className="px-4 py-2">Image</th>
-                                  <th className="px-4 py-2">Quantity</th>
-                                  <th className="px-4 py-2">Price</th>
-                                  <th className="px-4 py-2">Sub Total</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {order?.products?.map((item) => (
-                                  <tr key={item?.productId?._id} className="bg-white border-b border-[rgba(0,0,0,0.2)]">
-                                    <td className="px-4 py-2 text-[#ff5252]">{item?.productId}</td>
-                                    <td className="px-4 py-2 truncate max-w-[150px]">{item?.productTitle}</td>
-                                    <td className="px-4 py-2">
-                                      <img
-                                        src={item?.image || '/no-image.png'}
-                                        alt={item?.productId?.name}
-                                        className="w-[50px] h-[50px] object-cover rounded-md"
-                                      />
-                                    </td>
-                                    <td className="px-4 py-2">{item?.quantity}</td>
-                                    <td className="px-4 py-2">{item?.price}</td>
-                                    <td className="px-4 py-2">{item?.quantity * item?.price}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="14" className="text-center py-10">
-                    No Orders Found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
 
-      </div>
-    </div>
-  </div>
+// Cancel countdown
+const getCancelTimeLeft = (createdAt)=>{
+
+const orderTime = new Date(createdAt).getTime()
+const currentTime = new Date().getTime()
+
+const limit = 7 * 60 * 60 * 1000
+
+const timeLeft = limit - (currentTime - orderTime)
+
+if(timeLeft <= 0) return null
+
+const hours = Math.floor(timeLeft/(1000*60*60))
+const minutes = Math.floor((timeLeft%(1000*60*60))/(1000*60))
+
+return `${hours}h ${minutes}m`
+
+}
+
+
+// Cancel API
+const cancelOrder = (orderId,reason)=>{
+
+fetch("/order/cancel",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({orderId,reason})
+})
+.then(res=>res.json())
+.then((res)=>{
+
+if(res?.success){
+alert("Order Cancelled Successfully")
+window.location.reload()
+}else{
+alert(res?.message)
+}
+
+})
+
+}
+
+
+
+return(
+
+<section className="py-10 w-full">
+
+<div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
+
+{/* Sidebar */}
+<div className="w-full lg:w-[20%]">
+<AccountSidebar/>
+</div>
+
+
+{/* Orders Table */}
+<div className="w-full lg:w-[80%]">
+
+<div className="shadow-md rounded-md p-5 bg-white">
+
+
+{/* Header */}
+<div className="pb-3 border-b border-[rgba(0,0,0,0.2)]">
+
+<h2 className="text-[18px] font-semibold">
+My Orders
+</h2>
+
+<p className="text-[14px] mt-1">
+There are
+<span className="font-bold text-[#ff5252] ml-1 mr-1">
+{orders?.length}
+</span>
+orders in your list
+</p>
+
+</div>
+
+
+{/* Table */}
+<div className="overflow-x-auto mt-5">
+
+<table className="w-full min-w-[900px] text-sm text-left">
+
+
+<thead className="uppercase bg-[rgba(0,0,0,0.08)]">
+
+<tr className="text-[12px]">
+
+<th className="px-4 py-2"></th>
+<th className="px-4 py-2">Order Id</th>
+<th className="px-4 py-2">Payment</th>
+<th className="px-4 py-2">Name</th>
+<th className="px-4 py-2">Phone</th>
+<th className="px-4 py-2">Address</th>
+<th className="px-4 py-2">SubTotal</th>
+<th className="px-4 py-2">D.Charge</th>
+<th className="px-4 py-2">Total</th>
+<th className="px-4 py-2">Status</th>
+<th className="px-4 py-2">Date</th>
+<th className="px-4 py-2">Action</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+{orders?.length > 0 ?
+
+orders.map((order,index)=>{
+
+const cancelTime = getCancelTimeLeft(order?.createdAt)
+
+return(
+
+<React.Fragment key={order?._id}>
+
+<tr className="border-b">
+
+
+<td className="px-4 py-3">
+
+<Button
+className="!min-w-[30px] !w-[30px] !h-[30px] !rounded-full !bg-[#f1f1f1]"
+onClick={()=>toggleOrderProduct(index)}
+>
+
+{isOpenOrderProduct === index ?
+<FaAngleUp/> :
+<FaAngleDown/>
+}
+
+</Button>
+
+</td>
+
+
+<td className="px-4 py-3 text-[#ff5252]">
+{order?._id}
+</td>
+
+
+<td className="px-4 py-3 text-[12px]">
+{order?.paymentId || "CASH ON DELIVERY"}
+</td>
+
+
+<td className="px-4 py-3">
+{order?.userId?.name}
+</td>
+
+
+<td className="px-4 py-3">
+{order?.userId?.mobile || '--'}
+</td>
+
+
+<td className="px-4 py-3 max-w-[200px] truncate">
+
+{`${order?.delivery_address?.address_line}, ${order?.delivery_address?.city}, ${order?.delivery_address?.state}`}
+
+</td>
+
+
+<td className="px-4 py-3">
+৳{order?.subTotalAmt}
+</td>
+
+
+<td className="px-4 py-3">
+৳{order?.delivery_charge}
+</td>
+
+
+<td className="px-4 py-3 font-semibold">
+৳{order?.totalAmt}
+</td>
+
+
+<td className="px-4 py-3">
+<Badge status={order?.order_status}/>
+</td>
+
+
+<td className="px-4 py-3">
+{new Date(order?.createdAt).toLocaleDateString()}
+</td>
+
+
+<td className="px-4 py-3">
+
+{cancelTime &&
+["Pending","Processing"].includes(order?.order_status) &&
+
+(
+
+<>
+
+<p className="text-[11px] text-gray-500 mb-1">
+Cancel in {cancelTime}
+</p>
+
+<Button
+variant="outlined"
+color="error"
+size="small"
+onClick={()=>setCancelOrderId(order._id)}
+>
+
+Cancel
+
+</Button>
+
+</>
+
+)
+
+}
+
+</td>
+
+</tr>
+
+
+
+{/* Products Expand */}
+
+{isOpenOrderProduct === index &&
+
+<tr>
+
+<td colSpan="12" className="bg-[#fafafa] p-4">
+
+
+<table className="w-full text-sm">
+
+<thead className="bg-[rgba(0,0,0,0.05)]">
+
+<tr>
+
+<th className="px-4 py-2">Image</th>
+<th className="px-4 py-2">Product</th>
+<th className="px-4 py-2">Qty</th>
+<th className="px-4 py-2">Price</th>
+<th className="px-4 py-2">Subtotal</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+{order?.products?.map((item)=>{
+
+return(
+
+<tr key={item?.productId} className="border-b">
+
+<td className="px-4 py-3">
+
+<img
+src={item?.image || "/no-image.png"}
+className="w-[60px] h-[60px] object-cover rounded-md cursor-pointer"
+onClick={()=>navigate(`/product/${item?.productId}`)}
+/>
+
+</td>
+
+
+<td
+className="px-4 py-3 cursor-pointer hover:text-[#ff5252]"
+onClick={()=>navigate(`/product/${item?.productId}`)}
+>
+
+{item?.productTitle}
+
+</td>
+
+
+<td className="px-4 py-3">
+{item?.quantity}
+</td>
+
+
+<td className="px-4 py-3">
+৳{item?.price}
+</td>
+
+
+<td className="px-4 py-3 font-semibold">
+৳{item?.quantity * item?.price}
+</td>
+
+</tr>
+
+)
+
+})}
+
+</tbody>
+
+</table>
+
+</td>
+
+</tr>
+
+}
+
+</React.Fragment>
+
+)
+
+})
+
+:
+
+<tr>
+
+<td colSpan="12" className="text-center py-10">
+No Orders Found
+</td>
+
+</tr>
+
+}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+{/* Cancel Modal */}
+
+{cancelOrderId &&
+
+<div className="fixed top-0 left-0 w-full h-full bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
+
+<div className="bg-white p-5 rounded-md w-[350px]">
+
+<h3 className="text-[18px] font-semibold mb-3">
+Cancel Order
+</h3>
+
+<select
+className="w-full border p-2 mb-4"
+value={cancelReason}
+onChange={(e)=>setCancelReason(e.target.value)}
+>
+
+<option value="">Select Reason</option>
+<option value="Ordered by mistake">Ordered by mistake</option>
+<option value="Found cheaper elsewhere">Found cheaper elsewhere</option>
+<option value="Delivery too slow">Delivery too slow</option>
+<option value="Other">Other</option>
+
+</select>
+
+
+<div className="flex justify-end gap-3">
+
+<Button
+variant="outlined"
+onClick={()=>setCancelOrderId(null)}
+>
+
+Close
+
+</Button>
+
+
+<Button
+variant="contained"
+color="error"
+onClick={()=>cancelOrder(cancelOrderId,cancelReason)}
+>
+
+Confirm Cancel
+
+</Button>
+
+</div>
+
+</div>
+
+</div>
+
+}
+
 </section>
 
-  )
+)
+
 }
 
 export default Orders

@@ -241,11 +241,15 @@ const ProductDetails = () => {
      <div className="reviews w-full p-4 bg-white shadow-sm border rounded-md flex items-center gap-5 mb-3">
 
           {/* Avatar */}
-          <img
-            src={review?.image}
-            alt="avatar"
-            className="w-[60px] h-[60px] md:w-[75px] md:h-[75px] rounded-full border"
-          />
+         
+
+<img
+  src={review?.image || "/user.png"}
+  onError={(e)=>{e.target.src="/user.png"}}
+ className="w-[60px] h-[60px] md:w-[75px] md:h-[75px] rounded-full border"
+/>
+
+
 
           {/* Review Info */}
           <div className="info w-full">

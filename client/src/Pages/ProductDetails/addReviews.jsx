@@ -98,7 +98,11 @@ export const Reviews = (props) => {
              flex items-center justify-between'>
     <div className='info w-[60%] flex items-center gap-3'>
     <div className='img w-[80px] h-[80px] overflow-hidden rounded-full'>
-    <img src={review?.image} className='w-full'/>
+  <img
+  src={review?.image || "/user.png"}
+  onError={(e)=>{e.target.src="/user.png"}}
+  className='w-full'
+/>
     </div>
     <div className='w-[80%]'>
     <h4 className='text-[16px]'>{review?.userName}</h4>

@@ -409,41 +409,87 @@ export async function getUnreadOrdersCountController(req, res) {
 // ------------------------
 // Cancel Order Controller
 // ------------------------
+// ------------------------
+// Cancel Order Controller
+// ------------------------
 export async function cancelOrderController(req, res) {
   try {
     const { orderId } = req.body;
     const userId = req.userId; // auth middleware থেকে
 
-    // Find order and make sure it's user's order
     const order = await ordermodel.findOne({ _id: orderId, userId });
 
     if (!order) {
-      return res.status(404).json({ error: true, success: false, message: "Order not found" });
-    }
-
-    if (order.order_status === "Cancelled") {
-      return res.status(400).json({ error: true, success: false, message: "Order already cancelled" });
-    }
-
-    // Only allow cancelling Pending or Processing orders
-    if (!["Processing"].includes(order.order_status)) {
-      return res.status(400).json({ error: true, success: false, message: "This order cannot be cancelled" });
-    }
-
-    // Update order status
-    order.order_status = "Cancelled";
-    await order.save();
-
-    // Stock back update
-    for (let item of order.products) {
-      await productmodel.findByIdAndUpdate(item.productId, {
-        $inc: { countInStock: item.quantity }
+      return res.status(404).json({
+        error: true,
+        success: false,
+        message: "Order not found",
       });
     }
 
-    return res.status(200).json({ error: false, success: true, message: "Order cancelled successfully" });
+    // already cancelled
+    if (order.order_status === "Cancelled") {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Order already cancelled",
+      });
+    }
+
+    // -------------------------
+    // ⏰ 7 Hour Cancel Limit
+    // -------------------------
+    const orderTime = new Date(order.createdAt).getTime();
+    const currentTime = new Date().getTime();
+
+    const diffHours = (currentTime - orderTime) / (1000 * 60 * 60);
+
+    if (diffHours > 7) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Cancel time expired (7 hours limit)",
+      });
+    }
+
+    // -------------------------
+    // Status validation
+    // -------------------------
+    if (!["Pending", "Processing"].includes(order.order_status)) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "This order cannot be cancelled",
+      });
+    }
+
+    // -------------------------
+    // Cancel order
+    // -------------------------
+    order.order_status = "Cancelled";
+    await order.save();
+
+    // -------------------------
+    // Restore stock
+    // -------------------------
+    for (let item of order.products) {
+      await productmodel.findByIdAndUpdate(item.productId, {
+        $inc: { countInStock: item.quantity },
+      });
+    }
+
+    return res.status(200).json({
+      error: false,
+      success: true,
+      message: "Order cancelled successfully",
+    });
+
   } catch (error) {
-    return res.status(500).json({ error: true, success: false, message: error.message || error });
+    return res.status(500).json({
+      error: true,
+      success: false,
+      message: error.message || error,
+    });
   }
 }
 
