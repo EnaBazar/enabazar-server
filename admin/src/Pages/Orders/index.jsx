@@ -549,13 +549,18 @@ const exportDeliveryLabel = (order) => {
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
                   <td className="px-3 py-2">{order?.totalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
-                  <td className="px-3 py-2">
-                    <Select value={order?.order_status || ""} onChange={(e) => handleChange(e, order?._id)} className="w-full h-[30px]">
-                      <MenuItem value={"pending"}>Pending</MenuItem>
-                      <MenuItem value={"confirm"}>Confirm</MenuItem>
-                      <MenuItem value={"delivered"}>Delivered</MenuItem>
-                    </Select>
-                  </td>
+                <td className="px-3 py-2">
+  <Select
+    value={order?.order_status || ""}
+    onChange={(e) => handleChange(e, order?._id)}
+    className="w-full h-[30px]"
+    disabled={new Date() - new Date(order?.createdAt) < 10 * 60 * 1000} // 10 মিনিট পরে enable হবে
+  >
+    <MenuItem value={"pending"}>Pending</MenuItem>
+    <MenuItem value={"confirm"}>Confirm</MenuItem>
+    <MenuItem value={"delivered"}>Delivered</MenuItem>
+  </Select>
+</td>
                   <td className="px-3 py-2 hidden sm:table-cell">
                     {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
                   </td>
