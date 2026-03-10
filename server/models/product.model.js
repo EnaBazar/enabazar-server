@@ -106,7 +106,7 @@ const productSchema = mongoose.Schema({
       default:false,
     },
     
-    youtubeVideo:{       
+ youtubeVideo:{       
  type:String,
  default:""
 },
