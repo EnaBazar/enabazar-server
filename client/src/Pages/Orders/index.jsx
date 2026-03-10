@@ -48,7 +48,7 @@ const cancelOrder = async (orderId) => {
       return;
     }
 
-  const cancelOrder = async (orderId) => {
+const cancelOrder = async (orderId) => {
   try {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -56,7 +56,7 @@ const cancelOrder = async (orderId) => {
       return;
     }
 
-    const res = await fetch("https://api.goroabazar.com/order/cancel", {
+    const res = await fetch("http://localhost:5000/order/cancel", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,6 +66,7 @@ const cancelOrder = async (orderId) => {
     });
 
     const data = await res.json();
+    console.log("Cancel response:", data); // <-- check response
 
     if (data?.success) {
       alert("Order removed successfully");
@@ -74,7 +75,7 @@ const cancelOrder = async (orderId) => {
       alert(data?.message || "Cancel failed");
     }
   } catch (err) {
-    console.error(err);
+    console.error("Fetch cancel error:", err);
     alert("Something went wrong");
   }
 };

@@ -408,19 +408,21 @@ export async function getUnreadOrdersCountController(req, res) {
 
 // ------------------------
 // Cancel Order Controller
-// ------------------------
-// ------------------------
-// Cancel Order Controller
-// ------------------------
-// controllers/order.controller.js
 export async function cancelOrderController(req, res) {
   try {
     const { orderId } = req.body;
-    const userId = req.userId; // auth middleware থেকে
+    const userId = req.userId;
+
+    if (!orderId) {
+      return res.status(400).json({
+        error: true,
+        success: false,
+        message: "Order ID is required",
+      });
+    }
 
     // Find order
     const order = await ordermodel.findOne({ _id: orderId, userId });
-
     if (!order) {
       return res.status(404).json({
         error: true,
@@ -429,10 +431,12 @@ export async function cancelOrderController(req, res) {
       });
     }
 
-    // Only allow cancelling within Processing or Pending (optional)
-    const timeDiff = new Date() - new Date(order.createdAt);
-    const limit = 7 * 60 * 60 * 1000; // 7 hours
-    if (timeDiff > limit) {
+    // Optional: 7 hour limit
+    const createdTime = new Date(order.createdAt);
+    const now = new Date();
+    const diff = now - createdTime;
+    const limit = 7 * 60 * 60 * 1000; // 7 hours in ms
+    if (diff > limit) {
       return res.status(400).json({
         error: true,
         success: false,
@@ -442,33 +446,32 @@ export async function cancelOrderController(req, res) {
 
     // Stock back update
     for (let item of order.products) {
-      await productmodel.findByIdAndUpdate(item.productId, {
-        $inc: { countInStock: item.quantity },
-      });
+      try {
+        await productmodel.findByIdAndUpdate(item.productId, {
+          $inc: { countInStock: item.quantity },
+        });
+      } catch (err) {
+        console.error("Stock update failed for product:", item.productId, err);
+      }
     }
 
-    // Delete order completely
-    await order.remove(); // <-- full delete
+    // Delete order
+    await order.remove();
 
     return res.status(200).json({
       error: false,
       success: true,
       message: "Order removed from database successfully",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("Cancel order error:", err);
     return res.status(500).json({
       error: true,
       success: false,
-      message: error.message || error,
+      message: err.message || "Internal Server Error",
     });
   }
 }
-
-
-// ------------------------
-// Mark All Orders as Read
-// ------------------------
 // Mark orders as read
 export async function markOrdersReadController(req, res) {
   try {
