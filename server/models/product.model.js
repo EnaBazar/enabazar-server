@@ -100,12 +100,16 @@ const productSchema = mongoose.Schema({
     type:String,
     required:true,
     },
+
         isDisplayOnHomeBanner:{       
     type:Boolean,
       default:false,
     },
     
-    
+    youtubeVideo:{       
+ type:String,
+ default:""
+},
     dateCreated:{       
     type:Date,
     default: Date.now,

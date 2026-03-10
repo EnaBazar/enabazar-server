@@ -204,7 +204,11 @@ const Users = () => {
                         <div className='flex items-center gap-4 w-[45px] '>
                           <div className='img w-[45px] h-[45px] rounded-full overflow-hidden group'>
                             <Link to="/product/45745">
-                              <img src={user?.avatar !== "" && user?.avatar !== undefined ? user?.avatar : '/user.png'} className='w-full h-[65px] group-hover:scale-105' />
+                             <img
+  src={user?.avatar ? user.avatar : "/user.png"}
+  onError={(e) => { e.target.src = "/user.png"; }}
+  className=" group-hover:scale-105"
+/>
                             </Link>
                           </div>
                         </div>

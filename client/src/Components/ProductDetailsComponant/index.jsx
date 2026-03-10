@@ -32,7 +32,7 @@ const ProductDetailsComponant = (props) => {
     setTabError(false);
   };
 
-  // ================= JWT LOGIN CHECK =================
+  // ================= LOGIN CHECK =================
   const checkLogin = () => {
     const token = localStorage.getItem("accesstoken");
     if (!token) {
@@ -43,7 +43,7 @@ const ProductDetailsComponant = (props) => {
     return true;
   };
 
-  // ================= USER ID GETTER =================
+  // ================= USER ID =================
   const getUserId = () => {
     if (context?.userData?._id) return context.userData._id;
 
@@ -126,6 +126,21 @@ const ProductDetailsComponant = (props) => {
     }
   };
 
+  // ================= YOUTUBE VIDEO ID EXTRACT =================
+  const getYoutubeId = (url) => {
+    if (!url) return null;
+
+    if (url.includes("watch?v=")) {
+      return url.split("watch?v=")[1];
+    }
+
+    if (url.includes("youtu.be/")) {
+      return url.split("youtu.be/")[1];
+    }
+
+    return url;
+  };
+
   return (
     <>
       <h1 className="text-[24px] font-[600] !mb-2">
@@ -159,9 +174,11 @@ const ProductDetailsComponant = (props) => {
         <span className="oldPrice line-through text-gray-500 text-[20px] font-[500]">
           ৳ {props?.item?.oldPrice}
         </span>
+
         <span className="Price text-pink-700 text-[20px] font-[600]">
           ৳ {props?.item?.price}
         </span>
+
         <span className="text-[14px]">
           Available In stock :
           <span className="text-green-600 font-bold">
@@ -170,17 +187,17 @@ const ProductDetailsComponant = (props) => {
         </span>
       </div>
 
-      {/* RAM */}
+      {/* VARIATIONS */}
+
       {props?.item?.productRam?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">RAM:</span>
+
           <div className="flex gap-1 actions">
             {props.item.productRam.map((item, index) => (
               <Button
                 key={index}
-                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""} ${
-                  tabError ? "!border !border-[#ff5252]" : ""
-                }`}
+                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
                 {item}
@@ -190,17 +207,15 @@ const ProductDetailsComponant = (props) => {
         </div>
       )}
 
-      {/* WEIGHT */}
       {props?.item?.productWeight?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">WEIGHT:</span>
+
           <div className="flex gap-1 actions">
             {props.item.productWeight.map((item, index) => (
               <Button
                 key={index}
-                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""} ${
-                  tabError ? "!border !border-[#ff5252]" : ""
-                }`}
+                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
                 {item}
@@ -210,17 +225,15 @@ const ProductDetailsComponant = (props) => {
         </div>
       )}
 
-      {/* SIZE */}
       {props?.item?.size?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">SIZE:</span>
+
           <div className="flex gap-1 actions">
             {props.item.size.map((item, index) => (
               <Button
                 key={index}
-                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""} ${
-                  tabError ? "!border !border-[#ff5252]" : ""
-                }`}
+                className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
                 {item}
@@ -234,7 +247,8 @@ const ProductDetailsComponant = (props) => {
         Free shipping (Est. delivery Time 2-3 Days)
       </p>
 
-      {/* QTY + ADD CART */}
+      {/* QTY + CART */}
+
       <div className="flex items-center gap-4 !mt-4">
         <div className="w-[100px]">
           <QtcBox handleSelecteQty={handleSelecteQty} item={props?.item} />
@@ -256,6 +270,7 @@ const ProductDetailsComponant = (props) => {
       </div>
 
       {/* BUY NOW */}
+
       <button
         className="btn-org h-[30px] text-[12px] !mt-3 font-[600] min-w-[160px] rounded-md"
         onClick={handleBuyNow}
@@ -263,14 +278,39 @@ const ProductDetailsComponant = (props) => {
         BUY NOW
       </button>
 
+      {/* WISHLIST */}
+
       <div className="flex items-center !gap-4 !mt-4">
         <span className="flex items-center gap-2 cursor-pointer">
           <FaRegHeart /> Add to WishList
         </span>
+
         <span className="flex items-center gap-2 cursor-pointer">
           <IoGitCompareOutline /> Add to Compare
         </span>
       </div>
+
+      {/* ================= PRODUCT VIDEO ================= */}
+
+      {props?.item?.youtubeVideo && (
+        <div className="w-full mt-8">
+          <h3 className="text-[18px] font-[600] mb-3">Product Video</h3>
+
+          <div className="w-full aspect-video rounded-lg overflow-hidden shadow">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${getYoutubeId(
+                props?.item?.youtubeVideo
+              )}`}
+              title="Product Video"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

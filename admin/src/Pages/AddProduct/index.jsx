@@ -64,6 +64,7 @@ const label = { inputProps: { 'aria-label': 'Switch demo' } };
                    productWeight: [],
                    bannerTitlename:"",
             bannerimages:[],
+            youtubeVideo:"",
             isDisplayOnHomeBanner:false
                     
      });
@@ -589,6 +590,24 @@ e.preventDefault(0); // ✅
   </div>
 </div>
 
+<div className="col">
+  <h3 className="text-[16px] font-[600]">
+    YouTube Video Link
+  </h3>
+
+  <input
+    type="text"
+    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
+    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+    name="youtubeVideo"
+    value={formFields.youtubeVideo}
+    onChange={onChangeInput}
+  />
+</div>
+
+
 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-3 gap-4">
   {/* Discount */}
   <div className="col">
@@ -671,6 +690,8 @@ e.preventDefault(0); // ✅
       </Select>
     )}
   </div>
+
+
 
   {/* Product Rating */}
   <div className="col">
