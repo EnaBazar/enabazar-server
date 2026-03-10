@@ -17,6 +17,7 @@ const Orders = () => {
     setIsOpenOrderProduct(isOpenOrderProduct === index ? null : index);
   };
 
+  // Fetch orders on mount
   useEffect(() => {
     fetchDataFromApi("/order/order-list").then((res) => {
       if (res?.error === false) {
@@ -25,24 +26,78 @@ const Orders = () => {
     });
   }, []);
 
-  // 7-hour cancel timer
+  // Live countdown per order
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => ({
+          ...order,
+          cancelTimeLeft: getCancelTimeLeft(order.createdAt),
+        }))
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Cancel time calculation (10 minutes)
   const getCancelTimeLeft = (createdAt) => {
     const orderTime = new Date(createdAt).getTime();
     const currentTime = new Date().getTime();
-    const limit = 10 * 60 * 1000; // 7 hours in ms
-    const timeLeft = limit - (currentTime - orderTime);
+    const limit = 10 * 60 * 1000; // 10 minutes in ms
+    const remaining = limit - (currentTime - orderTime);
 
-    if (timeLeft <= 0) return null;
+    if (remaining <= 0) return null;
 
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const minutes = Math.floor(remaining / (1000 * 60));
+    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
 
-    return `${hours}h ${minutes}m`;
+    return `${minutes}m ${seconds}s`;
   };
 
   // Cancel order API call
-const cancelOrder = async (orderId) => {
-  try {
+  const cancelOrder = async (orderId) => {
+    try {
+      if (!context) return;
+
+      const token = localStorage.getItem("accesstoken");
+      if (!token) {
+        context.openAlertBox("error", "You must be logged in to cancel order");
+        return;
+      }
+
+      // Confirmation
+      const confirmCancel = window.confirm (
+        "Are you sure you want to cancel this order?"
+      );
+      if (!confirmCancel) return;
+
+      const res = await fetch("https://api.goroabazar.com/order/cancel", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId }),
+      });
+
+      const data = await res.json();
+      if (data?.success) {
+        context.openAlertBox("success", "Order cancelled successfully");
+        setOrders((prevOrders) =>
+          prevOrders.filter((order) => order._id !== orderId)
+        );
+      } else {
+        context.openAlertBox("error", data?.message || "Cancel failed");
+      }
+    } catch (err) {
+      console.error("Cancel error:", err);
+      context.openAlertBox("error", "Something went wrong");
+    }
+  };
+
+
+    const handleCancelClick = (orderId) => {
     if (!context) return;
 
     const token = localStorage.getItem("accesstoken");
@@ -51,35 +106,11 @@ const cancelOrder = async (orderId) => {
       return;
     }
 
-    // Confirmation
-    const confirmCancel = window.confirm(
-      "Are you sure you want to cancel this order?"
-    );
-    if (!confirmCancel) return;
-
-    const res = await fetch("https://api.goroabazar.com/order/cancel", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({ orderId }),
+    context.openAlertBox("confirm", "Are you sure you want to cancel this order?", {
+      onConfirm: () => cancelOrder(orderId),
+      onCancel: () => {},
     });
-
-    const data = await res.json();
-    if (data?.success) {
-      context.openAlertBox("success", "Order cancelled successfully");
-      setOrders((prevOrders) =>
-        prevOrders.filter((order) => order._id !== orderId)
-      );
-    } else {
-      context.openAlertBox("error", data?.message || "Cancel failed");
-    }
-  } catch (err) {
-    console.error("Cancel error:", err);
-    context.openAlertBox("error", "Something went wrong");
-  }
-};
+  };
   return (
     <section className="py-10 w-full">
       <div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
@@ -104,7 +135,6 @@ const cancelOrder = async (orderId) => {
             {/* Table */}
             <div className="overflow-x-auto mt-5">
               <table className="w-full min-w-[900px] text-sm text-left">
-
                 <thead className="uppercase bg-[rgba(0,0,0,0.08)]">
                   <tr className="text-[12px]">
                     <th className="px-4 py-2"></th>
@@ -124,94 +154,91 @@ const cancelOrder = async (orderId) => {
 
                 <tbody>
                   {orders?.length > 0 ? (
-                    orders.map((order, index) => {
-                      const cancelTime = getCancelTimeLeft(order?.createdAt);
-                      return (
-                        <React.Fragment key={order?._id}>
-                          <tr className="border-b">
-                            <td className="px-4 py-3">
-                              <Button
-                                className="!min-w-[30px] !w-[30px] !h-[30px] !rounded-full !bg-[#f1f1f1]"
-                                onClick={() => toggleOrderProduct(index)}
-                              >
-                                {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
-                              </Button>
-                            </td>
-                            <td className="px-4 py-3 text-[#ff5252]">{order?._id}</td>
-                            <td className="px-4 py-3 text-[12px]">{order?.paymentId || "CASH ON DELIVERY"}</td>
-                            <td className="px-4 py-3">{order?.userId?.name}</td>
-                            <td className="px-4 py-3">{order?.userId?.mobile || '--'}</td>
-                            <td className="px-4 py-3 max-w-[200px] truncate">
-                              {`${order?.delivery_address?.address_line}, ${order?.delivery_address?.city}, ${order?.delivery_address?.state}`}
-                            </td>
-                            <td className="px-4 py-3">৳{order?.subTotalAmt}</td>
-                            <td className="px-4 py-3">৳{order?.delivery_charge}</td>
-                            <td className="px-4 py-3 font-semibold">৳{order?.totalAmt}</td>
-                            <td className="px-4 py-3"><Badge status={order?.order_status} /></td>
-                            <td className="px-4 py-3">{new Date(order?.createdAt).toLocaleDateString()}</td>
+                    orders.map((order, index) => (
+                      <React.Fragment key={order._id}>
+                        <tr className="border-b">
+                          <td className="px-4 py-3">
+                            <Button
+                              className="!min-w-[30px] !w-[30px] !h-[30px] !rounded-full !bg-[#f1f1f1]"
+                              onClick={() => toggleOrderProduct(index)}
+                            >
+                              {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
+                            </Button>
+                          </td>
+                          <td className="px-4 py-3 text-[#ff5252]">{order._id}</td>
+                          <td className="px-4 py-3 text-[12px]">{order.paymentId || "CASH ON DELIVERY"}</td>
+                          <td className="px-4 py-3">{order.userId?.name}</td>
+                          <td className="px-4 py-3">{order.userId?.mobile || '--'}</td>
+                          <td className="px-4 py-3 max-w-[200px] truncate">
+                            {`${order.delivery_address?.address_line}, ${order.delivery_address?.city}, ${order.delivery_address?.state}`}
+                          </td>
+                          <td className="px-4 py-3">৳{order.subTotalAmt}</td>
+                          <td className="px-4 py-3">৳{order.delivery_charge}</td>
+                          <td className="px-4 py-3 font-semibold">৳{order.totalAmt}</td>
+                          <td className="px-4 py-3"><Badge status={order.order_status} /></td>
+                          <td className="px-4 py-3">{new Date(order.createdAt).toLocaleDateString()}</td>
 
-                            {/* Cancel Button */}
-                            <td className="px-4 py-3">
-                              {cancelTime &&
-                                ["pending", "processing"].includes(order?.order_status?.toLowerCase()) && (
-                                  <>
-                                    <p className="text-[8px] text-gray-500 mb-1">Cancel in {cancelTime}</p>
-                                    <Button
-                                      variant="outlined"
-                                      color="error"
-                                      size="small"
-                                      onClick={() => cancelOrder(order._id)}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </>
-                                )}
+                          {/* Cancel Button + Countdown */}
+                          <td className="px-4 py-3">
+                            {order.cancelTimeLeft &&
+                              ["pending", "processing"].includes(order.order_status?.toLowerCase()) && (
+                                <>
+                                  <p className="text-[6px] text-gray-500 mb-1">Time {order.cancelTimeLeft}</p>
+                               <Button
+  variant="outlined"
+  color="error"
+  size="small"
+  onClick={() => handleCancelClick(order._id)}
+>
+  Cancel
+</Button>
+                                </>
+                              )}
+                          </td>
+                        </tr>
+
+                        {/* Products Expand */}
+                        {isOpenOrderProduct === index && (
+                          <tr>
+                            <td colSpan="12" className="bg-[#fafafa] p-4">
+                              <table className="w-full text-sm">
+                                <thead className="bg-[rgba(0,0,0,0.05)]">
+                                  <tr>
+                                    <th className="px-4 py-2">Image</th>
+                                    <th className="px-4 py-2">Product</th>
+                                    <th className="px-4 py-2">Qty</th>
+                                    <th className="px-4 py-2">Price</th>
+                                    <th className="px-4 py-2">Subtotal</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {order.products?.map((item) => (
+                                    <tr key={item.productId} className="border-b">
+                                      <td className="px-4 py-3">
+                                        <img
+                                          src={item.image || "/no-image.png"}
+                                          className="w-[60px] h-[60px] object-cover rounded-md cursor-pointer"
+                                          onClick={() => navigate(`/product/${item.productId}`)}
+                                        />
+                                      </td>
+                                      <td
+                                        className="px-4 py-3 cursor-pointer hover:text-[#ff5252]"
+                                        onClick={() => navigate(`/product/${item.productId}`)}
+                                      >
+                                        {item.productTitle}
+                                      </td>
+                                      <td className="px-4 py-3">{item.quantity}</td>
+                                      <td className="px-4 py-3">৳{item.price}</td>
+                                      <td className="px-4 py-3 font-semibold">৳{item.quantity * item.price}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </td>
                           </tr>
-
-                          {/* Products Expand */}
-                          {isOpenOrderProduct === index && (
-                            <tr>
-                              <td colSpan="12" className="bg-[#fafafa] p-4">
-                                <table className="w-full text-sm">
-                                  <thead className="bg-[rgba(0,0,0,0.05)]">
-                                    <tr>
-                                      <th className="px-4 py-2">Image</th>
-                                      <th className="px-4 py-2">Product</th>
-                                      <th className="px-4 py-2">Qty</th>
-                                      <th className="px-4 py-2">Price</th>
-                                      <th className="px-4 py-2">Subtotal</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {order?.products?.map((item) => (
-                                      <tr key={item?.productId} className="border-b">
-                                        <td className="px-4 py-3">
-                                          <img
-                                            src={item?.image || "/no-image.png"}
-                                            className="w-[60px] h-[60px] object-cover rounded-md cursor-pointer"
-                                            onClick={() => navigate(`/product/${item?.productId}`)}
-                                          />
-                                        </td>
-                                        <td
-                                          className="px-4 py-3 cursor-pointer hover:text-[#ff5252]"
-                                          onClick={() => navigate(`/product/${item?.productId}`)}
-                                        >
-                                          {item?.productTitle}
-                                        </td>
-                                        <td className="px-4 py-3">{item?.quantity}</td>
-                                        <td className="px-4 py-3">৳{item?.price}</td>
-                                        <td className="px-4 py-3 font-semibold">৳{item?.quantity * item?.price}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })
+                        )}
+                      </React.Fragment>
+                    ))
                   ) : (
                     <tr>
                       <td colSpan="12" className="text-center py-10">No Orders Found</td>
@@ -222,6 +249,7 @@ const cancelOrder = async (orderId) => {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
