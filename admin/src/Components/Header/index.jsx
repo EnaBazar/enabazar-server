@@ -65,8 +65,6 @@ const Header = () => {
     });
   }, []);
 
-
-
 const handleBellClick = async () => {
   try {
     if (context.orderCount === 0) {
@@ -89,10 +87,6 @@ const handleBellClick = async () => {
   }
 };
 
-
-
-
-
   // --- Account Menu ---
   const handleClickMyAcc = (event) => {
     setAnchorMyAcc(event.currentTarget);
@@ -100,7 +94,6 @@ const handleBellClick = async () => {
   const handleCloseMyAcc = () => {
     setAnchorMyAcc(null);
   };
-
   // --- Logout ---
 const logout = () => {
     fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`,{withCredentials:true}).then((res)=>{ 
@@ -169,10 +162,14 @@ const logout = () => {
             <div className='relative'>
               <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'
                 onClick={handleClickMyAcc}>
-          <img
+<img
   src={context?.userData?.avatar || "/user.png"}
-  className='w-full h-full object-cover'
-          />
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "/user.png";
+  }}
+  className="w-full h-full object-cover"
+/>
               </div>
               <Menu
                 anchorEl={anchorMyAcc}
@@ -216,9 +213,13 @@ const logout = () => {
                     <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
 
                       
-                     <img
+                    <img
   src={context?.userData?.avatar || "/user.png"}
-  className='w-full h-full object-cover'
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "/user.png";
+  }}
+  className="w-full h-full object-cover"
 />
                     </div>
                     <div className='info'>
