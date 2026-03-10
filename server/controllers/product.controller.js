@@ -994,6 +994,7 @@ export async function deletemultipleProducts(request, response) {
                 description:request.body.description,
                 bannerimages:request.body.bannerimages,
                 bannerTitlename:request.body.bannerTitlename,
+                youtubeVideo:request.body.youtubeVideo,
                 isDisplayOnHomeBanner:request.body.isDisplayOnHomeBanner,
                 images: request.body.images,
                 brand:request.body.brand,

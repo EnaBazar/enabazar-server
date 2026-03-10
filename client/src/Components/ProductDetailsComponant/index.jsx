@@ -293,9 +293,8 @@ const ProductDetailsComponant = (props) => {
       {/* ================= PRODUCT VIDEO ================= */}
 
       {props?.item?.youtubeVideo && (
-        <div className="w-full mt-8">
-          <h3 className="text-[18px] font-[600] mb-3">Product Video</h3>
-
+        <div className="w-full !mt-8">
+          <h3 className="text-[12px] font-[600]  !mb-3">আপনি যদি প্রোডাক্টের রিয়েল ফিল নিতে চান নিচের দেয়া ভিডিও টা দেখে নিতে পারেন || তাহলে আপনার সিদ্ধান্ত নিতে সহজ হবে ||</h3>
           <div className="w-full aspect-video rounded-lg overflow-hidden shadow">
             <iframe
               width="100%"

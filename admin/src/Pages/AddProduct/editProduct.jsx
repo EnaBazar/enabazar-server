@@ -41,6 +41,7 @@ import Editor from 'react-simple-wysiwyg';
                    productWeight: [],
                            bannerTitlename:"",
             bannerimages:[],
+               youtubeVideo:"",
                isDisplayOnHomeBanner:false
                     
                     
@@ -130,6 +131,7 @@ const onchangeDescription = (e) => {
           description: res?.products?.description,
           images: res?.products?.images,
           brand: res?.products?.brand ,
+          youtubeVideo: res?.products?.youtubeVideo ,
           price: res?.products?.price,
           oldPrice: res?.products?.oldPrice,
           category: res?.products?.category,
@@ -146,9 +148,9 @@ const onchangeDescription = (e) => {
           productRam: res?.products?.productRam ,
           size: res?.products?.size,
           productWeight: res?.products?.productWeight,
-                 bannerTitlename: res?.products?.bannerTitlename,
-                 bannerimages:res?.products?.bannerimages,
-                    isDisplayOnHomeBanner:res?.products?.isDisplayOnHomeBanner
+          bannerTitlename: res?.products?.bannerTitlename,
+          bannerimages:res?.products?.bannerimages,
+          isDisplayOnHomeBanner:res?.products?.isDisplayOnHomeBanner
                  
         });
 setHtml(res?.products?.description || "");
@@ -601,6 +603,23 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
   </div>
 </div>
 
+
+<div className="col">
+  <h3 className="text-[16px] font-[600]">
+    YouTube Video Link
+  </h3>
+
+  <input
+    type="text"
+    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
+    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+    name="youtubeVideo"
+    value={formFields.youtubeVideo}
+    onChange={onChangeInput}
+  />
+</div>
    
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-3">
   
