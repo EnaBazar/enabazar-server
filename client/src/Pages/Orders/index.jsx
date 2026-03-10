@@ -42,7 +42,7 @@ const Orders = () => {
   // Cancel order API call
   const cancelOrder = async (orderId) => {
     try {
-      const res = await fetch("/order/cancel-order", {
+      const res = await fetch("/order/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId }),
