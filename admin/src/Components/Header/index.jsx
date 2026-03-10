@@ -169,7 +169,10 @@ const logout = () => {
             <div className='relative'>
               <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'
                 onClick={handleClickMyAcc}>
-                <img src={context?.userData?.avatar} className='w-full h-full object-cover' />
+          <img
+  src={context?.userData?.avatar || "/user.png"}
+  className='w-full h-full object-cover'
+          />
               </div>
               <Menu
                 anchorEl={anchorMyAcc}
@@ -212,15 +215,11 @@ const logout = () => {
                   <div className='flex items-center gap-3'>
                     <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
 
-<img
+                      
+                     <img
   src={context?.userData?.avatar || "/user.png"}
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/user.png";
-  }}
-  className="w-full h-full object-cover"
+  className='w-full h-full object-cover'
 />
-                     
                     </div>
                     <div className='info'>
                       <h3 className='text-[16px] font-[500] leading-5'>{context?.userData?.name}</h3>
