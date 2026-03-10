@@ -40,26 +40,26 @@ const Orders = () => {
   };
 
   // Cancel order API call
-  const cancelOrder = async (orderId) => {
-    try {
-      const res = await fetch("/order/cancel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId }),
-      });
+const cancelOrder = async (orderId) => {
+  try {
+    const res = await fetch("https://api.goroabazar.com/order/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+    });
+    const data = await res.json();
 
-      const data = await res.json();
-      if (data?.success) {
-        alert("Order cancelled successfully");
-        window.location.reload();
-      } else {
-        alert(data?.message || "Cancel failed");
-      }
-    } catch (err) {
-      console.log(err);
-      alert("Something went wrong");
+    if (data?.success) {
+      alert("Order cancelled successfully");
+      window.location.reload();
+    } else {
+      alert(data?.message || "Cancel failed");
     }
-  };
+  } catch (err) {
+    console.log(err);
+    alert("Something went wrong");
+  }
+};
 
   return (
     <section className="py-10 w-full">

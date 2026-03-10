@@ -455,7 +455,7 @@ export async function cancelOrderController(req, res) {
     // -------------------------
     // Status validation
     // -------------------------
-    if (!["Pending", "Processing"].includes(order.order_status)) {
+    if (!["pending", "Processing"].includes(order.order_status)) {
       return res.status(400).json({
         error: true,
         success: false,
