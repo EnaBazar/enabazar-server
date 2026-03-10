@@ -42,21 +42,42 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
-    // get token from localStorage (যদি login data stored থাকে)
+    const token = localStorage.getItem("accesstoken"); // assume token stored in localStorage
+    if (!token) {
+      alert("You must be logged in to cancel order");
+      return;
+    }
+
+  const cancelOrder = async (orderId) => {
+  try {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("You must be logged in to cancel order");
       return;
     }
 
-    const res = await fetch("https://api.goroabazar.com/order/cancel", { // backend port
+    const res = await fetch("https://api.goroabazar.com/order/cancel", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // ✅ pass token here
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({ orderId }),
     });
+
+    const data = await res.json();
+
+    if (data?.success) {
+      alert("Order removed successfully");
+      window.location.reload();
+    } else {
+      alert(data?.message || "Cancel failed");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
 
     const data = await res.json();
 
@@ -67,7 +88,7 @@ const cancelOrder = async (orderId) => {
       alert(data?.message || "Cancel failed");
     }
   } catch (err) {
-    console.error(err);
+    console.log(err);
     alert("Something went wrong");
   }
 };

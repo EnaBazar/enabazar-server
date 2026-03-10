@@ -412,11 +412,13 @@ export async function getUnreadOrdersCountController(req, res) {
 // ------------------------
 // Cancel Order Controller
 // ------------------------
+// controllers/order.controller.js
 export async function cancelOrderController(req, res) {
   try {
     const { orderId } = req.body;
     const userId = req.userId; // auth middleware থেকে
 
+    // Find order
     const order = await ordermodel.findOne({ _id: orderId, userId });
 
     if (!order) {
@@ -427,64 +429,34 @@ export async function cancelOrderController(req, res) {
       });
     }
 
-    // already cancelled
-    if (order.order_status === "Cancelled") {
+    // Only allow cancelling within Processing or Pending (optional)
+    const timeDiff = new Date() - new Date(order.createdAt);
+    const limit = 7 * 60 * 60 * 1000; // 7 hours
+    if (timeDiff > limit) {
       return res.status(400).json({
         error: true,
         success: false,
-        message: "Order already cancelled",
+        message: "Cancel time limit exceeded",
       });
     }
 
-    // -------------------------
-    // ⏰ 7 Hour Cancel Limit
-    // -------------------------
-    const orderTime = new Date(order.createdAt).getTime();
-    const currentTime = new Date().getTime();
-
-    const diffHours = (currentTime - orderTime) / (1000 * 60 * 60);
-
-    if (diffHours > 7) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "Cancel time expired (7 hours limit)",
-      });
-    }
-
-    // -------------------------
-    // Status validation
-    // -------------------------
-    if (!["pending", "Processing"].includes(order.order_status)) {
-      return res.status(400).json({
-        error: true,
-        success: false,
-        message: "This order cannot be cancelled",
-      });
-    }
-
-    // -------------------------
-    // Cancel order
-    // -------------------------
-    order.order_status = "Cancelled";
-    await order.save();
-
-    // -------------------------
-    // Restore stock
-    // -------------------------
+    // Stock back update
     for (let item of order.products) {
       await productmodel.findByIdAndUpdate(item.productId, {
         $inc: { countInStock: item.quantity },
       });
     }
 
+    // Delete order completely
+    await order.remove(); // <-- full delete
+
     return res.status(200).json({
       error: false,
       success: true,
-      message: "Order cancelled successfully",
+      message: "Order removed from database successfully",
     });
-
   } catch (error) {
+    console.error(error);
     return res.status(500).json({
       error: true,
       success: false,
