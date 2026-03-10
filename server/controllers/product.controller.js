@@ -137,6 +137,7 @@ cloudinary.config({
               bannerTitlename:request.body.bannerTitlename,
               isDisplayOnHomeBanner:request.body.isDisplayOnHomeBanner,
               brand:request.body.brand,
+              youtubeVideo:request.body.youtubeVideo,
               price:request.body.price,
               oldPrice:request.body.oldPrice,
               category:request.body.category,
