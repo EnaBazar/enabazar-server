@@ -42,21 +42,13 @@ const Orders = () => {
   // Cancel order API call
 const cancelOrder = async (orderId) => {
   try {
-    const token = localStorage.getItem("accesstoken"); // assume token stored in localStorage
+    const token = localStorage.getItem("accesstoken");
     if (!token) {
       alert("You must be logged in to cancel order");
       return;
     }
 
-const cancelOrder = async (orderId) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to cancel order");
-      return;
-    }
-
-    const res = await fetch("http://localhost:5000/order/cancel", {
+    const res = await fetch("https://api.goroabazar.com/order/cancel", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,10 +57,10 @@ const cancelOrder = async (orderId) => {
       body: JSON.stringify({ orderId }),
     });
 
-    const data = await res.json();
-    console.log("Cancel response:", data); // <-- check response
+    const data = await res.json(); // <-- parse json into data
+    console.log("Cancel response:", data);
 
-    if (data?.success) {
+    if (data?.success) { // <-- check data, not res
       alert("Order removed successfully");
       window.location.reload();
     } else {
@@ -76,20 +68,6 @@ const cancelOrder = async (orderId) => {
     }
   } catch (err) {
     console.error("Fetch cancel error:", err);
-    alert("Something went wrong");
-  }
-};
-
-    const data = await res.json();
-
-    if (data?.success) {
-      alert("Order cancelled successfully");
-      window.location.reload();
-    } else {
-      alert(data?.message || "Cancel failed");
-    }
-  } catch (err) {
-    console.log(err);
     alert("Something went wrong");
   }
 };
