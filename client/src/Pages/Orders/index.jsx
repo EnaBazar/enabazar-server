@@ -67,10 +67,7 @@ const Orders = () => {
       }
 
       // Confirmation
-      const confirmCancel = window.confirm (
-        "Are you sure you want to cancel this order?"
-      );
-      if (!confirmCancel) return;
+      
 
       const res = await fetch("https://api.goroabazar.com/order/cancel", {
         method: "POST",
@@ -96,21 +93,6 @@ const Orders = () => {
     }
   };
 
-
-    const handleCancelClick = (orderId) => {
-    if (!context) return;
-
-    const token = localStorage.getItem("accesstoken");
-    if (!token) {
-      context.openAlertBox("error", "You must be logged in to cancel order");
-      return;
-    }
-
-    context.openAlertBox("confirm", "Are you sure you want to cancel this order?", {
-      onConfirm: () => cancelOrder(orderId),
-      onCancel: () => {},
-    });
-  };
   return (
     <section className="py-10 w-full">
       <div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
@@ -183,15 +165,15 @@ const Orders = () => {
                             {order.cancelTimeLeft &&
                               ["pending", "processing"].includes(order.order_status?.toLowerCase()) && (
                                 <>
-                                  <p className="text-[6px] text-gray-500 mb-1">Time {order.cancelTimeLeft}</p>
-                               <Button
-  variant="outlined"
-  color="error"
-  size="small"
-  onClick={() => handleCancelClick(order._id)}
->
-  Cancel
-</Button>
+                                  <p className="text-[6px] text-gray-500 mb-1"> {order.cancelTimeLeft}</p>
+                                  <Button
+                                    variant="outlined"
+                                    color="error"
+                                    size="small"
+                                    onClick={() => cancelOrder(order._id)}
+                                  >
+                                    Cancel
+                                  </Button>
                                 </>
                               )}
                           </td>
