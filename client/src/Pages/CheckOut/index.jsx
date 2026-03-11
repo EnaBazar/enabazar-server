@@ -7,7 +7,8 @@ import { FaPlus } from 'react-icons/fa6';
 import Radio from '@mui/material/Radio';
 import { deleteData, fetchDataFromApi, postData } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
-import sendSMS from '../../utils/sendSMS'; // ✅ SMS utility
+import sendSMS from '../../../../server/utils/sendSMS'; // ✅ SMS utility
+import sendSMSorder from '../../../../server/utils/sendSMSorder';
 
 const CheckOut = () => {
   window.scrollTo(0, 0);
@@ -108,9 +109,9 @@ const CheckOut = () => {
         context?.openAlertBox("success", res?.message);
 
         // ✅ Send SMS
-        const message = `হ্যালো ${user?.name}, আপনার অর্ডার #${res.order._id} সফলভাবে দেওয়া হয়েছে। মোট টাকার পরিমাণ: ৳${totalAmount.toLocaleString("en-BD")}. ধন্যবাদ আমাদের সঙ্গে শপিং করার জন্য!`;
-
-        const smsResponse = await sendSMS(user?.mobile, message);
+        const message = `হ্যালো ${user?.name}, আপনার অর্ডার # ${res.order._id} সফলভাবে দেওয়া হয়েছে। মোট টাকার পরিমাণ: ৳${totalAmount.toLocaleString("en-BD")}. ধন্যবাদ আমাদের সঙ্গে শপিং করার জন্য!`;
+console.log(res.order)
+        const smsResponse = await sendSMSorder(user?.mobile, message);
         console.log("SMS Response:", smsResponse);
 
         // Navigate to success page
