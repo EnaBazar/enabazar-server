@@ -1,6 +1,6 @@
 
 import express from "express";
-import sendSMS from "../utils/sendSMS.js";
+import sendSMSorder from "../utils/sendSMSorder.js";
 
 const smsRoutes = express.Router();
 
@@ -11,7 +11,7 @@ smsRoutes.post("/order-confirm", async (req, res) => {
 
   const message = `হ্যালো ${name}, আপনার অর্ডার #${orderId} সফলভাবে গ্রহণ করা হয়েছে। মোট টাকা: ৳${total}। ধন্যবাদ আমাদের সাথে কেনাকাটা করার জন্য।`;
 
-  const result = await sendSMS(mobile, message);
+  const result = await sendSMSorder(mobile, message);
 
   res.json(result);
 
@@ -26,7 +26,7 @@ smsRoutes.post("/admin-order", async (req, res) => {
 
   const message = `নতুন অর্ডার এসেছে! Order ID: ${orderId}, Amount: ৳${total}`;
 
-  const result = await sendSMS(adminNumber, message);
+  const result = await sendSMSorder(adminNumber, message);
 
   res.json(result);
 

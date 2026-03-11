@@ -120,7 +120,7 @@ const CheckOut = () => {
 
         // ✅ SMS Send API
 
-        await postData(`/api/sms/order-confirm`,{
+        await postData(`/sms/order-confirm`,{
 
           mobile:user?.mobile,
           name:user?.name,

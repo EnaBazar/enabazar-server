@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const sendSMS = async (mobile, message) => {
+const sendSMSorder = async (mobile, message) => {
   try {
 
     mobile = mobile.replace("+", "");
@@ -25,4 +25,4 @@ const sendSMS = async (mobile, message) => {
   }
 };
 
-export default sendSMS;
+export default sendSMSorder;
