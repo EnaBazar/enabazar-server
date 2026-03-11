@@ -1,34 +1,44 @@
-
 import express from "express";
+
 import sendSMSorder from "../utils/sendSMSorder.js";
 
 const smsRoutes = express.Router();
 
-// Customer Order SMS
 smsRoutes.post("/order-confirm", async (req, res) => {
 
-  const { mobile, name, orderId, total } = req.body;
+  const { mobile, name, orderId, total, products, address } = req.body;
 
-  const message = `হ্যালো ${name}, আপনার অর্ডার #${orderId} সফলভাবে গ্রহণ করা হয়েছে। মোট টাকা: ৳${total}। ধন্যবাদ আমাদের সাথে কেনাকাটা করার জন্য।`;
+  const productList = products
+    .map(p => `${p.productTitle}(${p.quantity})`)
+    .join(", ");
 
-  const result = await sendSMSorder(mobile, message);
+  // ✅ Customer SMS
+  const customerMessage = `হ্যালো ${name},
+অর্ডার#${orderId}
+পণ্য: ${productList}
+ডেলিভারি: ${address}
+মোট: ৳${total}
+ধন্যবাদ।`;
 
-  res.json(result);
 
-});
+  await sendSMSorder(mobile, customerMessage);
 
-// Admin Notification
-smsRoutes.post("/admin-order", async (req, res) => {
 
-  const { orderId, total } = req.body;
+  // ✅ Admin SMS
+  const adminMessage = `নতুন অর্ডার এসেছে!
 
-  const adminNumber = "8801674847446";
+অর্ডার#: ${orderId}
+Customer: ${name}
+পণ্য: ${productList}
+মোট: ৳${total}
+ডেলিভারি: ${address}`;
 
-  const message = `নতুন অর্ডার এসেছে! Order ID: ${orderId}, Amount: ৳${total}`;
+  await sendSMSorder(process.env.ADMIN_MOBILE, adminMessage);
 
-  const result = await sendSMSorder(adminNumber, message);
-
-  res.json(result);
+  res.json({
+    success: true,
+    message: "SMS Sent"
+  });
 
 });
 
