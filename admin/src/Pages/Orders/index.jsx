@@ -558,7 +558,7 @@ const exportDeliveryLabel = (order) => {
   >
     <MenuItem value={"pending"}>Pending</MenuItem>
     <MenuItem value={"confirm"}>Confirm</MenuItem>
-        <MenuItem value={"shipped"}>Shipped</MenuItem>
+    <MenuItem value={"shipped"}>Shipped</MenuItem>
     <MenuItem value={"delivered"}>Delivered</MenuItem>
   </Select>
 </td>
