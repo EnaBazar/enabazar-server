@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const sendSMSorder = async (mobile,message) => {
+const sendSMS = async (mobile, message) => {
   try {
 
     mobile = mobile.replace("+", "");
@@ -9,9 +9,9 @@ const sendSMSorder = async (mobile,message) => {
       mobile = "88" + mobile;
     }
 
-    const url = `https://bulksmsdhaka.net/api/sendtext?apikey=b65bf467f3282df00975768237e81ce765830322&callerID=1234&number=${mobile}&message=${message}`;
+    const encodedMessage = encodeURIComponent(message);
 
-    console.log("Final URL:", url);
+    const url = `https://bulksmsdhaka.net/api/sendtext?apikey=b65bf467f3282df00975768237e81ce765830322&callerID=1234&number=${mobile}&message=${encodedMessage}`;
 
     const response = await axios.get(url);
 
@@ -25,6 +25,4 @@ const sendSMSorder = async (mobile,message) => {
   }
 };
 
-export default sendSMSorder;
-
-
+export default sendSMS;
