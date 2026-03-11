@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import ordermodel from "../models/order.model.js";
 import productmodel from "../models/product.model.js";
 import usermodel from "../models/User.js";
+import sendSMSorder from "../utils/sendSMSorder.js";
 
 // ------------------------
 // Create Order Controller
@@ -208,16 +209,17 @@ export async function getAllOrdersForAdminController(request, response) {
 
 // ------------------------
 // Update Order Status
-// ------------------------
 export async function updateOrderController(request, response) {
   try {
-    const { id, order_status } = request.body; // body থেকে id & status আসবে
+    const { id, order_status } = request.body;
 
-    const updatedOrder = await ordermodel.findByIdAndUpdate(
-      id,
-      { order_status: order_status },
-      { new: true }
-    );
+    const updatedOrder = await ordermodel
+      .findByIdAndUpdate(
+        id,
+        { order_status: order_status },
+        { new: true }
+      )
+      .populate("userId", "name mobile");
 
     if (!updatedOrder) {
       return response.status(404).json({
@@ -227,12 +229,45 @@ export async function updateOrderController(request, response) {
       });
     }
 
+    const mobile = updatedOrder?.userId?.mobile;
+    const name = updatedOrder?.userId?.name;
+
+    let message = "";
+
+    if (order_status === "confirm") {
+      message = `হ্যালো ${name},
+আপনার অর্ডার Confirm হয়েছে।
+
+Order ID: ${updatedOrder._id}
+
+শীঘ্রই ডেলিভারি করা হবে।`;
+    }
+
+    if (order_status === "shipped") {
+      message = `হ্যালো ${name},
+আপনার অর্ডার কুরিয়ারে পাঠানো হয়েছে।
+
+Order ID: ${updatedOrder._id}`;
+    }
+
+    if (order_status === "delivered") {
+      message = `হ্যালো ${name},
+আপনার অর্ডার Delivered হয়েছে।
+
+ধন্যবাদ আমাদের সাথে কেনাকাটা করার জন্য।`;
+    }
+
+    if (message) {
+      await sendSMSorder(mobile, message);
+    }
+
     return response.status(200).json({
       error: false,
       success: true,
       message: "Order updated successfully",
       data: updatedOrder,
     });
+
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,
