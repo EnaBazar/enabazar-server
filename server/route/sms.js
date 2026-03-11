@@ -1,5 +1,6 @@
 import express from "express";
-
+import dotenv from "dotenv";
+dotenv.config();
 import sendSMSorder from "../utils/sendSMSorder.js";
 
 const smsRoutes = express.Router();
