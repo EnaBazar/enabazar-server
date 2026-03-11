@@ -108,7 +108,7 @@ const CheckOut = () => {
 
         context?.openAlertBox("success", res?.message);
 
-await postData(`sms/order-confirm`, {
+await postData(`/sms/order-confirm`, {
 
   mobile: user?.mobile,
   name: user?.name,
