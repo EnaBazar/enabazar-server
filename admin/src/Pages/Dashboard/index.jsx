@@ -99,7 +99,34 @@ const [endDate, setEndDate] = useState("");
   const [deleteId, setDeleteId] = useState(null);
   const [deleteMode, setDeleteMode] = useState("single"); // single | multiple
 
+// Status change timer (10 minutes)
+const getStatusTimeLeft = (createdAt) => {
+  const orderTime = new Date(createdAt).getTime();
+  const currentTime = new Date().getTime();
+  const limit = 10 * 60 * 1000;
 
+  const remaining = limit - (currentTime - orderTime);
+
+  if (remaining <= 0) return null;
+
+  const minutes = Math.floor(remaining / (1000 * 60));
+  const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+  return `${minutes}m ${seconds}s`;
+};
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => ({
+        ...order,
+        statusTimeLeft: getStatusTimeLeft(order.createdAt)
+      }))
+    );
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
 
 
   const handleChange = (event, id) => {
@@ -1139,7 +1166,11 @@ return (
                
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
                   <td className="px-3 py-2">
-                    
+      {order.statusTimeLeft && (
+    <p className="text-[8px] text-red-500 mb-1">
+    change after: {order.statusTimeLeft}
+    </p>
+  )}               
  <Select
     value={order?.order_status || ""}
     onChange={(e) => handleChange(e, order?._id)}
