@@ -230,7 +230,7 @@ export async function updateOrderController(request, response) {
         message: "Order not found",
       });
     }
-console.log(updatedOrder.products);
+
     const mobile = updatedOrder?.userId?.mobile;
     const name = updatedOrder?.userId?.name;
 
@@ -242,7 +242,7 @@ console.log(updatedOrder.products);
       const item = updatedOrder.products[i];
 
       if (item.productId) {
-        productList += `${i + 1}. ${item.productId.name} x${item.quantity}\n`;
+        productList += `${i + 1}. ${item.productId.productTitle} x${item.quantity}\n`;
       }
 
     }
