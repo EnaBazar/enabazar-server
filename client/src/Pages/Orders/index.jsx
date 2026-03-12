@@ -116,12 +116,12 @@ const Orders = () => {
 
             {/* Table */}
             <div className="overflow-x-auto mt-5">
-              <table className="w-full min-w-[900px] text-sm text-left">
+              <table className="w-full text-sm text-left">
                 <thead className="uppercase bg-[rgba(0,0,0,0.08)]">
                   <tr className="text-[12px]">
                     <th className="px-4 py-2"></th>
                     <th className="px-4 py-2">OId</th>
-                    <th className="px-4 py-2">Payment</th>
+                    <th className="px-4 py-2">Pay</th>
                     <th className="px-4 py-2">Name</th>
                     <th className="px-4 py-2">Phone</th>
                     <th className="px-4 py-2">Address</th>
