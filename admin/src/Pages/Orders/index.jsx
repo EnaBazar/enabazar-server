@@ -7,14 +7,13 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Pagination from "@mui/material/Pagination";
 import { MyContext } from "../../App";
-
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-
 import pdfMake from "../../Fonts/pdfFonts.js";
 import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
+import sendSMSCustomer from "../../../../server/utils/sendSMSCustomer.js";
 
 const Orders = () => {
   const context = useContext(MyContext);
@@ -25,11 +24,15 @@ const Orders = () => {
   const [searchQuery, setSearchQuery] = useState("");
 const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
-
-
+const [contactOrder, setContactOrder] = useState(null);
+const [message, setmessage] = useState("");
+const [sendingSms, setSendingSms] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-const getStatusColor = (status) => {
+
+
+
+  const getStatusColor = (status) => {
   switch (status) {
     case "pending":
       return "bg-red-400";
@@ -47,6 +50,23 @@ const getStatusColor = (status) => {
       return "bg-gray-300";
   }
 };
+
+const sendCustomSms = async () => {
+  if (!setmessage) return alert("Write SMS first");
+  setSendingSms(true);
+
+  const result = await sendSMSCustomer(contactOrder.userId?.mobile, message);
+
+  if (result.success) {
+     context.openAlertBox("success", "SMS Sent Successfully");
+    setmessage("");
+  } else {
+     context.openAlertBox("error", "SMS sending failed");
+  }
+
+  setSendingSms(false);
+};
+
 
 // Status change timer (10 minutes)
 const getStatusTimeLeft = (createdAt) => {
@@ -138,6 +158,14 @@ useEffect(() => {
     setSelectedOrder(order);
     setOpenModal(true);
   };
+
+  const handleShowContact = (order) => {
+  if (contactOrder?._id === order._id) {
+    setContactOrder(null);
+  } else {
+    setContactOrder(order);
+  }
+};
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -467,7 +495,10 @@ const exportDeliveryLabel = (order) => {
 };
 
 
-
+const copyPhone = (phone) => {
+  navigator.clipboard.writeText(phone);
+  context.openAlertBox("success", "Phone number copied");
+};
 
 
 
@@ -553,6 +584,79 @@ const exportDeliveryLabel = (order) => {
 </div>
 
 
+{contactOrder && (
+  <div className="bg-white border rounded-lg shadow-md p-4 mx-5 mb-4 flex flex-col gap-4">
+
+    {/* Customer Info */}
+    <div className="flex items-center justify-between flex-wrap gap-4">
+
+      <div>
+        <p className="font-semibold text-[15px]">{contactOrder?.userId?.name}</p>
+        <p className="text-gray-600">{contactOrder?.userId?.mobile}</p>
+        <p className="text-gray-500 text-[13px]">
+          {contactOrder?.delivery_address?.address_line},{" "}
+          {contactOrder?.delivery_address?.city}
+        </p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        <a
+          href={`tel:${contactOrder?.userId?.mobile}`}
+          className="bg-green-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          📞 Call
+        </a>
+
+        <a
+          href={`https://wa.me/${contactOrder?.userId?.mobile}`}
+          target="_blank"
+          rel="noreferrer"
+          className="bg-green-600 text-white px-3 py-1 rounded text-[13px]"
+        >
+          WhatsApp
+        </a>
+
+        <button
+          onClick={() => copyPhone(contactOrder?.userId?.mobile)}
+          className="bg-gray-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          Copy
+        </button>
+
+        <button
+          onClick={() => setContactOrder(null)}
+          className="bg-red-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+
+    {/* Custom SMS Box */}
+    <div className="border-t pt-3">
+      <p className="text-[13px] font-semibold mb-1">Send Custom SMS</p>
+      <textarea
+        value={message}
+        onChange={(e) => setmessage(e.target.value)}
+        placeholder="Write SMS to customer..."
+        className="w-full border rounded-md p-2 text-[13px]"
+        rows="3"
+      />
+      <button
+        onClick={sendCustomSms}
+        disabled={sendingSms}
+        className="mt-2 bg-blue-600 text-white px-4 py-1 rounded text-[13px]"
+      >
+        {sendingSms ? "Sending..." : "Send SMS"}
+      </button>
+    </div>
+
+  </div>
+)}
+
+
+
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
         <table className="w-full text-[10px] text-left">
           <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b-[gray]">
@@ -578,7 +682,10 @@ const exportDeliveryLabel = (order) => {
             {filteredOrders?.map((order, index) => (
               <React.Fragment key={order?._id}>
 
-                <tr className="bg-white border-b border-[rgba(0,0,0,0.1)]">
+<tr
+  className="bg-white border-b border-[rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50"
+  onClick={() => handleShowContact(order)}
+>
                   <td className="px-3 py-2">
                     <Button
                       className="!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !bg-[#f1f1f1]"
@@ -632,9 +739,18 @@ const exportDeliveryLabel = (order) => {
                     {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
                   </td>
                   <td className="px-3 py-2 ">
-                    <Button variant="outlined" 
-                     className="!h-[25px] !text-[12px]"
-                     onClick={() => handleViewOrderDetails(order)}>View</Button>
+<Button variant="outlined"
+ className="!h-[25px] !text-[12px]"
+ onClick={() => handleViewOrderDetails(order)}>View</Button>
+ 
+ <Button
+ variant="contained"
+ color="success"
+ className="!h-[25px] !text-[12px]  !mt-1"
+ onClick={() => handleShowContact(order)}
+>
+ Call
+</Button>
                   </td>
                 </tr>
 

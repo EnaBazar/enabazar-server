@@ -7,7 +7,6 @@ import { cancelOrderController, createOrderController, getAllOrdersForAdminContr
 const orderRoutes=express.Router()
 
 orderRoutes.post('/create',auth,createOrderController);
-
 orderRoutes.post('/cancel', auth, cancelOrderController);
 orderRoutes.get('/order-list',auth,getOrderDetailsController);
 orderRoutes.get('/order-list-admin',auth,getAllOrdersForAdminController);

@@ -1213,20 +1213,15 @@ return (
   <MenuItem value={"delivered"}>Delivered</MenuItem>
 </Select>
 </div>
-
-
-
-                  </td>
-                  <td className="px-3 py-2 hidden sm:table-cell">
+</td>
+ <td className="px-3 py-2 hidden sm:table-cell">
                     {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
                   </td>
                   <td className="px-3 py-2">
                     <Button variant="outlined" size="small" onClick={() => handleViewOrderDetails(order)}>View</Button>
                   </td>
                 </tr>
-
-
-     {isOpenOrderProduct === index && (
+{isOpenOrderProduct === index && (
                   <tr>
                     <td colSpan="15" className="pl-4 bg-[#fafafa] overflow-x-auto">
                       <table className="w-full text-sm text-left">

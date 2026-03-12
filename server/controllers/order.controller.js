@@ -4,7 +4,6 @@ import productmodel from "../models/product.model.js";
 import usermodel from "../models/User.js";
 import sendSMSorder from "../utils/sendSMSorder.js";
 
-// ------------------------
 // Create Order Controller
 // ------------------------
 export async function createOrderController(request, response) {
@@ -65,7 +64,6 @@ order = await ordermodel
   }
 }
 
-// ------------------------
 // Get Order Details (User Specific with Pagination)
 // ------------------------
 export async function getOrderDetailsController(request, response) {
@@ -106,8 +104,6 @@ export async function getOrderDetailsController(request, response) {
   }
 }
 
-
-// ------------------------
 // Get Order Count 
 // ------------------------
 export async function getTotalOrdersCountController(request, response) {
@@ -130,9 +126,6 @@ export async function getTotalOrdersCountController(request, response) {
     });
   }
 }
-
-
-
 
 // ------------------------
 // Get All Orders (Admin with Pagination)
@@ -203,9 +196,6 @@ export async function getAllOrdersForAdminController(request, response) {
     });
   }
 }
-
-
-
 
 // ------------------------
 // Update Order Status
@@ -293,8 +283,6 @@ ${productList}
   }
 }
 
-
-// ------------------------
 // TOtal Sales Status
 // ------------------------
 export async function totalSalesController(request, response) {
@@ -369,11 +357,6 @@ export async function totalAllSalesAmountController(req, res) {
   }
 }
 
-
-// ------------------------
-// TotalUserCotroller Status
-// ------------------------
-// ------------------------
 // Total Users Controller
 // ------------------------
 export async function totalUsersController(request, response) {
@@ -432,8 +415,6 @@ export async function totalUsersController(request, response) {
   }
 }
 
-
-// ------------------------
 // Get Unread Order Notifications Count
 // ------------------------
 export async function getUnreadOrdersCountController(req, res) {
@@ -455,9 +436,6 @@ export async function getUnreadOrdersCountController(req, res) {
   }
 }
 
-
-
-// ------------------------
 // Cancel Order Controller
 export async function cancelOrderController(req, res) {
   try {
