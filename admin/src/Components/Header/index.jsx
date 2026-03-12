@@ -96,28 +96,15 @@ const handleBellClick = async () => {
   };
   // --- Logout ---
 const logout = async () => {
-  try {
-    const res = await fetchDataFromApi(
-      `/auth/logout?token=${localStorage.getItem("accesstoken")}`,
-      { withCredentials: true }
-    );
+  await fetchDataFromApi("/auth/logout", { withCredentials: true });
 
-    if (res?.error === false) {
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
 
-      // remove tokens
-      localStorage.removeItem("accesstoken");
-      localStorage.removeItem("refreshtoken");
+  context.setIsLogin(false);
+  context.setUserData(null);
 
-      // update context
-      context.setIsLogin(false);
-      context.setUserData(null);
-
-      // redirect login page
-      history("/login");
-    }
-  } catch (error) {
-    console.log(error);
-  }
+  window.location.href = "/login";
 };
 
   return (
