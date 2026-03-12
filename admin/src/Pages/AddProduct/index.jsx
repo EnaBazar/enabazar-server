@@ -38,7 +38,7 @@ import Editor from 'react-simple-wysiwyg';
   const [isLoading,setIsLoading]= useState(false);
     const [checkedSwitch,setCheckedSwitch]= useState(false);
   
-  
+   
 const label = { inputProps: { 'aria-label': 'Switch demo' } };
    
   const [formFields, setFormFields]= useState({
@@ -46,6 +46,7 @@ const label = { inputProps: { 'aria-label': 'Switch demo' } };
              description: "",
              images:[],
              brand: "",
+             purchasePrice:"",
              price: "",
              oldPrice: "",
              category:"",
@@ -296,7 +297,14 @@ e.preventDefault(0); // ✅
             
         }
 
-
+   if(formFields.purchasePrice==="")
+        {
+          context.openAlertBox("error","Please entry purchasePrice")
+         setIsLoading(false);
+         
+          return false
+            
+        }
         
          if(formFields.price==="")
         {
@@ -505,6 +513,21 @@ e.preventDefault(0); // ✅
   </Select>
 </div>
 
+  {/* Purchase Price */}
+  <div className="col">
+    <h3 className="text-[16px] font-[600]">
+     Purchase Price<span className="text-red-400"> *</span>
+    </h3>
+    <input
+      type="number"
+      className="w-full h-[40px] border mt-2 border-[rgba(0,0,0,0.2)] 
+      focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+      hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+      name="price"
+      value={formFields.purchasePrice}
+      onChange={onChangeInput}
+    />
+  </div>
 
   {/* Price */}
   <div className="col">
@@ -521,6 +544,8 @@ e.preventDefault(0); // ✅
       onChange={onChangeInput}
     />
   </div>
+
+
 
   {/* Old Price */}
   <div className="col">
@@ -588,27 +613,6 @@ e.preventDefault(0); // ✅
       onChange={onChangeInput}
     />
   </div>
-</div>
-
-<div className="col">
-  <h3 className="text-[16px] font-[600]">
-    YouTube Video Link
-  </h3>
-
-  <input
-    type="text"
-    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
-    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
-    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
-    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
-    name="youtubeVideo"
-    value={formFields.youtubeVideo}
-    onChange={onChangeInput}
-  />
-</div>
-
-
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-3 gap-4">
   {/* Discount */}
   <div className="col">
     <h3 className="text-[16px] font-[600]">
@@ -669,6 +673,14 @@ e.preventDefault(0); // ✅
     )}
   </div>
 
+</div>
+
+
+
+
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-3 gap-4">
+
+
   {/* Product Size */}
   <div className="col">
     <h3 className="text-[16px] font-[600]">Product Size</h3>
@@ -691,9 +703,26 @@ e.preventDefault(0); // ✅
     )}
   </div>
 
+<div className="col">
+  <h3 className="text-[16px] font-[600]">
+    YouTube Video Link
+  </h3>
 
+  <input
+    type="text"
+    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
+    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+    name="youtubeVideo"
+    value={formFields.youtubeVideo}
+    onChange={onChangeInput}
+  />
+</div>
 
-  {/* Product Rating */}
+ 
+</div>
+ {/* Product Rating */}
   <div className="col">
     <h3 className="text-[16px] font-[600]">Product Rating</h3>
     <Rating
@@ -703,8 +732,6 @@ e.preventDefault(0); // ✅
       onChange={onChangeRating}
     />
   </div>
-</div>
-
   
   
   

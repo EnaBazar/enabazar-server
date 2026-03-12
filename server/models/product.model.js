@@ -19,7 +19,11 @@ const productSchema = mongoose.Schema({
     brand:{       
         type:String,
         default:'',
-    },   
+    },  
+    purchasePrice:{       
+  type:Number,
+  default:0
+}, 
     price:{       
         type:Number,
         default:0,

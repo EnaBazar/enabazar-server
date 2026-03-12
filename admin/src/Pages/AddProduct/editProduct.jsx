@@ -23,6 +23,7 @@ import Editor from 'react-simple-wysiwyg';
              description: "",
              images:[],
              brand: "",
+            purchasePrice:"",
              price: "",
              oldPrice: "",
              category:"",
@@ -132,6 +133,7 @@ const onchangeDescription = (e) => {
           images: res?.products?.images,
           brand: res?.products?.brand ,
           youtubeVideo: res?.products?.youtubeVideo ,
+             purchasePrice: res?.products?.purchasePrice,
           price: res?.products?.price,
           oldPrice: res?.products?.oldPrice,
           category: res?.products?.category,
@@ -329,7 +331,14 @@ e.preventDefault(); // ✅
         context.openAlertBox("error","Please entry ProductCategory")
         setIsLoading(false);      
         return         
-        }       
+        }    
+        
+         if(formFields.purchasePrice==="")
+        {context.openAlertBox("error","Please entry purchasePrice")
+        setIsLoading(false);   
+        return       
+        }   
+
         if(formFields.price==="")
         {context.openAlertBox("error","Please entry Price")
         setIsLoading(false);   
@@ -521,6 +530,24 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
   </Select>
 </div>
 
+
+  {/* Purchase Price */}
+  <div className="col">
+    <h3 className="text-[16px] font-[600]">
+     Purchase Price<span className="text-red-400"> *</span>
+    </h3>
+    <input
+      type="number"
+      className="w-full h-[40px] border mt-2 border-[rgba(0,0,0,0.2)] 
+      focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+      hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+      name="price"
+      value={formFields.purchasePrice}
+      onChange={onChangeInput}
+    />
+  </div>
+
+
   {/* Price */}
   <div className="col">
     <h3 className="text-[16px] font-[600]">
@@ -601,27 +628,6 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
       onChange={onChangeInput}
     />
   </div>
-</div>
-
-
-<div className="col">
-  <h3 className="text-[16px] font-[600]">
-    YouTube Video Link
-  </h3>
-
-  <input
-    type="text"
-    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
-    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
-    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
-    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
-    name="youtubeVideo"
-    value={formFields.youtubeVideo}
-    onChange={onChangeInput}
-  />
-</div>
-   
- <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-3">
   
   {/* Discount */}
   <div className="col">
@@ -678,6 +684,13 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
       </Select>
     )}
   </div>
+</div>
+
+
+   
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-3">
+  
+
 
   {/* Product Size */}
   <div className="col">
@@ -698,8 +711,27 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
       </Select>
     )}
   </div>
+<div className="col">
+  <h3 className="text-[16px] font-[600]">
+    YouTube Video Link
+  </h3>
 
-  {/* Product Rating */}
+  <input
+    type="text"
+    placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+    className="w-full h-[40px] border mt-2 mb-2 border-[rgba(0,0,0,0.2)] 
+    focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+    hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+    name="youtubeVideo"
+    value={formFields.youtubeVideo}
+    onChange={onChangeInput}
+  />
+</div>
+ 
+
+</div>
+
+ {/* Product Rating */}
   <div className="col">
     <h3 className="text-[16px] font-[600]">Product Rating</h3>
     <Rating
@@ -708,10 +740,6 @@ editData(`/product/updateProduct/${context?.isOpenFullScreenPanel?.id}`, formFie
       onChange={onChangeRating}
     />
   </div>
-
-</div>
-
-
 
 
   <div className="col w-full p-5 px-0">
