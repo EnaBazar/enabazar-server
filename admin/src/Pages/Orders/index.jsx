@@ -13,7 +13,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import pdfMake from "../../Fonts/pdfFonts.js";
 import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
-import sendSMSCustomer from "../../../../server/utils/sendSMSCustomer.js";
+
 
 const Orders = () => {
   const context = useContext(MyContext);
@@ -51,22 +51,31 @@ const [sendingSms, setSendingSms] = useState(false);
   }
 };
 
+
 const sendCustomSms = async () => {
-  if (!setmessage) return alert("Write SMS first");
+  if (!message) return alert("Write SMS first");
+
   setSendingSms(true);
 
-  const result = await sendSMSCustomer(contactOrder.userId?.mobile, message);
+  try {
+    const res = await axios.post("/customersms/customerSmSsend", {
+      mobile: contactOrder.userId?.mobile,
+      message: message,
+    });
 
-  if (result.success) {
-     context.openAlertBox("success", "SMS Sent Successfully");
-    setmessage("");
-  } else {
-     context.openAlertBox("error", "SMS sending failed");
+    if (res.data.success) {
+        context.openAlertBox("success", "SMS Sent Successfully");
+      setmessage("");
+    } else {
+        context.openAlertBox("error", "SMS sending failed");
+    }
+  } catch (err) {
+    console.log("Network or server error:", err.message);
+      context.openAlertBox("error", "SMS sending failed");
   }
 
   setSendingSms(false);
 };
-
 
 // Status change timer (10 minutes)
 const getStatusTimeLeft = (createdAt) => {
