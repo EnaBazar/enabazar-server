@@ -52,19 +52,21 @@ const [sendingSms, setSendingSms] = useState(false);
 };
 
 const sendCustomSms = async () => {
-  if (!setmessage) return alert("Write SMS first");
-  setSendingSms(true);
-
-  const result = await sendSMSCustomer(contactOrder.userId?.mobile, message);
-console.log(result)
-  if (result.success) {
-     context.openAlertBox("success", "SMS Sent Successfully");
-    setmessage("");
-  } else {
-     context.openAlertBox("error", "SMS sending failed");
+  if (!message) {
+    context.openAlertBox("error", "Write SMS first");
+    return;
   }
 
+  setSendingSms(true);
+
+ await sendSMSCustomer(
+      contactOrder?.userId?.mobile,
+      message
+    );
   setSendingSms(false);
+    context.openAlertBox("success", "SMS Sent Successfully");
+  setmessage("");
+
 };
 
 
