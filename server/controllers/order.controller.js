@@ -230,7 +230,7 @@ export async function updateOrderController(request, response) {
         message: "Order not found",
       });
     }
-
+console.log(updatedOrder.products);
     const mobile = updatedOrder?.userId?.mobile;
     const name = updatedOrder?.userId?.name;
 
