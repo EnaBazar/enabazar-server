@@ -209,19 +209,16 @@ export async function getAllOrdersForAdminController(request, response) {
 
 // ------------------------
 // Update Order Status
+
 export async function updateOrderController(request, response) {
   try {
+    const { id, order_status } = request.body; // body থেকে id & status আসবে
 
-    const { id, order_status } = request.body;
-
-    const updatedOrder = await ordermodel
-      .findByIdAndUpdate(
-        id,
-        { order_status: order_status },
-        { new: true }
-      )
-      .populate("userId", "name mobile")
-      .populate("products.productId");
+    const updatedOrder = await ordermodel.findByIdAndUpdate(
+      id,
+      { order_status: order_status },
+      { new: true }
+    );
 
     if (!updatedOrder) {
       return response.status(404).json({
@@ -231,59 +228,12 @@ export async function updateOrderController(request, response) {
       });
     }
 
-    const mobile = updatedOrder?.userId?.mobile;
-    const name = updatedOrder?.userId?.name;
-
-    // Product List
-    let productList = "";
-
-    for (let i = 0; i < updatedOrder.products.length; i++) {
-
-      const item = updatedOrder.products[i];
-
-      if (item.productId) {
-        productList += `${i + 1}. ${item.productId.name} x${item.quantity}\n`;
-      }
-
-    }
-
-    let message = "";
-
-    if (order_status === "confirm") {
-      message = `হ্যালো ${name}
-অর্ডার নং: ${updatedOrder._id}
-পণ্যসমূহ:
-${productList}
-আপনার অর্ডার Confirm হয়েছে`;
-    }
-
-    if (order_status === "shipped") {
-message =`হ্যালো ${name}
-অর্ডার নং: ${updatedOrder._id}
-পণ্যসমূহ:
-${productList}
-আপনার অর্ডারটি কুরিয়ার সার্ভিসে পাঠানো হয়েছে`;
-    }
-
-    if (order_status === "delivered") {
-      message = `হ্যালো ${name}
-Order ID: ${updatedOrder._id}
-পণ্যসমূহ:
-${productList}
-আপনার অর্ডার Delivered হয়েছে`;
-    }
-
-    if (message) {
-      await sendSMS(mobile, message);
-    }
-
     return response.status(200).json({
       error: false,
       success: true,
       message: "Order updated successfully",
       data: updatedOrder,
     });
-
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,
@@ -292,7 +242,6 @@ ${productList}
     });
   }
 }
-
 
 // ------------------------
 // TOtal Sales Status

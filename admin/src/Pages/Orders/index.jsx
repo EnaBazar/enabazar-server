@@ -581,11 +581,7 @@ const exportDeliveryLabel = (order) => {
                   <td className="px-3 py-2">{order?.totalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
                 <td className="px-3 py-2">
-  {order.statusTimeLeft && (
-    <p className="text-[8px] text-red-500 mb-1">
-    change after: {order.statusTimeLeft}
-    </p>
-  )}
+ 
 
   <Select
     value={order?.order_status || ""}
