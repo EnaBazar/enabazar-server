@@ -20,11 +20,11 @@ customerSmSrouter.post("/customerSmSsend", async (req, res) => {
     const response = await axios.get(url);
     console.log("BulkSMS API Response:", response.data);
 
-    // Assuming response.data.status === "success" means SMS sent
+   
     if (response.data?.status === "success") {
       res.json({ success: true, message: response.data.message });
     } else {
-      res.json({ success: false, message: response.data?.message || "SMS failed" });
+      res.json({ success: false, message: response.data?.message || "SMS Send failed" });
     }
   } catch (err) {
     console.log("SMS sending failed:", err.message);
