@@ -95,19 +95,30 @@ const handleBellClick = async () => {
     setAnchorMyAcc(null);
   };
   // --- Logout ---
-const logout = () => {
-    fetchDataFromApi(`/auth/logout?token=${localStorage.getItem('accesstoken')}`,{withCredentials:true}).then((res)=>{ 
-           if(res?.error === false){
-             context.setIsLogin(false);
-             localStorage.removeItem("accesstoken")     
-              localStorage.removeItem("refreshtoken")
-            window.location.reload();
-              history("/");
-           }    
-         })
+const logout = async () => {
+  try {
+    const res = await fetchDataFromApi(
+      `/auth/logout?token=${localStorage.getItem("accesstoken")}`,
+      { withCredentials: true }
+    );
 
+    if (res?.error === false) {
+
+      // remove tokens
+      localStorage.removeItem("accesstoken");
+      localStorage.removeItem("refreshtoken");
+
+      // update context
+      context.setIsLogin(false);
+      context.setUserData(null);
+
+      // redirect login page
+      history("/login");
+    }
+  } catch (error) {
+    console.log(error);
+  }
 };
-
 
   return (
     <>
