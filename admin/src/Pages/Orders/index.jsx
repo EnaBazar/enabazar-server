@@ -29,7 +29,20 @@ const [endDate, setEndDate] = useState("");
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-
+const getStatusColor = (status) => {
+  switch (status) {
+    case "pending":
+      return "bg-red-100 text-red-700";
+    case "confirm":
+      return "bg-green-100 text-green-700";
+    case "shipped":
+      return "bg-orange-100 text-orange-700";
+    case "delivered":
+      return "bg-yellow-100 text-yellow-800";
+    default:
+      return "";
+  }
+};
 
 // Status change timer (10 minutes)
 const getStatusTimeLeft = (createdAt) => {
@@ -587,17 +600,20 @@ const exportDeliveryLabel = (order) => {
     change after: {order.statusTimeLeft}
     </p>
   )}       
-  <Select
-    value={order?.order_status || ""}
-    onChange={(e) => handleChange(e, order?._id)}
-    className="w-full h-[30px]"
-    disabled={new Date() - new Date(order?.createdAt) < 10 * 60 * 1000} // 10 মিনিট পরে enable হবে
-  >
-    <MenuItem value={"pending"}>Pending</MenuItem>
-    <MenuItem value={"confirm"}>Confirm</MenuItem>
-    <MenuItem value={"shipped"}>Shipped</MenuItem>
-    <MenuItem value={"delivered"}>Delivered</MenuItem>
-  </Select>
+<Select
+  value={order?.order_status || ""}
+  onChange={(e) => handleChange(e, order?._id)}
+  className={`w-full h-[30px] ${getStatusColor(order?.order_status)}`}
+  disabled={
+    order?.order_status === "delivered" ||
+    new Date() - new Date(order?.createdAt) < 10 * 60 * 1000
+  }
+>
+  <MenuItem value={"pending"}>Pending</MenuItem>
+  <MenuItem value={"confirm"}>Confirm</MenuItem>
+  <MenuItem value={"shipped"}>Shipped</MenuItem>
+  <MenuItem value={"delivered"}>Delivered</MenuItem>
+</Select>
 
 </td>
                   <td className="px-3 py-2 hidden sm:table-cell">

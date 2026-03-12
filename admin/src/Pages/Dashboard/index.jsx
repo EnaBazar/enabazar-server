@@ -1121,7 +1121,7 @@ return (
 
 
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
-        <table className="w-full min-w-[1200px] text-sm text-left">
+        <table className="w-full min-w-[1200px] text-[10px] text-left">
           <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b-[gray]">
             <tr className="!text-[12px]">
               <th className="px-3 py-2">&nbsp;</th>
@@ -1135,7 +1135,7 @@ return (
               <th className="px-3 py-2 hidden sm:table-cell">D.Charge</th>
               <th className="px-3 py-2">Total</th>
    
-              <th className="px-3 py-2 hidden sm:table-cell">User Id</th>
+       
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2 hidden sm:table-cell">Date</th>
               <th className="px-3 py-2">Action</th>
@@ -1163,8 +1163,7 @@ return (
                   <td className="px-3 py-2">{order?.subTotalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
                   <td className="px-3 py-2">{order?.totalAmt}</td>
-               
-                  <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?._id}</td>
+         
                   <td className="px-3 py-2">
       {order.statusTimeLeft && (
     <p className="text-[8px] text-red-500 mb-1">
