@@ -242,7 +242,7 @@ export async function updateOrderController(request, response) {
       const item = updatedOrder.products[i];
 
       if (item.productId) {
-        productList += `${i + 1}. ${item.productId.productTitle} x${item.quantity}\n`;
+        productList += `${i + 1}. ${item.productTitle} x${item.quantity}\n`;
       }
 
     }

@@ -116,7 +116,7 @@ useEffect(() => {
       order?.delivery_address?.mobile?.includes(searchQuery) ||
       order?.delivery_address?.city?.includes(searchQuery)
   );
-console.log(orders)
+
   const handleViewOrderDetails = (order) => {
     setSelectedOrder(order);
     setOpenModal(true);
