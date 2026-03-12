@@ -32,15 +32,19 @@ const [endDate, setEndDate] = useState("");
 const getStatusColor = (status) => {
   switch (status) {
     case "pending":
-      return "bg-red-100 text-red-700";
+      return "bg-red-400";
+
     case "confirm":
-      return "bg-green-100 text-green-700";
+      return "bg-green-400";
+
     case "shipped":
-      return "bg-orange-100 text-orange-700";
+      return "bg-orange-400";
+
     case "delivered":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-400";
+
     default:
-      return "";
+      return "bg-gray-300";
   }
 };
 
@@ -599,11 +603,18 @@ const exportDeliveryLabel = (order) => {
     <p className="text-[8px] text-red-500 mb-1">
     change after: {order.statusTimeLeft}
     </p>
-  )}       
+  )}    
+  <div className="flex items-center gap-2">
+    {/* Round Status Indicator */}
+  <span
+    className={`!w-[18px] !h-[15px] rounded-full  ${getStatusColor(
+      order?.order_status
+    )}`}
+  ></span>   
 <Select
   value={order?.order_status || ""}
   onChange={(e) => handleChange(e, order?._id)}
-  className={`w-full h-[30px] ${getStatusColor(order?.order_status)}`}
+  className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
   disabled={
     order?.order_status === "delivered" ||
     new Date() - new Date(order?.createdAt) < 10 * 60 * 1000
@@ -614,13 +625,16 @@ const exportDeliveryLabel = (order) => {
   <MenuItem value={"shipped"}>Shipped</MenuItem>
   <MenuItem value={"delivered"}>Delivered</MenuItem>
 </Select>
+</div>
 
 </td>
                   <td className="px-3 py-2 hidden sm:table-cell">
                     {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
                   </td>
-                  <td className="px-3 py-2">
-                    <Button variant="outlined" size="small" onClick={() => handleViewOrderDetails(order)}>View</Button>
+                  <td className="px-3 py-2 ">
+                    <Button variant="outlined" 
+                     className="!h-[25px] !text-[12px]"
+                     onClick={() => handleViewOrderDetails(order)}>View</Button>
                   </td>
                 </tr>
 

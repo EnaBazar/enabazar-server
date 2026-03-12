@@ -99,6 +99,27 @@ const [endDate, setEndDate] = useState("");
   const [deleteId, setDeleteId] = useState(null);
   const [deleteMode, setDeleteMode] = useState("single"); // single | multiple
 
+
+  const getStatusColor = (status) => {
+  switch (status) {
+    case "pending":
+      return "bg-red-400";
+
+    case "confirm":
+      return "bg-green-400";
+
+    case "shipped":
+      return "bg-orange-400";
+
+    case "delivered":
+      return "bg-yellow-400";
+
+    default:
+      return "bg-gray-300";
+  }
+};
+
+
 // Status change timer (10 minutes)
 const getStatusTimeLeft = (createdAt) => {
   const orderTime = new Date(createdAt).getTime();
@@ -1170,17 +1191,28 @@ return (
     change after: {order.statusTimeLeft}
     </p>
   )}               
- <Select
-    value={order?.order_status || ""}
-    onChange={(e) => handleChange(e, order?._id)}
-    className="w-full h-[30px]"
-    disabled={new Date() - new Date(order?.createdAt) < 10 * 60 * 1000} // 10 মিনিট পরে enable হবে
-  >
-    <MenuItem value={"pending"}>Pending</MenuItem>
-    <MenuItem value={"confirm"}>Confirm</MenuItem>
-    <MenuItem value={"shipped"}>Shipped</MenuItem>
-    <MenuItem value={"delivered"}>Delivered</MenuItem>
-  </Select>
+  <div className="flex items-center gap-2">
+    {/* Round Status Indicator */}
+  <span
+    className={`!w-[18px] !h-[15px] rounded-full  ${getStatusColor(
+      order?.order_status
+    )}`}
+  ></span>   
+<Select
+  value={order?.order_status || ""}
+  onChange={(e) => handleChange(e, order?._id)}
+  className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
+  disabled={
+    order?.order_status === "delivered" ||
+    new Date() - new Date(order?.createdAt) < 10 * 60 * 1000
+  }
+>
+  <MenuItem value={"pending"}>Pending</MenuItem>
+  <MenuItem value={"confirm"}>Confirm</MenuItem>
+  <MenuItem value={"shipped"}>Shipped</MenuItem>
+  <MenuItem value={"delivered"}>Delivered</MenuItem>
+</Select>
+</div>
 
 
 
