@@ -554,12 +554,12 @@ const exportDeliveryLabel = (order) => {
 
 
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
-        <table className="w-full min-w-[1200px] text-[10px] text-left">
+        <table className="w-full text-[10px] text-left">
           <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b-[gray]">
             <tr className="!text-[12px]">
               <th className="px-3 py-2">&nbsp;</th>
               <th className="px-3 py-2 whitespace-nowrap">Order Id</th>
-              <th className="px-3 py-2">Payment</th>
+              <th className="px-3 py-2">Pay</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2 hidden sm:table-cell">Phone</th>
               <th className="px-3 py-2 hidden lg:table-cell">Address</th>
@@ -682,6 +682,15 @@ const exportDeliveryLabel = (order) => {
           </tbody>
         </table>
       </div>
+
+
+
+
+
+
+
+
+
 
       <div className="flex justify-end py-4">
         <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />
