@@ -27,9 +27,9 @@ export const OrderSuccess = () => {
     <section className="w-full p-10 py-20 flex items-center justify-center flex-col gap-5">
       <img src="/successorder.png" width="150" alt="Order Success" />
 
-      <h1 className="text-[25px] font-semibold">আপনার অর্ডারটা সফলভাবে সম্পুর্ন হয়েছে</h1>
+      <h1 className="text-[20px] font-semibold">আপনার অর্ডারটা সফলভাবে সম্পুর্ন হয়েছে</h1>
       <p className="text-[15px] text-gray-700 text-center max-w-md">
-        Thank you for your order! Below are your delivery details.
+
       </p>
 
       {/* Delivery Details */}

@@ -90,11 +90,7 @@ const CheckOut = () => {
       subTotalAmt: subTotalAmount,
       delivery_charge: selecteddelivery,
       totalAmt: totalAmount,
-      date: new Date().toLocaleString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric"
-      })
+     date: new Date().toISOString() 
     };
 
     try {
