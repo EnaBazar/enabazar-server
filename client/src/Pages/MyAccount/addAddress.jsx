@@ -170,7 +170,7 @@ const AddAddress = () => {
       className="w-full"
       label="রাস্তা"
       size="small"
-      name="city"
+      name="state"
       value={formFields.state}
       disabled={isLoading}
       onChange={handleChange}
@@ -182,7 +182,7 @@ const AddAddress = () => {
       className="w-full"
       label="জেলা"
       size="small"
-      name="state"
+      name="city"
       value={formFields.city}
       disabled={isLoading}
       onChange={handleChange}
