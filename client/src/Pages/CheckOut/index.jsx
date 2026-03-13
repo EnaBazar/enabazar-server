@@ -7,8 +7,11 @@ import { FaPlus } from 'react-icons/fa6';
 import Radio from '@mui/material/Radio';
 import { deleteData, fetchDataFromApi, postData } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
-import sendSMS from '../../../../server/utils/sendSMS'; // ✅ SMS utility
-import sendSMSorder from '../../../../server/utils/sendSMSorder';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CheckOut = () => {
   window.scrollTo(0, 0);
@@ -17,7 +20,7 @@ const CheckOut = () => {
 
   const [isChecked, setIsChecked] = useState(0);
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [selecteddelivery, setSelecteddelivery] = useState("");
+  const [selecteddelivery, setSelecteddelivery] = useState(0);
   const [subTotalAmount, setsSubTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +35,7 @@ const CheckOut = () => {
   const removeAddress = (id) => {
     deleteData(`/address/${id}`).then(() => {
       fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then(() => {
-        context?.openAlertBox("success", "Remove This Address");
+        context?.openAlertBox("success", "Removed This Address");
         window.location.reload();
       });
     });
@@ -45,10 +48,10 @@ const CheckOut = () => {
 
       setIsChecked(index);
       setSelectedAddress(selectedId);
-      setSelecteddelivery(deliveryCharge);
+      setSelecteddelivery(Number(deliveryCharge));
 
       fetchDataFromApi(`/address/selectAddress/${selectedId}`).then((res) => {
-        setSelecteddelivery(res?.address?.deliverylocation);
+        setSelecteddelivery(Number(res?.address?.deliverylocation));
       });
     }
   };
@@ -57,23 +60,23 @@ const CheckOut = () => {
     const defaultAddress = context?.userData?.address_details?.[0];
     if (defaultAddress) {
       setSelectedAddress(defaultAddress._id);
-      setSelecteddelivery(defaultAddress.deliverylocation);
+      setSelecteddelivery(Number(defaultAddress.deliverylocation));
     }
 
     const total = context?.cartData?.length
       ? context.cartData
-          .map(item => parseInt(item.price) * item.quantity)
+          .map(item => Number(item.price) * Number(item.quantity))
           .reduce((total, value) => total + value, 0)
       : 0;
 
     setsSubTotalAmount(total);
   }, [context.cartData, context.userData]);
 
-  // ✅ Cash on Delivery function with SMS
+  // Cash on Delivery function
   const cashOnDelivery = async () => {
     const user = context?.userData;
 
-    if (user?.address_details?.length === 0) {
+    if (!user?.address_details?.length) {
       context?.openAlertBox("error", "Please Add Address First!");
       return;
     }
@@ -86,11 +89,12 @@ const CheckOut = () => {
       products: context?.cartData,
       paymentId: '',
       payment_status: "Cash On Delivery",
+      order_status: "pending",
       delivery_address: selectedAddress,
       subTotalAmt: subTotalAmount,
       delivery_charge: selecteddelivery,
       totalAmt: totalAmount,
-     date: new Date().toISOString() 
+      createdAt: new Date().toISOString() // ✅ UTC database date
     };
 
     try {
@@ -104,24 +108,17 @@ const CheckOut = () => {
 
         context?.openAlertBox("success", res?.message);
 
-await postData(`/sms/order-confirm`, {
+        // Send SMS after order
+        await postData(`/sms/order-confirm`, {
+          mobile: user?.mobile,
+          name: user?.name,
+          orderId: res?.order?._id,
+          total: totalAmount,
+          products: context?.cartData,
+          address: context?.userData?.address_details
+            ?.find(a => a._id === selectedAddress)?.address_line
+        });
 
-  mobile: user?.mobile,
-  name: user?.name,
-  orderId: res?.order?._id,
-  total: totalAmount,
-
-  products: context?.cartData,
-
-  address: context?.userData?.address_details
-  ?.find(a => a._id === selectedAddress)?.address_line
-
-});
-
-
-
-
-        // Navigate to success page
         navigate("/order/success", { state: { order: res.order } });
       } else {
         context?.openAlertBox("error", res?.message);
@@ -134,11 +131,17 @@ await postData(`/sms/order-confirm`, {
     }
   };
 
+  // Format date for Bangladesh local time
+  const formatBDDate = (date) => {
+    if (!date) return "";
+    return dayjs(date).tz("Asia/Dhaka").format("DD MMM YYYY, HH:mm");
+  };
+
   return (
     <section className="min-h-screen py-10">
       <form>
         <div className="container mx-auto flex flex-col lg:flex-row gap-5 w-[90%] lg:w-[80%]">
-          {/* -------- Address Column -------- */}
+          {/* Address Column */}
           <div className="w-full lg:w-2/3">
             <div className="card bg-white shadow-md p-5 rounded-md w-full">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -156,7 +159,7 @@ await postData(`/sms/order-confirm`, {
               </div>
 
               <div className="flex flex-col gap-3 !mt-5">
-                {context?.userData?.address_details?.length !== 0 ? (
+                {context?.userData?.address_details?.length ? (
                   context?.userData?.address_details.map((address, index) => (
                     <label
                       className={`flex gap-3 p-4 border border-[rgba(0,0,0,0.2)] rounded-md relative cursor-pointer ${
@@ -172,8 +175,7 @@ await postData(`/sms/order-confirm`, {
                         data-delivery={address?.deliverylocation}
                       />
                       <div className="info flex-1">
-                        <span className="inline-block pl-2 pr-2 bg-sky-600 text-[13px]
-                         text-white font-[500] rounded-sm">
+                        <span className="inline-block pl-2 pr-2 bg-sky-600 text-[13px] text-white font-[500] rounded-sm">
                           {address?.addressType}
                         </span>
                         <h4 className="pt-2 text-[14px] flex flex-wrap items-center gap-3">
@@ -193,7 +195,6 @@ await postData(`/sms/order-confirm`, {
                         >
                           EDIT
                         </Button>
-
                         <Button
                           variant="text"
                           size="small"
@@ -224,14 +225,14 @@ await postData(`/sms/order-confirm`, {
             </div>
           </div>
 
-          {/* -------- Order Summary -------- */}
+          {/* Order Summary */}
           <div className="w-full lg:w-1/3">
             <div className="card shadow-md bg-white p-5 rounded-md flex flex-col h-full">
               <h2 className="mb-4 text-lg font-semibold border-b border-gray-300 pb-2">
                 Your Order
               </h2>
 
-              {/* Cart Items List */}
+              {/* Cart Items */}
               <div className="flex-1 overflow-y-auto pr-2 mb-4 max-h-[300px]">
                 {context?.cartData?.map((item, index) => (
                   <div
@@ -247,21 +248,16 @@ await postData(`/sms/order-confirm`, {
                         />
                       </div>
                       <div>
-                        <h4
-                          className="text-sm font-medium"
-                          title={item?.productTitle}
-                        >
+                        <h4 className="text-sm font-medium" title={item?.productTitle}>
                           {item?.productTitle?.length > 30
                             ? item?.productTitle.substr(0, 20) + "..."
                             : item?.productTitle}
                         </h4>
-                        <span className="text-xs text-gray-500">
-                          Qty: {item?.quantity}
-                        </span>
+                        <span className="text-xs text-gray-500">Qty: {item?.quantity}</span>
                       </div>
                     </div>
                     <span className="text-sm font-semibold text-gray-700">
-                      &#2547; {(item?.quantity * item?.price).toLocaleString("en-BD")}
+                      &#2547; {(Number(item?.quantity) * Number(item?.price)).toLocaleString("en-BD")}
                     </span>
                   </div>
                 ))}
@@ -279,13 +275,11 @@ await postData(`/sms/order-confirm`, {
                 </div>
                 <div className="flex justify-between border-t border-gray-300 pt-2 text-base font-bold text-black !mb-8">
                   <span>Total</span>
-                  <span>
-                    &#2547;{(Number(subTotalAmount || 0) + Number(selecteddelivery || 0)).toLocaleString("en-BD")}
-                  </span>
+                  <span>&#2547; {totalAmount.toLocaleString("en-BD")}</span>
                 </div>
               </div>
 
-              {/* Bottom Section (with loading button) */}
+              {/* Cash on Delivery button */}
               <div className="mt-5">
                 <Button
                   type="button"
@@ -325,7 +319,7 @@ await postData(`/sms/order-confirm`, {
             </div>
           </div>
         </div>
-      </form> 
+      </form>
     </section>
   );
 };
