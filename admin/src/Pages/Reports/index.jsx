@@ -7,7 +7,7 @@ const Reports = () => {
 
   const loadReport = async () => {
 
-    const res = await fetchDataFromApi("/rpt/report");
+    const res = await fetchDataFromApi("https://api.goroabazar.com/rpt/report");
 
     setData(res.data);
 
