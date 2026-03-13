@@ -48,7 +48,7 @@ export const getAnalytics = async (req,res)=>{
    const purchasePrice = product?.purchasePrice || 0
    const profit =
    (item.price - purchasePrice) * item.quantity
-console.log(item)
+console.log(product)
    totalProfit += profit
 
    if(!topProducts[item.productTitle]){
