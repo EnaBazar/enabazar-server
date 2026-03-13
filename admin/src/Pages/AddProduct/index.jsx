@@ -518,15 +518,15 @@ e.preventDefault(0); // ✅
     <h3 className="text-[16px] font-[600]">
      Purchase Price<span className="text-red-400"> *</span>
     </h3>
-    <input
-      type="number"
-      className="w-full h-[40px] border mt-2 border-[rgba(0,0,0,0.2)] 
-      focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
-      hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
-      name="price"
-      value={formFields.purchasePrice}
-      onChange={onChangeInput}
-    />
+   <input
+  type="number"
+  className="w-full h-[40px] border mt-2 border-[rgba(0,0,0,0.2)] 
+  focus:outline-none focus:border-[rgba(0,0,0,0.4)] 
+  hover:border-[rgba(0,0,0,0.4)] rounded-sm text-sm px-2"
+  name="purchasePrice"   // ✅ ঠিক
+  value={formFields.purchasePrice}
+  onChange={onChangeInput}
+/>
   </div>
 
   {/* Price */}

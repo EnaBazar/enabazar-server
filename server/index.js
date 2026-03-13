@@ -24,6 +24,7 @@ import homeSlideRoutes from "./route/homeSlide.route.js";
 import chatrouter from "./route/chat.routes.js";
 import usersRoutes from "./route/users.routes.js";
 import smsRoutes from "./route/sms.js";
+import reportrouter from "./route/reportRoute.js";
 
 
 dotenv.config();
@@ -112,7 +113,7 @@ app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
 app.use("/users", usersRoutes);
 app.use("/sms", smsRoutes);
-
+app.use("/report", reportrouter);
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
