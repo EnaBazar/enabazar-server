@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { fetchDataFromApi } from "../../utils/api";
 
 const SalesList = () => {
 
@@ -15,8 +14,8 @@ const fetchSales = async ()=>{
 
  try{
 
+ const res = await axios.get(`/rpt/sales-list?filter=${filter}`)
 
- const res = await fetchDataFromApi(`/rpt/sales-list?filter=${filter}`)
  if(res.data.success){
    setSales(res.data.data)
  }
