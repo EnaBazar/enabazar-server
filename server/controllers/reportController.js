@@ -86,8 +86,7 @@ console.log(product)
 
 }
 
-import ordermodel from "../models/order.model.js"
-import productmodel from "../models/product.model.js"
+
 
 export const getSalesList = async (req,res)=>{
  try{
