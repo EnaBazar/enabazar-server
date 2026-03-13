@@ -477,7 +477,15 @@ import { useEffect } from 'react';
     </Button>
     </Link>
     </li> 
-
+  <li>
+    <Link to="/salles" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center !py-2 hover:!bg-[#dddddd]'>
+    <IoBagCheckOutline className='text-[16px]'
+    /><span>Salles</span>
+    </Button>
+    </Link>
+    </li> 
 
 
     <li><Button className='w-full  !capitalize !justify-start gap-3 

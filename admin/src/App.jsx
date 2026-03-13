@@ -27,6 +27,7 @@ import BlogList from './Pages/Blog';
 import { fetchDataFromApi } from './utils/api';
 import Layout from './Components/Layout';   // নতুন Layout ইউজ করবো
 import Reports from './Pages/Reports';
+import SalesList from './Pages/sales';
 
 const MyContext = createContext();
 
@@ -136,6 +137,7 @@ console.log(isOpenFullScreenPanel)
     { path: "/SubCategorylist", element: <Layout><SubCategoryList /></Layout> },
     { path: "/users", element: <Layout><Users /></Layout> },
     { path: "/report", element: <Layout><Reports /></Layout> },
+     { path: "/salles", element: <Layout><SalesList /></Layout> },
     { path: "/orders", element: <Layout><Orders /></Layout> },
     { path: "/profile", element: <Layout><Profile /></Layout> },
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
