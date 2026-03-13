@@ -1,5 +1,6 @@
-import ordermodel from "../models/orderModel.js";
-import productmodel from "../models/productModel.js";
+import ordermodel from "../models/order.model.js"
+import productmodel from "../models/product.model.js"
+
 
 export const getAnalytics = async (req,res)=>{
 
