@@ -171,7 +171,7 @@ const AddAddress = () => {
       label="রাস্তা"
       size="small"
       name="city"
-      value={formFields.city}
+      value={formFields.state}
       disabled={isLoading}
       onChange={handleChange}
         InputLabelProps={{
@@ -183,7 +183,7 @@ const AddAddress = () => {
       label="জেলা"
       size="small"
       name="state"
-      value={formFields.state}
+      value={formFields.city}
       disabled={isLoading}
       onChange={handleChange}
         InputLabelProps={{
