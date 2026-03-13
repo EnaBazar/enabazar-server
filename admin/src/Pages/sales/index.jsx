@@ -32,17 +32,17 @@ const SalesList = () => {
       if (res?.success) {
         const list = Array.isArray(res.data) ? res.data : [];
         setSales(list);
-           console.log(sales);
+          
       }
       setLoading(false);
     } catch (err) {
-   
+    console.log(err);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSales();   console.log(err);
+    fetchSales();  
   }, [filter, startDate, endDate]);
 
   /* ---------------- search filter ---------------- */
@@ -74,64 +74,64 @@ const SalesList = () => {
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
 
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <h2 className="text-xl md:text-2xl font-semibold">Sales Report</h2>
+     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+  <h2 className="text-xl md:text-2xl font-semibold">Sales Report</h2>
 
-        <div className="flex flex-wrap gap-3">
-          <select
-            value={filter}
-            onChange={(e) => {
-              setFilter(e.target.value);
-              setStartDate("");
-              setEndDate("");
-            }}
-            className="border px-3 py-2 rounded-md"
-          >
-            <option value="today">Today</option>
-            <option value="week">Weekly</option>
-            <option value="month">Monthly</option>
-            <option value="year">Yearly</option>
-          </select>
+  <div className="flex flex-wrap gap-3 items-stretch w-full lg:w-auto">
+    <select
+      value={filter}
+      onChange={(e) => {
+        setFilter(e.target.value);
+        setStartDate("");
+        setEndDate("");
+      }}
+      className="border px-3 py-2 rounded-md h-10"
+    >
+      <option value="today">Today</option>
+      <option value="week">Weekly</option>
+      <option value="month">Monthly</option>
+      <option value="year">Yearly</option>
+    </select>
 
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          />
+    <input
+      type="date"
+      value={startDate}
+      onChange={(e) => setStartDate(e.target.value)}
+      className="border px-3 py-2 rounded-md h-10"
+    />
 
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          />
+    <input
+      type="date"
+      value={endDate}
+      onChange={(e) => setEndDate(e.target.value)}
+      className="border px-3 py-2 rounded-md h-10"
+    />
 
-          <input
-            type="text"
-            placeholder="Search product / customer / city"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          />
-        </div>
-      </div>
+    <input
+      type="text"
+      placeholder="Search product / customer / city"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="border px-3 py-2 rounded-md h-10 flex-1"
+    />
+  </div>
+</div>
 
       {/* SUMMARY BOX */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border shadow-sm rounded-lg p-4">
           <p className="text-gray-500 text-sm">Total Orders</p>
-          <h3 className="text-xl font-semibold">{totalOrders}</h3>
+          <h3 className="text-[12px] font-semibold">{totalOrders}</h3>
         </div>
 
         <div className="bg-white border shadow-sm rounded-lg p-4">
           <p className="text-gray-500 text-sm">Total Quantity</p>
-          <h3 className="text-xl font-semibold">{totalQty}</h3>
+          <h3 className="text-[12px] font-semibold">{totalQty}</h3>
         </div>
 
         <div className="bg-white border shadow-sm rounded-lg p-4">
           <p className="text-gray-500 text-sm">Total Sales</p>
-          <h3 className="text-xl font-semibold text-blue-600">
+          <h3 className="text-[12px] font-semibold text-blue-600">
             {totalSales.toLocaleString()} ৳
           </h3>
         </div>
@@ -139,7 +139,7 @@ const SalesList = () => {
         <div className="bg-white border shadow-sm rounded-lg p-4">
           <p className="text-gray-500 text-sm">Total Profit</p>
           <h3
-            className={`text-xl font-semibold ${
+            className={`text-[12px] font-semibold ${
               totalProfit > 0 ? "text-green-600" : "text-red-600"
             }`}
           >
@@ -220,7 +220,7 @@ const SalesList = () => {
       {/* SALES TABLE */}
       <div className="bg-white rounded-lg shadow border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[850px]">
+          <table className="w-full text-[9px] min-w-[850px]">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="px-4 py-3 border">Order</th>
