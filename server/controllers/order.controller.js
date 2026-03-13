@@ -17,7 +17,7 @@ export async function createOrderController(request, response) {
       subTotalAmt: request.body.subTotalAmt,
       delivery_charge: request.body.delivery_charge,
       totalAmt: request.body.totalAmt,
-      date: request.body.date,
+         date: new Date().toISOString() 
     });
 
     if (!order) {
