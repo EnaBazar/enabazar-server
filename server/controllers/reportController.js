@@ -41,9 +41,9 @@ export const getAnalytics = async (req,res)=>{
   totalSales += order.totalAmt
   order.products.forEach(item=>{
 
-   const product = products.find(
-   p=>p._id.toString()===item.productId
-   )
+  const product = products.find(
+  p => p._id.toString() === item.productId.toString()
+)
 
    const purchasePrice = product?.purchasePrice || 0
    const profit =
