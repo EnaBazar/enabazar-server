@@ -9,12 +9,12 @@ const [search,setSearch] = useState("")
 const [selectedSale,setSelectedSale] = useState(null)
 
 
-// fetch sales
+
 const fetchSales = async ()=>{
 
  try{
 
- const res = await axios.get(`/rpt/sales-list?filter=${filter}`)
+  const res = await fetchDataFromApi(`/rpt/report?filter=${filter}`)
 
  if(res.data.success){
    setSales(res.data.data)

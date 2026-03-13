@@ -130,7 +130,6 @@ console.log(isOpenFullScreenPanel)
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-account", element: <VerifyAccount /> },
     { path: "/change-password", element: <ChangePassword /> },
-
     { path: "/products", element: <Layout><Products /></Layout> },
     { path: "/homeSliderlist", element: <Layout><HomeSliderBanners /></Layout> },
     { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
