@@ -4,6 +4,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { fetchDataFromApi } from "../../utils/api";
 
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -18,9 +19,9 @@ const SalesList = () => {
   // Fetch sales data
   const fetchSales = async () => {
     try {
-      let url = `/rpt/report?filter=${filter}`;
+      let url = `/rpt/saleslist?filter=${filter}`;
       if (startDate && endDate) {
-        url = `/rpt/report?startDate=${startDate}&endDate=${endDate}`;
+        url = `/rpt/saleslist?startDate=${startDate}&endDate=${endDate}`;
       }
       const res = await fetchDataFromApi(url);
       if (res.data.success) setSales(res.data.data);
