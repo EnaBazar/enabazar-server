@@ -40,7 +40,7 @@ const Reports = ()=>{
 <div className="p-4 md:p-6">
 
 <h2 className="text-2xl font-bold mb-6">
- Dashboard
+Analytics Dashboard
 </h2>
 
 {/* Filter */}
