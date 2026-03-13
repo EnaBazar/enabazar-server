@@ -7,7 +7,7 @@ const Reports = () => {
 
   const loadReport = async () => {
 
-    const res = await fetchDataFromApi("/report/report");
+    const res = await fetchDataFromApi("/rpt/report");
 
     setData(res.data);
 

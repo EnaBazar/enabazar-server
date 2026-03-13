@@ -113,7 +113,7 @@ app.use("/order", orderRoutes);
 app.use("/chat", chatrouter);
 app.use("/users", usersRoutes);
 app.use("/sms", smsRoutes);
-app.use("/report", reportrouter);
+app.use("/rpt", reportrouter);
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
