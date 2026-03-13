@@ -88,87 +88,86 @@ console.log(product)
 
 
 
-export const getSalesList = async (req,res)=>{
- try{
+import ordermodel from "../models/order.model.js";
+import productmodel from "../models/product.model.js";
 
- const {filter} = req.query
+export const getSalesList = async (req, res) => {
+  try {
+    const { filter, startDate: startStr, endDate: endStr } = req.query;
 
- let startDate = new Date()
+    let startDate = null;
+    let endDate = null;
 
- if(filter==="today"){
-  startDate.setHours(0,0,0,0)
- }
+    // Custom date range
+    if (startStr && endStr) {
+      startDate = new Date(startStr);
+      endDate = new Date(endStr);
+      // Ensure endDate covers the whole day
+      endDate.setHours(23, 59, 59, 999);
+    } else {
+      // Predefined filters
+      startDate = new Date();
+      switch (filter) {
+        case "today":
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date();
+          break;
+        case "week":
+          startDate.setDate(startDate.getDate() - 7);
+          endDate = new Date();
+          break;
+        case "month":
+          startDate.setMonth(startDate.getMonth() - 1);
+          endDate = new Date();
+          break;
+        case "year":
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          endDate = new Date();
+          break;
+        default:
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date();
+      }
+    }
 
- if(filter==="week"){
-  startDate.setDate(startDate.getDate()-7)
- }
+    const orders = await ordermodel
+      .find({
+        order_status: "delivered",
+        createdAt: { $gte: startDate, $lte: endDate },
+      })
+      .populate("userId");
 
- if(filter==="month"){
-  startDate.setMonth(startDate.getMonth()-1)
- }
+    const products = await productmodel.find();
 
- if(filter==="year"){
-  startDate.setFullYear(startDate.getFullYear()-1)
- }
+    const salesList = [];
 
- const orders = await ordermodel.find({
-  order_status:"delivered",
-  createdAt:{$gte:startDate}
- }).populate("userId")
+    orders.forEach((order) => {
+      order.products.forEach((item) => {
+        const product = products.find(
+          (p) => p._id.toString() === item.productId.toString()
+        );
 
- const products = await productmodel.find()
+        const purchasePrice = product?.purchasePrice || 0;
+        const profit = (item.price - purchasePrice) * item.quantity;
 
- const salesList = []
+        salesList.push({
+          orderId: order._id,
+          productName: item.productTitle,
+          quantity: item.quantity,
+          salePrice: item.price,
+          purchasePrice,
+          profit,
+          customerName: order.userId?.name,
+          mobile: order.userId?.mobile,
+          city: order.delivery_address?.city,
+          address: order.delivery_address?.address_line,
+          date: order.createdAt,
+        });
+      });
+    });
 
- orders.forEach(order=>{
-
-  order.products.forEach(item=>{
-
-   const product = products.find(
-    p => p._id.toString() === item.productId.toString()
-   )
-
-   const purchasePrice = product?.purchasePrice || 0
-
-   const profit = (item.price - purchasePrice) * item.quantity
-
-   salesList.push({
-
-    orderId:order._id,
-
-    productName:item.productTitle,
-    quantity:item.quantity,
-    salePrice:item.price,
-    purchasePrice,
-
-    profit,
-
-    customerName:order.userId?.name,
-    mobile:order.userId?.mobile,
-
-    city:order.delivery_address?.city,
-    address:order.delivery_address?.address_line,
-
-    date:order.createdAt
-
-   })
-
-  })
-
- })
-
- res.json({
-  success:true,
-  data:salesList
- })
-
- }catch(err){
-
- res.status(500).json({
-  success:false,
-  message:err.message
- })
-
- }
-
-}
+    res.json({ success: true, data: salesList });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

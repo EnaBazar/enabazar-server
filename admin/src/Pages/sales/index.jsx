@@ -4,7 +4,6 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { fetchDataFromApi } from "../../utils/api";
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -13,14 +12,18 @@ const SalesList = () => {
   const [filter, setFilter] = useState("today");
   const [search, setSearch] = useState("");
   const [selectedSale, setSelectedSale] = useState(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // Fetch sales data
   const fetchSales = async () => {
     try {
-      const res = await fetchDataFromApi(`/rpt/report?filter=${filter}`);
-      if (res.data.success) {
-        setSales(res.data.data);
+      let url = `/rpt/report?filter=${filter}`;
+      if (startDate && endDate) {
+        url = `/rpt/report?startDate=${startDate}&endDate=${endDate}`;
       }
+      const res = await fetchDataFromApi(url);
+      if (res.data.success) setSales(res.data.data);
     } catch (err) {
       console.log(err);
     }
@@ -28,7 +31,7 @@ const SalesList = () => {
 
   useEffect(() => {
     fetchSales();
-  }, [filter]);
+  }, [filter, startDate, endDate]);
 
   // Filter by search
   const filteredSales = sales.filter(
@@ -38,7 +41,7 @@ const SalesList = () => {
       item.city?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Convert UTC to Bangladesh local time
+  // Convert UTC to Bangladesh time
   const formatBDTime = (utcDate) =>
     dayjs(utcDate).tz("Asia/Dhaka").format("DD MMM YYYY, HH:mm");
 
@@ -47,11 +50,14 @@ const SalesList = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-xl md:text-2xl font-semibold">Sales List</h2>
-
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              setStartDate(""); // Clear custom dates if filter used
+              setEndDate("");
+            }}
             className="border px-3 py-2 rounded w-full sm:w-auto"
           >
             <option value="today">Today</option>
@@ -59,6 +65,21 @@ const SalesList = () => {
             <option value="month">Monthly</option>
             <option value="year">Yearly</option>
           </select>
+
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border px-3 py-2 rounded w-full sm:w-auto"
+            max={endDate || undefined}
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border px-3 py-2 rounded w-full sm:w-auto"
+            min={startDate || undefined}
+          />
 
           <input
             type="text"
@@ -74,7 +95,7 @@ const SalesList = () => {
       {selectedSale && (
         <div className="bg-white border shadow-md p-4 mb-6 rounded">
           <h3 className="text-lg font-semibold mb-3">Sale Details</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
             <div>
               <b>Order ID</b>
               <p>{selectedSale.orderId}</p>
@@ -99,9 +120,7 @@ const SalesList = () => {
               <b>Profit</b>
               <p
                 className={`font-semibold ${
-                  selectedSale.profit > 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                  selectedSale.profit > 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {selectedSale.profit} ৳
