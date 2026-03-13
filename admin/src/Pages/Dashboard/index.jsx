@@ -1215,7 +1215,7 @@ return (
 </div>
 </td>
  <td className="px-3 py-2 hidden sm:table-cell">
-                    {new Date(order?.createdAt?.split("T")[0]).toLocaleDateString()}
+                       {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-3 py-2">
                     <Button variant="outlined" size="small" onClick={() => handleViewOrderDetails(order)}>View</Button>
