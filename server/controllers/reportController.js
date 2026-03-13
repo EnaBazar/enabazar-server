@@ -37,21 +37,18 @@ export const getAnalytics = async (req,res)=>{
  let totalProfit = 0
  let topProducts = {}
 
- orders.forEach(order=>{
-
+  orders.forEach(order=>{
   totalSales += order.totalAmt
-
   order.products.forEach(item=>{
 
    const product = products.find(
-    p=>p._id.toString()===item.productId
+   p=>p._id.toString()===item.productId
    )
 
    const purchasePrice = product?.purchasePrice || 0
-
    const profit =
    (item.price - purchasePrice) * item.quantity
-
+console.log(item)
    totalProfit += profit
 
    if(!topProducts[item.productTitle]){
