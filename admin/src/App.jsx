@@ -137,7 +137,7 @@ console.log(isOpenFullScreenPanel)
     { path: "/SubCategorylist", element: <Layout><SubCategoryList /></Layout> },
     { path: "/users", element: <Layout><Users /></Layout> },
     { path: "/report", element: <Layout><Reports /></Layout> },
-     { path: "/salles", element: <Layout><SalesList /></Layout> },
+    { path: "/salles", element: <Layout><SalesList /></Layout> },
     { path: "/orders", element: <Layout><Orders /></Layout> },
     { path: "/profile", element: <Layout><Profile /></Layout> },
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
