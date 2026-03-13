@@ -127,12 +127,12 @@ export const getSalesList = async (req, res) => {
       }
     }
 
-    const orders = await ordermodel
-      .find({
-        order_status: "delivered",
-        createdAt: { $gte: startDate, $lte: endDate },
-      })
-      .populate("userId");
+ const orders = await ordermodel.find({
+ order_status:"delivered",
+ createdAt:{$gte:startDate,$lte:endDate}
+})
+.populate("userId")
+.populate("delivery_address")
 
     const products = await productmodel.find();
 
