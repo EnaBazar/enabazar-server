@@ -1,65 +1,89 @@
-import ordermodel from "../models/order.model.js";
-import productmodel from "../models/product.model.js";
+import ordermodel from "../models/orderModel.js";
+import productmodel from "../models/productModel.js";
 
+export const getAnalytics = async (req,res)=>{
 
-export const getReport = async (req, res) => {
+ try{
 
-  try {
+ const {filter} = req.query
 
-    const orders = await ordermodel.find({
-      order_status: "delivered"
-    });
+ let startDate = new Date()
 
-    const products = await productmodel.find();
+ if(filter==="today"){
+  startDate.setHours(0,0,0,0)
+ }
 
-    let totalSales = 0;
-    let totalProfit = 0;
-    let totalSold = 0;
+ if(filter==="week"){
+  startDate.setDate(startDate.getDate()-7)
+ }
 
-    orders.forEach(order => {
+ if(filter==="month"){
+  startDate.setMonth(startDate.getMonth()-1)
+ }
 
-      totalSales += order.totalAmt;
+ if(filter==="year"){
+  startDate.setFullYear(startDate.getFullYear()-1)
+ }
 
-      order.products.forEach(item => {
+ const orders = await ordermodel.find({
+  order_status:"delivered",
+  createdAt:{$gte:startDate}
+ })
 
-        const product = products.find(
-          p => p._id.toString() === item.productId
-        );
+ const products = await productmodel.find()
 
-        const purchasePrice = product?.purchasePrice || 0;
+ let totalSales = 0
+ let totalProfit = 0
+ let topProducts = {}
 
-        const profit =
-          (item.price - purchasePrice) * item.quantity;
+ orders.forEach(order=>{
 
-        totalProfit += profit;
-        totalSold += item.quantity;
+  totalSales += order.totalAmt
 
-      });
+  order.products.forEach(item=>{
 
-    });
+   const product = products.find(
+    p=>p._id.toString()===item.productId
+   )
 
-    const totalStock = products.reduce(
-      (sum, p) => sum + p.countInStock,
-      0
-    );
+   const purchasePrice = product?.purchasePrice || 0
 
-    res.json({
-      success: true,
-      data: {
-        totalSales,
-        totalProfit,
-        totalSold,
-        totalStock
-      }
-    });
+   const profit =
+   (item.price - purchasePrice) * item.quantity
 
-  } catch (error) {
+   totalProfit += profit
 
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+   if(!topProducts[item.productTitle]){
+     topProducts[item.productTitle]=0
+   }
 
+   topProducts[item.productTitle]+=item.quantity
+
+  })
+
+ })
+
+ const lowStock = products.filter(
+  p=>p.countInStock < 5
+ )
+
+ res.json({
+  success:true,
+  data:{
+   totalSales,
+   totalProfit,
+   topProducts,
+   lowStock
   }
+ })
 
-};
+ }catch(error){
+
+ res.status(500).json({
+  success:false,
+  message:error.message
+ })
+
+ }
+
+}
