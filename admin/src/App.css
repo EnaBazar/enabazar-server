@@ -115,3 +115,18 @@ button .MuiCircularProgress-root{width:20px !important; height:20px !important;}
 
 
 .rsw-editor{min-height: 300px !important; background:#fff !important;}
+/* Print only the table */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-table, .printable-table * {
+    visibility: visible;
+  }
+  .printable-table {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
