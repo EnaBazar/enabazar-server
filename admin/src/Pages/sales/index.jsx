@@ -82,7 +82,7 @@ const totalProfit = filteredSales.reduce(
      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
   <h2 className="text-xl md:text-2xl font-semibold">Sales Summary</h2>
 
-  <div className="flex flex-wrap gap-3 items-stretch w-full lg:w-auto">
+  <div className="flex flex-col gap-3  items-stretch w-full lg:w-auto">
     <select
       value={filter}
       onChange={(e) => {
@@ -90,7 +90,7 @@ const totalProfit = filteredSales.reduce(
         setStartDate("");
         setEndDate("");
       }}
-      className="border px-3 py-2 rounded-md h-10"
+      className="border px-3 py-2 rounded-md h-10 "
     >
       <option value="today">Today </option>
       <option value="week">Weekly </option>
