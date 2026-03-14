@@ -71,7 +71,7 @@ const SalesList = () => {
 
       {/* HEADER */}
      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-  <h2 className="text-xl md:text-2xl font-semibold">Summary</h2>
+  <h2 className="text-xl md:text-2xl font-semibold">Summary for you</h2>
 
   <div className="flex flex-wrap gap-3 items-stretch w-full lg:w-auto">
     <select
@@ -83,10 +83,10 @@ const SalesList = () => {
       }}
       className="border px-3 py-2 rounded-md h-10"
     >
-      <option value="today">Today sales</option>
-      <option value="week">Weekly sales</option>
-      <option value="month">Monthly sales</option>
-      <option value="year">Yearly sales</option>
+      <option value="today">Today </option>
+      <option value="week">Weekly </option>
+      <option value="month">Monthly </option>
+      <option value="year">Yearly </option>
     </select>
 
     <input
