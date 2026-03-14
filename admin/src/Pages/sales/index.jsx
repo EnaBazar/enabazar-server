@@ -57,13 +57,22 @@ const SalesList = () => {
   };
 
   /* ---------------- summary calculations ---------------- */
-  const totalOrders = new Set(sales.map((i) => i.orderId)).size;
-  const totalQty = sales.reduce((sum, item) => sum + item.quantity, 0);
-  const totalSales = sales.reduce(
-    (sum, item) => sum + item.salePrice * item.quantity,
-    0
-  );
-  const totalProfit = sales.reduce((sum, item) => sum + item.profit, 0);
+const totalOrders = new Set(filteredSales.map((i) => i.orderId)).size;
+
+const totalQty = filteredSales.reduce(
+  (sum, item) => sum + (item.quantity || 0),
+  0
+);
+
+const totalSales = filteredSales.reduce(
+  (sum, item) => sum + (item.salePrice || 0) * (item.quantity || 0),
+  0
+);
+
+const totalProfit = filteredSales.reduce(
+  (sum, item) => sum + (item.profit || 0),
+  0
+);
 
   /* ---------------- UI ---------------- */
   return (
