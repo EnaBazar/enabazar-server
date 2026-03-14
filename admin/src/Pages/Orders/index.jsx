@@ -156,6 +156,57 @@ useEffect(() => {
       order?.delivery_address?.city?.includes(searchQuery)
   );
 
+const pendingOrders = filteredOrders
+  .filter((o) => o.order_status === "pending")
+  .slice(0, 10);
+
+const confirmOrders = filteredOrders
+  .filter((o) => o.order_status === "confirm")
+  .slice(0, 10);
+
+const shippedOrders = filteredOrders
+  .filter((o) => o.order_status === "shipped")
+  .slice(0, 10);
+
+const deliveredOrders = filteredOrders
+  .filter((o) => o.order_status === "delivered")
+  .slice(0, 10);
+
+
+const changeOrderStatus = async (order, status) => {
+
+  const orderTime = new Date(order.createdAt).getTime();
+  const currentTime = new Date().getTime();
+
+  if (currentTime - orderTime < 10 * 60 * 1000) {
+    context.openAlertBox("error", "10 minutes not completed yet");
+    return;
+  }
+
+  const res = await editData(`/order/order-status/${order._id}`, {
+    id: order._id,
+    order_status: status
+  });
+
+  if (res?.data?.error === false) {
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o._id === order._id ? { ...o, order_status: status } : o
+      )
+    );
+
+    context.openAlertBox("success", "Order status updated");
+
+    // SMS send
+    sendSMSCustomer(
+      order?.userId?.mobile,
+      `Your order ${order._id} status changed to ${status}`
+    );
+
+  }
+};
+
   const handleViewOrderDetails = (order) => {
     setSelectedOrder(order);
     setOpenModal(true);
@@ -561,7 +612,7 @@ const copyPhone = (phone) => {
     </div>
 
     {/* Action Buttons */}
-    <div className="flex flex-col sm:flex-row gap-2 w-full !mt-3 sm:w-auto">
+    <div className="flex flex-col sm:flex-row gap-2 w-full  sm:w-auto">
       <Button
         variant="contained"
         color="primary"
@@ -585,7 +636,7 @@ const copyPhone = (phone) => {
   </div>
 </div>
 
-
+  {/* Customer Sms Service*/}
 {contactOrder && (
   <div className="bg-white border rounded-lg shadow-md p-4 mx-5 mb-4 flex flex-col gap-4">
 
@@ -657,6 +708,177 @@ const copyPhone = (phone) => {
   </div>
 )}
 
+
+
+
+  {/* Order Status Box */}
+
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-5 mb-2 ">
+
+{/* Pending */}
+<div className="bg-red-50 border rounded-lg p-3 h-[250px] flex flex-col">
+
+<h3 className="font-bold text-red-600 mb-2">
+Pending ({pendingOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2 ">
+
+{pendingOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 !text-[7px] shadow">
+
+{/* Order ID */}
+<p className="font-semibold">
+  Order Id: {order._id}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p className="text-gray-600">
+  Products:{order?.products?.[0]?.productTitle}
+</p>
+
+<p>   Phone:{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+  City:{order?.delivery_address?.city}
+</p>
+{/* TIMER */}
+{order.statusTimeLeft && (
+  <p className="text-[10px] text-red-500">
+    change after: {order.statusTimeLeft}
+  </p>
+)}
+<button
+className="mt-1 bg-green-500 text-white px-2 py-1 rounded text-[8px]"
+disabled={new Date() - new Date(order.createdAt) < 10 * 60 * 1000}
+onClick={() => changeOrderStatus(order,"confirm")}
+>
+Confirm
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Confirm */}
+<div className="bg-green-50 border rounded-lg p-3 h-[250px] flex flex-col">
+
+<h3 className="font-bold text-green-600 mb-2">
+Confirm ({confirmOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2 ">
+
+{confirmOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 text-[12px] shadow !text-[7px]">
+<p className="font-semibold">
+  Order Id: {order._id}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+<button
+className="mt-1 bg-orange-500 text-white px-2 py-1 rounded text-[8px]"
+disabled={new Date() - new Date(order.createdAt) < 10 * 60 * 1000}
+onClick={() => changeOrderStatus(order,"shipped")}
+>
+Ship
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Shipped */}
+<div className="bg-orange-50 border rounded-lg p-3 h-[250px] flex flex-col">
+
+<h3 className="font-bold text-orange-600 mb-2">
+Shipped ({shippedOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{shippedOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+<p className="font-semibold">
+  Order Id: {order._id}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+<button
+className="mt-1 bg-blue-500 text-white px-2 py-1 rounded text-[8px]"
+onClick={() => changeOrderStatus(order,"delivered")}
+>
+Deliver
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Delivered */}
+<div className="bg-yellow-50 border rounded-lg p-3 h-[250px] flex flex-col">
+
+<h3 className="font-bold text-yellow-600 mb-2">
+Delivered ({deliveredOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{deliveredOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+<p className="font-semibold">
+  Order Id: {order._id}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+</div>
 
 
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
@@ -742,18 +964,26 @@ const copyPhone = (phone) => {
                     
                   </td>
                   <td className="px-3 py-2 ">
-<Button variant="outlined"
- className="!h-[25px] !text-[12px]"
- onClick={() => handleViewOrderDetails(order)}>View</Button>
- 
- <Button
- variant="contained"
- color="success"
- className="!h-[25px] !text-[12px]  !mt-1"
- onClick={() => handleShowContact(order)}
->
- Call
-</Button>
+
+<div className="flex items-center gap-2">
+  <Button
+    variant="contained"
+    className="!h-[25px] !text-[12px]"
+    onClick={() => handleViewOrderDetails(order)}
+  >
+    View
+  </Button>
+
+  <Button
+    variant="contained"
+    color="success"
+    className="!h-[25px] !text-[12px]"
+    onClick={() => handleShowContact(order)}
+  >
+    Call
+  </Button>
+</div>
+
                   </td>
                 </tr>
 
