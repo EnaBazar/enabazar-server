@@ -14,6 +14,7 @@ import DialogActions from "@mui/material/DialogActions";
 import pdfMake from "../../Fonts/pdfFonts.js";
 import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
 import sendSMSCustomer from "../../../../server/utils/sendSMSCustomer.js";
+import JsBarcode from "jsbarcode";
 
 const Orders = () => {
   const context = useContext(MyContext);
@@ -31,6 +32,18 @@ const [sendingSms, setSendingSms] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
 
+const generateBarcode = (value) => {
+  const canvas = document.createElement("canvas");
+
+  JsBarcode(canvas, value, {
+    format: "CODE128",
+    width: 2,
+    height: 40,
+    displayValue: false
+  });
+
+  return canvas.toDataURL("image/png");
+};
 
   const getStatusColor = (status) => {
   switch (status) {
@@ -494,54 +507,110 @@ orders.forEach((order, index) => {
 };
 
 const exportDeliveryLabel = (order) => {
+  const barcodeImage = generateBarcode(order?._id);
+
   const docDefinition = {
-    pageSize: { width: 300, height: 230 },
+    pageSize: { width: 300, height: 260 },
     pageMargins: [15, 15, 15, 15],
-    defaultStyle: { font: "NotoSansBangla", fontSize: 10 },
+    defaultStyle: { font: "NotoSansBangla", fontSize: 8 },
+
     content: [
+      // ===== Company Header =====
       {
         columns: [
           { image: companyLogo, width: 40 },
           {
             stack: [
-              { text: "EnaBazar.com", bold: true, fontSize: 12 },
-              { text: "ঠিকানা: IslamPur Road, Feni, 3900", fontSize: 8, color: "#555" },
-              { text: "ফোন: 0167484746", fontSize: 8, color: "#555" },
+              { text: "EnaBazar.com", bold: true, fontSize: 10 },
+              { text: "IslamPur Road, Feni", fontSize: 7, color: "#555" },
+              { text: "Phone: 0167484746", fontSize: 7, color: "#555" }
             ],
-            margin: [5, 0, 0, 0],
-          },
-        ],
+            margin: [5, 0, 0, 0]
+          }
+        ]
       },
+
       { text: "\n" },
-      { text: "ডেলিভারি ঠিকানা ", style: "header", alignment: "center", bold: true, fontSize: 12, margin: [0, 0, 0, 10] },
+
+      // ===== Label Title =====
+      {
+        text: "DELIVERY ADDRESS",
+        style: "labelHeader",
+        alignment: "center",
+        margin: [0, 0, 0, 8]
+      },
+
+      // ===== Order Info Table =====
       {
         table: {
-          widths: ["25%", "75%"],
+          widths: ["30%", "70%"],
           body: [
-            ["নাম:", order?.userId?.name || "--"],
-            ["ফোন:", order?.userId?.mobile || "--"],
-            ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`],
-            ["পেমেন্ট:", order?.paymentId || "Cash on Delivery"],
-            ["মোট:", `${order?.totalAmt || 0} ৳`],
-          ],
+            [
+              { text: "Order ID:", bold: true, fontSize: 7 },
+              { text: order?._id || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Name:", bold: true, fontSize: 7 },
+              { text: order?.userId?.name || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Phone:", bold: true, fontSize: 7 },
+              { text: order?.userId?.mobile || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Address:", bold: true, fontSize: 7 },
+              { text: `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`, fontSize: 7 }
+            ],
+            [
+              { text: "Payment:", bold: true, fontSize: 7 },
+              { text: order?.paymentId || "Cash on Delivery", fontSize: 7 }
+            ],
+            [
+              { text: "Total:", bold: true, fontSize: 7 },
+              { text: `${order?.totalAmt || 0} ৳`, fontSize: 7 }
+            ]
+          ]
         },
-        layout: "noBorders",
-        margin: [0, 0, 0, 30], // footer এর জন্য extra space
+        layout: {
+          hLineWidth: () => 0,
+          vLineWidth: () => 0
+        },
+        margin: [0, 0, 0, 12]
       },
 
-      // ===== Footer manually placed =====
-   {
-  text: "আপনার ক্রয়ের জন্য ধন্যবাদ!\nwww.enabazar.com | সাপোর্ট: support@enabazar.com",
-  fontSize: 8,
-  color: "#666",
-  alignment: "center",
-  absolutePosition: { x: 15, y: 190 } // page bottom এর কাছাকাছি
-}
+      // ===== Barcode =====
+      {
+        image: barcodeImage,
+        width: 200,
+        alignment: "center",
+        margin: [0, 5, 0, 2]
+      },
 
+      // ===== Order ID below Barcode =====
+      {
+        text: order?._id,
+        alignment: "center",
+        fontSize: 7,
+        bold: true,
+        margin: [0, 0, 0, 8]
+      },
+
+      // ===== Footer =====
+      {
+        text: "Thank you for shopping with EnaBazar\nwww.enabazars.com",
+        fontSize: 6,
+        color: "#666",
+        alignment: "center"
+      }
     ],
+
     styles: {
-      header: { fontSize: 12, bold: true },
-    },
+      labelHeader: {
+        fontSize: 9,
+        bold: true,
+        color: "#2c3e50"
+      }
+    }
   };
 
   pdfMake.createPdf(docDefinition).open();
