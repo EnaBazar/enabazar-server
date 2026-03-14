@@ -71,7 +71,7 @@ const SalesList = () => {
 
       {/* HEADER */}
      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-  <h2 className="text-xl md:text-2xl font-semibold">Salle Summary</h2>
+  <h2 className="text-xl md:text-2xl font-semibold">Sales Summary</h2>
 
   <div className="flex flex-wrap gap-3 items-stretch w-full lg:w-auto">
     <select
