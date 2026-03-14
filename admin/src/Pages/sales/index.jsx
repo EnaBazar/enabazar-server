@@ -229,14 +229,16 @@ const totalProfit = filteredSales.reduce(
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="px-4 py-3 border">Order</th>
+                   <th className="px-4 py-3 border">Date</th>
+                   <th className="px-4 py-3 border">Customer</th>
+                <th className="px-4 py-3 border">City</th>
                 <th className="px-4 py-3 border">Product</th>
                 <th className="px-4 py-3 border">Qty</th>
                 <th className="px-4 py-3 border">Sale</th>
                 <th className="px-4 py-3 border">Purchase</th>
                 <th className="px-4 py-3 border">Profit</th>
-                <th className="px-4 py-3 border">Customer</th>
-                <th className="px-4 py-3 border">City</th>
-                <th className="px-4 py-3 border">Date</th>
+                
+             
               </tr>
             </thead>
 
@@ -254,23 +256,25 @@ const totalProfit = filteredSales.reduce(
                     onClick={() => setSelectedSale(item)}
                     className="hover:bg-gray-50 cursor-pointer"
                   >
-                    <td className="border px-4 py-2 text-red-500">
+                    <td className="border px-2 py-2 text-red-500">
                       {item.orderId}
                     </td>
-                    <td className="border px-4 py-2">{item.productName}</td>
-                    <td className="border px-4 py-2">{item.quantity}</td>
-                    <td className="border px-4 py-2">{item.salePrice} ৳</td>
-                    <td className="border px-4 py-2">{item.purchasePrice} ৳</td>
+                     <td className="border px-2 py-2">{formatBDTime(item.date)}</td>
+                    <td className="border px-2 py-2">{item.customerName}</td>
+                    <td className="border px-2 py-2">{item.city || "-"}</td>
+                    <td className="border px-2 py-2">{item.productName}</td>
+                    <td className="border px-2 py-2">{item.quantity}</td>
+                    <td className="border px-2 py-2">{item.salePrice} ৳</td>
+                    <td className="border px-2 py-2">{item.purchasePrice} ৳</td>
                     <td
-                      className={`border px-4 py-2 font-semibold ${
+                      className={`border px-2 py-2 font-semibold ${
                         item.profit > 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {item.profit} ৳
                     </td>
-                    <td className="border px-4 py-2">{item.customerName}</td>
-                    <td className="border px-4 py-2">{item.city || "-"}</td>
-                    <td className="border px-4 py-2">{formatBDTime(item.date)}</td>
+                    
+                   
                     
                   </tr>
                 ))
