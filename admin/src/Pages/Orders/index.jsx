@@ -708,15 +708,12 @@ const copyPhone = (phone) => {
   </div>
 )}
 
-
-
-
   {/* Order Status Box */}
 
 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-5 mb-2 ">
 
 {/* Pending */}
-<div className="bg-red-50 border rounded-lg p-3 h-[250px] flex flex-col">
+<div className="bg-red-50 border rounded-lg p-3 h-[255px] flex flex-col">
 
 <h3 className="font-bold text-red-600 mb-2">
 Pending ({pendingOrders.length})
@@ -726,7 +723,7 @@ Pending ({pendingOrders.length})
 
 {pendingOrders.map((order) => (
 
-<div key={order._id} className="bg-white border rounded p-2 !text-[7px] shadow">
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 !text-[7px] shadow">
 
 {/* Order ID */}
 <p className="font-semibold">
@@ -766,7 +763,7 @@ Confirm
 
 
 {/* Confirm */}
-<div className="bg-green-50 border rounded-lg p-3 h-[250px] flex flex-col">
+<div className="bg-green-50 border rounded-lg p-3 h-[255px] flex flex-col">
 
 <h3 className="font-bold text-green-600 mb-2">
 Confirm ({confirmOrders.length})
@@ -776,7 +773,7 @@ Confirm ({confirmOrders.length})
 
 {confirmOrders.map((order) => (
 
-<div key={order._id} className="bg-white border rounded p-2 text-[12px] shadow !text-[7px]">
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[12px] shadow !text-[7px]">
 <p className="font-semibold">
   Order Id: {order._id}
 </p>
@@ -807,7 +804,7 @@ Ship
 
 
 {/* Shipped */}
-<div className="bg-orange-50 border rounded-lg p-3 h-[250px] flex flex-col">
+<div className="bg-orange-50 border rounded-lg p-3 h-[255px] flex flex-col">
 
 <h3 className="font-bold text-orange-600 mb-2">
 Shipped ({shippedOrders.length})
@@ -817,7 +814,7 @@ Shipped ({shippedOrders.length})
 
 {shippedOrders.map((order) => (
 
-<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
 <p className="font-semibold">
   Order Id: {order._id}
 </p>
@@ -847,7 +844,7 @@ Deliver
 
 
 {/* Delivered */}
-<div className="bg-yellow-50 border rounded-lg p-3 h-[250px] flex flex-col">
+<div className="bg-yellow-50 border rounded-lg p-3 h-[255px] flex flex-col ">
 
 <h3 className="font-bold text-yellow-600 mb-2">
 Delivered ({deliveredOrders.length})
@@ -857,7 +854,7 @@ Delivered ({deliveredOrders.length})
 
 {deliveredOrders.map((order) => (
 
-<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
 <p className="font-semibold">
   Order Id: {order._id}
 </p>
@@ -881,6 +878,7 @@ Delivered ({deliveredOrders.length})
 </div>
 
 
+  {/* OrderList */}
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
         <table className="w-full text-[10px] text-left">
           <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b-[gray]">
@@ -991,7 +989,7 @@ Delivered ({deliveredOrders.length})
      {isOpenOrderProduct === index && (
                   <tr>
                     <td colSpan="15" className="pl-4 bg-[#fafafa] overflow-x-auto">
-                      <table className="w-full text-sm text-left">
+                      <table className="w-full text-[10px] text-left">
                         <thead className="capitalize bg-[rgba(0,0,0,0.1)] border-b-[gray]">
                           <tr>
                             <th className="px-3 py-2 w-[150px]">Product Id</th>
@@ -1031,15 +1029,6 @@ Delivered ({deliveredOrders.length})
           </tbody>
         </table>
       </div>
-
-
-
-
-
-
-
-
-
 
       <div className="flex justify-end py-4">
         <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />
