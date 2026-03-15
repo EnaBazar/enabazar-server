@@ -131,6 +131,17 @@ import { useEffect } from 'react';
     </Link>
     </li> 
     
+  <li>
+    <Link to="/usersdetails" onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
+    <Button className='w-full !capitalize !justify-start gap-3 
+    text-[14px] !text-[rgba(0,0,0,0.8)] !font-[500] items-center 
+    !py-2 hover:!bg-[#dddddd]'>
+    <FiUsers className='text-[16px]'
+    /><span>UsersDeatils</span>
+    </Button>
+    </Link>
+    </li> 
+
 
 
 <li>

@@ -241,6 +241,15 @@ const ProductItem = (props) => {
           {props?.item?.discount}%
         </span>
 
+
+{props?.item?.countInStock === 0 && (
+  <span className="absolute top-[10px] right-[10px] z-50 bg-gray-800 text-white
+   px-2 py-1 text-xs font-semibold rounded-md shadow">
+    Stock Out
+  </span>
+)}
+
+
         {/* Action buttons */}
         <div className="actions absolute top-[-200px] right-[5px] z-50 flex items-center
          gap-2 flex-col w-[50px] transition-all duration-300 group-hover:top-[15px]
@@ -300,16 +309,16 @@ const ProductItem = (props) => {
 
         <div className="!mt-5">
            <Link to={`/product/${props?.item?._id}`}>
-            <Button
-              type="button"   // ✅ Fix
-              className="w-full btn-orgs btn-borders text-black py-2 rounded-lg 
-              shadow-md flex items-center justify-center gap-2"
-              size="small"
-             
-            >
-              <MdOutlineShoppingCart className="text-[14px] font-[500]" /> Order Now
-            </Button>
-
+        <Button
+  type="button"
+  disabled={props?.item?.countInStock === 0}
+  className={`w-full btn-orgs btn-borders py-2 rounded-lg shadow-md flex items-center justify-center gap-2 
+  ${props?.item?.countInStock === 0 ? "bg-gray-400 text-white cursor-not-allowed" : "text-black"}`}
+  size="small"
+>
+  <MdOutlineShoppingCart className="text-[14px] font-[500]" />
+  {props?.item?.countInStock === 0 ? "Stock Out" : "Order Now"}
+</Button>
 
             </Link>
    

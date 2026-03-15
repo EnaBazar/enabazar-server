@@ -29,6 +29,7 @@ import Layout from './Components/Layout';   // নতুন Layout ইউজ ক
 import Reports from './Pages/Reports';
 import SalesList from './Pages/sales';
 import AdminChat from './Components/AdminChat';
+import UserDetails from './Pages/Users/UserDetails';
 
 const MyContext = createContext();
 
@@ -136,9 +137,10 @@ console.log(isOpenFullScreenPanel)
     { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
     { path: "/SubCategorylist", element: <Layout><SubCategoryList /></Layout> },
     { path: "/users", element: <Layout><Users /></Layout> },
+      { path: "/usersdetails", element: <Layout><UserDetails /></Layout> },
     { path: "/report", element: <Layout><Reports /></Layout> },
     { path: "/salles", element: <Layout><SalesList /></Layout> },
-       { path: "/chat", element: <Layout><AdminChat /></Layout> },
+    { path: "/chat", element: <Layout><AdminChat /></Layout> },
     { path: "/orders", element: <Layout><Orders /></Layout> },
     { path: "/profile", element: <Layout><Profile /></Layout> },
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },

@@ -43,7 +43,7 @@ const addressSchema = mongoose.Schema({
         type : mongoose.Schema.ObjectId,
         default : ""
     }
-},{timestams : true
+},{timestamps : true
    
    })
 const AddressModel = mongoose.model('address',addressSchema)
