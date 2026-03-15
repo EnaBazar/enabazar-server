@@ -1181,7 +1181,9 @@ export async function updateUserDeatils(request, response) {
  export async function getAllusers(request,response) {
      try {
 
-        const users = await usermodel.find();
+      const users = await usermodel.find()
+  .populate("address_details") // <- এটি হবে object populate
+  .sort({ createdAt: -1 });
         
         if(!users){
           return response.status(400).json({       
