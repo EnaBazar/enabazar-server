@@ -816,8 +816,9 @@ Pending ({pendingOrders.length})
   </p>
 )}
 <button
-className="mt-1 bg-green-500 text-white px-2 py-1 rounded text-[8px]"
-disabled={new Date() - new Date(order.createdAt) < 10 * 60 * 1000}
+className={`mt-1 px-2 py-1 rounded text-[8px] text-white 
+${order.statusTimeLeft ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"}`}
+disabled={order.statusTimeLeft !== null}
 onClick={() => changeOrderStatus(order,"confirm")}
 >
 Confirm

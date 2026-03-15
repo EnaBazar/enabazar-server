@@ -134,7 +134,7 @@ import { useEffect } from 'react';
 
 
 <li>
-  <Link to="/chat">
+  <Link to="/chat"onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
     <Button className="w-full !capitalize !justify-start gap-3 relative">
       <FiUsers className="text-[16px]" />
       <span>Chats</span>
