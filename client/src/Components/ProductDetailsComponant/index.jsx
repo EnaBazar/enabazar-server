@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Rating from "@mui/material/Rating";
 import { Button } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -20,19 +20,16 @@ const ProductDetailsComponant = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tabError, setTabError] = useState(false);
 
-  // ================= QTY =================
   const handleSelecteQty = (qty) => {
     setQuantity(qty);
   };
 
-  // ================= VARIATION =================
   const handleClickActiveTab = (index, name) => {
     setProductActionIndex(index);
     setSelectedTabName(name);
     setTabError(false);
   };
 
-  // ================= LOGIN CHECK =================
   const checkLogin = () => {
     const token = localStorage.getItem("accesstoken");
     if (!token) {
@@ -43,19 +40,21 @@ const ProductDetailsComponant = (props) => {
     return true;
   };
 
-  // ================= USER ID =================
   const getUserId = () => {
     if (context?.userData?._id) return context.userData._id;
-
     const localUser = localStorage.getItem("user");
     if (localUser) return JSON.parse(localUser)?._id;
-
     return null;
   };
 
-  // ================= ADD TO CART =================
   const addToCart = async (product, qty) => {
     if (!checkLogin()) return { success: false };
+
+    // Safety check: stock must be positive
+    if (product?.countInStock <= 0) {
+      context?.openAlertBox("error", "এই পণ্যটি স্টকে নেই");
+      return { success: false };
+    }
 
     const userId = getUserId();
     if (!userId) {
@@ -118,54 +117,38 @@ const ProductDetailsComponant = (props) => {
     }
   };
 
-  // ================= BUY NOW =================
   const handleBuyNow = async () => {
+    if (props?.item?.countInStock <= 0) {
+      context?.openAlertBox("error", "এই পণ্যটি স্টকে নেই");
+      return;
+    }
+
     const result = await addToCart(props?.item, quantity);
     if (result?.success) {
       navigate("/checkout");
     }
   };
 
-  // ================= YOUTUBE VIDEO ID EXTRACT =================
   const getYoutubeId = (url) => {
     if (!url) return null;
-
-    if (url.includes("watch?v=")) {
-      return url.split("watch?v=")[1];
-    }
-
-    if (url.includes("youtu.be/")) {
-      return url.split("youtu.be/")[1];
-    }
-
+    if (url.includes("watch?v=")) return url.split("watch?v=")[1];
+    if (url.includes("youtu.be/")) return url.split("youtu.be/")[1];
     return url;
   };
 
   return (
     <>
-      <h1 className="text-[24px] font-[600] !mb-2">
-        {props?.item?.name}
-      </h1>
+      <h1 className="text-[24px] font-[600] !mb-2">{props?.item?.name}</h1>
 
       <div className="flex items-center gap-3">
         <span className="text-gray-400 text-[13px]">
           Brands :
-          <span className="font-[500] text-black opacity-75">
-            {props?.item?.brand}
-          </span>
+          <span className="font-[500] text-black opacity-75">{props?.item?.brand}</span>
         </span>
 
-        <Rating
-          name="size-small"
-          defaultValue={props?.item?.rating}
-          size="small"
-          readOnly
-        />
+        <Rating name="size-small" defaultValue={props?.item?.rating} size="small" readOnly />
 
-        <span
-          className="text-[13px] cursor-pointer"
-          onClick={props.gotoreviews}
-        >
+        <span className="text-[13px] cursor-pointer" onClick={props.gotoreviews}>
           Review ({props.reviewsCount})
         </span>
       </div>
@@ -174,29 +157,29 @@ const ProductDetailsComponant = (props) => {
         <span className="oldPrice line-through text-gray-500 text-[20px] font-[500]">
           ৳ {props?.item?.oldPrice}
         </span>
-
-        <span className="Price text-pink-700 text-[20px] font-[600]">
-          ৳ {props?.item?.price}
-        </span>
+        <span className="Price text-pink-700 text-[20px] font-[600]">৳ {props?.item?.price}</span>
 
         <span className="text-[14px]">
-          Available In stock :
-          <span className="text-green-600 font-bold">
-            {props?.item?.countInStock}
-          </span>
+          Stock :
+          {props?.item?.countInStock > 0 ? (
+            <span className="text-green-600 font-bold">
+              In Stock ({props?.item?.countInStock})
+            </span>
+          ) : (
+            <span className="text-red-600 font-bold">Out Of Stock</span>
+          )}
         </span>
       </div>
 
       {/* VARIATIONS */}
-
       {props?.item?.productRam?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">RAM:</span>
-
           <div className="flex gap-1 actions">
             {props.item.productRam.map((item, index) => (
               <Button
                 key={index}
+                disabled={props?.item?.countInStock <= 0}
                 className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
@@ -210,11 +193,11 @@ const ProductDetailsComponant = (props) => {
       {props?.item?.productWeight?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">WEIGHT:</span>
-
           <div className="flex gap-1 actions">
             {props.item.productWeight.map((item, index) => (
               <Button
                 key={index}
+                disabled={props?.item?.countInStock <= 0}
                 className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
@@ -228,11 +211,11 @@ const ProductDetailsComponant = (props) => {
       {props?.item?.size?.length > 0 && (
         <div className="flex items-center gap-3 !mt-3">
           <span className="text-[14px]">SIZE:</span>
-
           <div className="flex gap-1 actions">
             {props.item.size.map((item, index) => (
               <Button
                 key={index}
+                disabled={props?.item?.countInStock <= 0}
                 className={`${productActionIndex === index ? "!bg-[#ff5252] !text-white" : ""}`}
                 onClick={() => handleClickActiveTab(index, item)}
               >
@@ -248,14 +231,16 @@ const ProductDetailsComponant = (props) => {
       </p>
 
       {/* QTY + CART */}
-
       <div className="flex items-center gap-4 !mt-4">
         <div className="w-[100px]">
-          <QtcBox handleSelecteQty={handleSelecteQty} item={props?.item} />
+          <QtcBox handleSelecteQty={handleSelecteQty} item={props?.item} stock={props?.item?.countInStock} />
         </div>
 
         <Button
-          className="btn-org btn-border !h-[30px] flex !gap-2"
+          disabled={props?.item?.countInStock <= 0}
+          className={`btn-org btn-border !h-[30px] flex !gap-2 ${
+            props?.item?.countInStock <= 0 ? "!bg-gray-400 !text-white cursor-not-allowed" : ""
+          }`}
           onClick={() => addToCart(props?.item, quantity)}
         >
           {isLoading ? (
@@ -263,23 +248,24 @@ const ProductDetailsComponant = (props) => {
           ) : (
             <>
               <MdOutlineShoppingCart className="text-[22px]" />
-              Add Cart
+              {props?.item?.countInStock <= 0 ? "Out Of Stock" : "Add Cart"}
             </>
           )}
         </Button>
       </div>
 
       {/* BUY NOW */}
-
       <button
-        className="btn-org h-[30px] text-[12px] !mt-3 font-[600] min-w-[160px] rounded-md"
+        disabled={props?.item?.countInStock <= 0}
+        className={`btn-org h-[30px] text-[12px] !mt-3 font-[600] min-w-[160px] rounded-md ${
+          props?.item?.countInStock <= 0 ? "bg-gray-400 cursor-not-allowed" : ""
+        }`}
         onClick={handleBuyNow}
       >
-        BUY NOW
+        {props?.item?.countInStock <= 0 ? "OUT OF STOCK" : "BUY NOW"}
       </button>
 
-      {/* WISHLIST */}
-
+      {/* WISHLIST / COMPARE */}
       <div className="flex items-center !gap-4 !mt-4">
         <span className="flex items-center gap-2 cursor-pointer">
           <FaRegHeart /> Add to WishList
@@ -290,18 +276,17 @@ const ProductDetailsComponant = (props) => {
         </span>
       </div>
 
-      {/* ================= PRODUCT VIDEO ================= */}
-
+      {/* YOUTUBE VIDEO */}
       {props?.item?.youtubeVideo && (
         <div className="w-full !mt-8">
-          <h3 className="text-[12px] font-[600]  !mb-3">আপনি যদি প্রোডাক্টের রিয়েল ফিল নিতে চান নিচের দেয়া ভিডিও টা দেখে নিতে পারেন || তাহলে আপনার সিদ্ধান্ত নিতে সহজ হবে ||</h3>
+          <h3 className="text-[12px] font-[600] !mb-3">
+            আপনি যদি প্রোডাক্টের রিয়েল ফিল নিতে চান নিচের দেয়া ভিডিও টা দেখে নিতে পারেন || তাহলে আপনার সিদ্ধান্ত নিতে সহজ হবে ||
+          </h3>
           <div className="w-full aspect-video rounded-lg overflow-hidden shadow">
             <iframe
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${getYoutubeId(
-                props?.item?.youtubeVideo
-              )}`}
+              src={`https://www.youtube.com/embed/${getYoutubeId(props?.item?.youtubeVideo)}`}
               title="Product Video"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

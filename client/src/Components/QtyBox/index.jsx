@@ -1,26 +1,16 @@
-
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react';
 import { MyContext } from '../../App';
 import "../ProductItem/style.css";
-import  Button  from '@mui/material/Button'
-import { useState } from 'react';
-import {FaMinus, FaPlus} from "react-icons/fa6";
+import Button from '@mui/material/Button';
+import { FaMinus, FaPlus } from "react-icons/fa6";
 import { deleteData, editData } from '../../utils/api';
 
-
-
-
 export const QtcBox = (props) => {
-  
-    const [qtyVal, setQtyVal] = useState(1);
-   
-     const [cartItem, setCartItem] = useState([]);
-      const [activeTab, setActiveTab] = useState(null);
-         const [isShowTab, setIsShowTab] = useState(false);
-             const [selectedTabName, setSelectedTabName] = useState(null);
-         
-         
+  const [qtyVal, setQtyVal] = useState(1);
+  const [cartItem, setCartItem] = useState([]);
   const context = useContext(MyContext);
+
+  const stock = props?.stock || props?.item?.countInStock || 0; // stock value
 
   useEffect(() => {
     const item = context?.cartData?.filter(
@@ -29,40 +19,34 @@ export const QtcBox = (props) => {
 
     if (item && item.length > 0) {
       setCartItem(item);
-   
-      setQtyVal(item[0]?.quantity || 1);
+      const initQty = Math.min(item[0]?.quantity || 1, stock);
+      setQtyVal(initQty);
+      props.handleSelecteQty(initQty);
     } else {
-      setQtyVal(1);
+      setQtyVal(stock > 0 ? 1 : 0);
+      props.handleSelecteQty(stock > 0 ? 1 : 0);
     }
-
-  }, [context?.cartData, props?.item?._id]);
-console.log(context?.cartData)
-
+  }, [context?.cartData, props?.item?._id, stock]);
 
   const minusQty = () => {
-    if (qtyVal !== 1 && qtyVal > 1) {
-                setQtyVal(qtyVal -1)
-                 props.handleSelecteQty(1)
-    } else {
-   setQtyVal(1)
-  props.handleSelecteQty(qtyVal-1)
-    }
+    if (qtyVal <= 1) return;
 
-    if (qtyVal === 1) {
+    const newQty = qtyVal - 1;
+    setQtyVal(newQty);
+    props.handleSelecteQty(newQty);
+
+    const obj = {
+      _id: cartItem[0]?._id,
+      qty: newQty,
+      subTotal: props?.item?.price * newQty,
+    };
+
+    if (newQty === 0) {
       deleteData(`/cart/delete-cart-item/${cartItem[0]?._id}`).then((res) => {
-    
         context.openAlertBox("success", "Removed from Cart");
         context?.getCartItems();
-       
-     
       });
     } else {
-      const obj = {
-        _id: cartItem[0]?._id,
-        qty: qtyVal - 1,
-        subTotal: props?.item?.price * (qtyVal - 1),
-      };
-
       editData(`/cart/update-qty`, obj).then((res) => {
         context.openAlertBox("success", res?.data?.message);
         context?.getCartItems();
@@ -71,13 +55,16 @@ console.log(context?.cartData)
   };
 
   const addQty = () => {
-    setQtyVal(qtyVal + 1)
-    props.handleSelecteQty(qtyVal + 1)     
+    if (qtyVal >= stock) return; // Prevent exceeding stock
+
+    const newQty = qtyVal + 1;
+    setQtyVal(newQty);
+    props.handleSelecteQty(newQty);
 
     const obj = {
       _id: cartItem[0]?._id,
-      qty: qtyVal + 1,
-      subTotal: props?.item?.price * (qtyVal + 1),
+      qty: newQty,
+      subTotal: props?.item?.price * newQty,
     };
 
     editData(`/cart/update-qty`, obj).then((res) => {
@@ -86,26 +73,27 @@ console.log(context?.cartData)
     });
   };
 
-
-    
   return (
-     <div className='flex items-center  justify-between overflow-hidden rounded-md !mt-3 !mb-3  gap-2 border border-[rgba(0,0,0,0.1)] '>
-          <Button
-                type="button"   // ✅ Fix
-                className="!min-w-[30px] !w-[30px] !h-[30px] !bg-gray-400 !rounded-none"
-                onClick={minusQty}
-              >
-                <FaMinus className="text-white" />
-              </Button>
-              <span>{qtyVal}</span>
-              <Button
-                type="button"   // ✅ Fix
-                className="!min-w-[30px] !w-[30px] !h-[30px] !bg-red-400 !rounded-none"
-                onClick={addQty}
-              >
-                <FaPlus className="text-white" />
-              </Button>
-     </div>
-        
-  )
-}
+    <div className='flex items-center justify-between overflow-hidden rounded-md !mt-3 !mb-3 gap-2 border border-[rgba(0,0,0,0.1)]'>
+      <Button
+        type="button"
+        disabled={qtyVal <= 1 || stock <= 0}
+        className={`!min-w-[30px] !w-[30px] !h-[30px] !bg-gray-400 !rounded-none ${qtyVal <= 1 || stock <= 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+        onClick={minusQty}
+      >
+        <FaMinus className="text-white" />
+      </Button>
+
+      <span>{qtyVal}</span>
+
+      <Button
+        type="button"
+        disabled={qtyVal >= stock || stock <= 0}
+        className={`!min-w-[30px] !w-[30px] !h-[30px] !bg-red-400 !rounded-none ${qtyVal >= stock || stock <= 0 ? "opacity-40 cursor-not-allowed" : ""}`}
+        onClick={addQty}
+      >
+        <FaPlus className="text-white" />
+      </Button>
+    </div>
+  );
+};

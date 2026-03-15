@@ -168,7 +168,13 @@ const ProductItem = (props) => {
   };
 
   return (
-    <div className="ProductItem shadow-md rounded-md overflow-hidden border border-[rgba(0,0,0,0.2)] hover:scale-105 transition">
+<div
+  className={`ProductItem shadow-md rounded-md overflow-hidden border border-[rgba(0,0,0,0.2)] transition
+  ${props?.item?.countInStock <= 0
+    ? "opacity-60 pointer-events-none"
+    : "hover:scale-105"
+  }`}
+>
       <div className="group imgWrapper w-full h-[200px] overflow-hidden rounded-md relative">
         <Link to={`/product/${props?.item?._id}`}>
           <div className="img relative w-full h-full">
@@ -307,22 +313,38 @@ const ProductItem = (props) => {
           </span>
         </div>
 
-        <div className="!mt-5">
-           <Link to={`/product/${props?.item?._id}`}>
-        <Button
-  type="button"
-  disabled={props?.item?.countInStock === 0}
-  className={`w-full btn-orgs btn-borders py-2 rounded-lg shadow-md flex items-center justify-center gap-2 
-  ${props?.item?.countInStock === 0 ? "bg-gray-400 text-white cursor-not-allowed" : "text-black"}`}
-  size="small"
->
-  <MdOutlineShoppingCart className="text-[14px] font-[500]" />
-  {props?.item?.countInStock === 0 ? "Stock Out" : "Order Now"}
-</Button>
+     <div className="!mt-5">
 
-            </Link>
-   
-        </div>
+{props?.item?.countInStock === 0 ? (
+
+  <Button
+    type="button"
+    disabled
+    className="w-full bg-gray-400 text-white cursor-not-allowed py-2 rounded-lg 
+    shadow-md flex items-center justify-center gap-2"
+    size="small"
+  >
+    <MdOutlineShoppingCart className="text-[14px]" />
+    Stock Out
+  </Button>
+
+) : (
+
+  <Link to={`/product/${props?.item?._id}`}>
+    <Button
+      type="button"
+      className="w-full btn-orgs btn-borders text-black py-2 rounded-lg 
+      shadow-md flex items-center justify-center gap-2"
+      size="small"
+    >
+      <MdOutlineShoppingCart className="text-[14px]" />
+      Order Now
+    </Button>
+  </Link>
+
+)}
+
+</div>
       </div>
     </div>
   );
