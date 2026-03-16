@@ -247,7 +247,7 @@ const Profile = () => {
 
               {addr.selected && (
                 <span className="absolute top-2 left-2 text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                  Default
+          
                 </span>
               )}
 
