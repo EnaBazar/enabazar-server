@@ -42,7 +42,7 @@ function App() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 const [orderCount, setOrderCount] = useState(0);
   const [addressMode, setAddressMode]= useState("add");
-
+const [addressId,setAddressId] = useState(null)
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
@@ -123,7 +123,8 @@ console.log(isOpenFullScreenPanel)
     orderCount,
       setAddressMode,
   addressMode,
- 
+addressId,
+setAddressId
   };
 
   const router = createBrowserRouter([

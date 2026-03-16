@@ -275,6 +275,7 @@ const logout = async () => {
         {context?.isOpenFullScreenPanel?.model === "AddNewCategory" && <AddCategory />}
         {context?.isOpenFullScreenPanel?.model === "AddNewSubCategory" && <AddSubCategory />}
         {context?.isOpenFullScreenPanel?.model === "AddNewAddress" && <AddAddress />}
+        {context?.isOpenFullScreenPanel?.model === "EditeAddress" && <AddAddress />}
         {context?.isOpenFullScreenPanel?.model === "Edit Category" && <EditCategory />}
         {context?.isOpenFullScreenPanel?.model === "Edit Product" && <EditProduct />}
         {context?.isOpenFullScreenPanel?.model === "Add BannerV1" && <AddBannerV1 />}
