@@ -41,7 +41,7 @@ function App() {
   const [catData, setCatData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 const [orderCount, setOrderCount] = useState(0);
-
+  const [addressMode, setAddressMode]= useState("add");
 
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
@@ -120,8 +120,9 @@ console.log(isOpenFullScreenPanel)
     setWindowWidth,
     windowWidth,
     setOrderCount,
-    orderCount
-    
+    orderCount,
+      setAddressMode,
+  addressMode,
  
   };
 

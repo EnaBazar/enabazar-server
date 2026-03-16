@@ -14,6 +14,7 @@ import {Collapse} from 'react-collapse';
 import Radio from '@mui/material/Radio';
 import {PhoneInput} from 'react-international-phone';
 import 'react-international-phone/style.css'
+import AddressBox from '../../../../admin/src/Pages/Address/addressBox';
 
 
 
@@ -334,32 +335,40 @@ const onchangeInput=(e)=>{
       />
     </div>
 
-    {/* Add Address Button */}
-    <div
-      className='border border-dashed p-3 rounded-md hover:bg-[#e7f3f9] cursor-pointer text-center font-medium w-full sm:w-[210px]'
-      onClick={() => context.setIsOpenFullScreenPanel({ open: true, model: "AddNewAddress" })}
-    >
-      Add Address
-    </div>
 
-    {/* Address List */}
-    <div className='flex flex-col gap-2 mt-4 max-h-60 overflow-y-auto'>
-      {context?.address?.map(address => (
-        <label key={address._id} className='flex items-center gap-2 border border-dashed p-2 rounded-md cursor-pointer bg-gray-100'>
-          <Radio
-            {...label}
-            name='address'
-            size='small'
-            checked={selectedValue === address._id}
-            value={address._id}
-            onChange={handleChange}
-          />
-          <span className='text-sm'>
-            {`${address.address_line}, ${address.city}, ${address.country}, ${address.state}, ${address.pincode}`}
-          </span>
-        </label>
-      ))}
-    </div>
+  {/* Add Address Button */}
+        <div
+          className="flex items-center justify-center p-4 mt-4 !mb-3 border border-dashed border-[rgba(0,0,0,0.2)] bg-[#f8f9fa] hover:bg-[#e7f3f9] rounded-md cursor-pointer"
+         onClick={() => {
+                    context?.setIsOpenFullScreenPanel(true);
+                    context?.setAddressMode("add");
+                  }}
+        >
+          <span className="text-[14px] font-[500]">Add Address</span>
+        </div>
+
+        {/* Address List */}
+        <div className="flex flex-col gap-3 mt-4">
+          {address?.length > 0 ? (
+            address.map((addr, index) => (
+              <AddressBox
+                address={addr}
+                key={index}
+                removeAddress={removeAddress}
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-500 mt-4">
+              No addresses added yet.
+            </p>
+          )}
+        </div>
+
+
+
+
+
+
 
     <div className='flex items-center gap-4 mt-4'>
       <Button type='submit' disabled={!valideValue} className='btn-blue w-full md:w-[210px] flex justify-center gap-3'>
