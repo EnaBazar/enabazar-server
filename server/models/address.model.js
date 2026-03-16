@@ -12,6 +12,11 @@ const addressSchema = mongoose.Schema({
         type : String,
         default : ""
     },
+    upazila :{
+        type : String,
+        default : ""
+    },
+  
             state :{
         
         type : String,

@@ -6,10 +6,10 @@ import usermodel from "../models/User.js";
 export const addAddressController = async (request, response) => {
    try {
     
-     const { address_line, city, state,  addressType,deliverylocation,landmark, userId } = request.body;
+     const { address_line, city,upazila, state,  addressType,deliverylocation,landmark, userId } = request.body;
      
     const address = new AddressModel({
-        address_line, city, state, addressType,deliverylocation, landmark, userId    
+        address_line, city,upazila, state, addressType,deliverylocation, landmark, userId    
         
     })
     
@@ -131,7 +131,7 @@ export const selectAddressController = async (request, response) => {
      
      try{
     
-   const { address_line, city, state,  addressType,deliverylocation,landmark, userId } = request.body;
+   const { address_line, city,upazila, state,  addressType,deliverylocation,landmark, userId } = request.body;
       
 
          const id = request.params.id;
@@ -142,6 +142,7 @@ export const selectAddressController = async (request, response) => {
              {
                 address_line: address_line,
                           city: city,
+                          upazila:upazila,
                           state: state,
                          
                           addressType: addressType,

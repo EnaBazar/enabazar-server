@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { MyContext } from "../../App";
+
 import {
+  Autocomplete,
   Button,
   CircularProgress,
   FormControl,
@@ -12,6 +14,7 @@ import {
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import { fetchDataFromApi, postData, editData } from "../../utils/api";
+import { bdLocations } from "../../data/bdLocations";
 
 const AddAddress = () => {
   const context = useContext(MyContext);
@@ -19,6 +22,7 @@ const AddAddress = () => {
   const [formFields, setFormFields] = useState({
     address_line: "",
     city: "",
+    upazila:"",
     state: "",
  
     userId: context?.userData?._id || "",
@@ -47,6 +51,7 @@ const AddAddress = () => {
     const {
       address_line,
       city,
+      upazila,
       state,
       landmark,
       addressType,
@@ -55,6 +60,7 @@ const AddAddress = () => {
 
     if (!address_line) return "Please enter your Address Line";
     if (!city) return "Please enter your City";
+        if (!upazila) return "Please enter your Upzila";
     if (!state) return "Please enter your State";
  
     if (!landmark) return "Please enter your Landmark";
@@ -72,6 +78,7 @@ const AddAddress = () => {
           setFormFields({
             address_line: addr.address_line || "",
             city: addr.city || "",
+            upazila: addr.upazila || "",
             state: addr.state || "",
             userId: addr.userId || "",
             addressType: addr.addressType || "",
@@ -129,6 +136,7 @@ const AddAddress = () => {
     setFormFields({
       address_line: "",
       city: "",
+      upazila:"",
       state: "",
       pincode: "",
       country: "",
@@ -178,20 +186,47 @@ const AddAddress = () => {
     style: { fontSize: '12px' }  // Label size small
   }}
     />
+<Autocomplete
+  options={Object.keys(bdLocations)}
+  value={formFields.city}
+  onChange={(event, newValue) => {
+    setFormFields((prev) => ({
+      ...prev,
+      city: newValue || "",
+      upazila: ""
+    }));
+  }}
+  renderInput={(params) => (
     <TextField
-      className="w-full"
-      label="জেলা"
+      {...params}
+      label="জেলা নির্বাচন করুন"
       size="small"
-      name="city"
-      value={formFields.city}
-      disabled={isLoading}
-      onChange={handleChange}
-        InputLabelProps={{
+             InputLabelProps={{
     style: { fontSize: '12px' }  // Label size small
   }}
     />
-
-  
+  )}
+/>
+<Autocomplete
+  options={formFields.city ? bdLocations[formFields.city] : []}
+  value={formFields.upazila}
+  onChange={(event, newValue) => {
+    setFormFields((prev) => ({
+      ...prev,
+      upazila: newValue || ""
+    }));
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label="উপজেলা নির্বাচন করুন"
+      size="small"
+             InputLabelProps={{
+    style: { fontSize: '12px' }  // Label size small
+  }}
+    />
+  )}
+/>
 
     <TextField
       className="w-full"
