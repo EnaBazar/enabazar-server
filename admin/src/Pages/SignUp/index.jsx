@@ -184,7 +184,7 @@ const handleSubmit = (e) => {
   
        
        
-       <h1 className='text-center text-[18px] sm:text-[30px] font-[800] mt-4'>Join us today! Get Special<br/> benefits and stay up-to-date.</h1>
+       <h1 className='text-center text-[18px] !px-10 sm:text-[30px] font-[800] mt-4'>আপনার মোবাইল নাম্বার দিয়ে রেজিস্ট্রেশন করুন!</h1>
        
   
        <br/>
@@ -245,7 +245,7 @@ const handleSubmit = (e) => {
        label="Remember Me"
        />
        
-       <Link to="/forgot-password" className='text-blue-600 text-[14px] font-[700] hover:underline'>Forgot Password ?</Link>
+
        </div>
        
 

@@ -174,7 +174,10 @@ toggleUpdateVerifyOtp
   };
 
   const router = createBrowserRouter([
-    { path: "/", element: <Layout><Dashboard /></Layout> },
+   {
+  path: "/",
+  element: isLogin ? <Dashboard /> : <Login />
+},
     { path: "/login", element: <Login /> },
     { path: "/sign-up", element: <SignUp /> },
     { path: "/forgot-password", element: <ForgotPassword /> },
