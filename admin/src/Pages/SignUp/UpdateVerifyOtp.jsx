@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-
-
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
 
-const VerifyOtpPanel = () => {
+const UpdateVerifyOtp = () => {
   const context = useContext(MyContext);
   const mobile = context?.otpData?.mobile || "";
 
@@ -15,7 +13,7 @@ const VerifyOtpPanel = () => {
 
   // Countdown Timer
   useEffect(() => {
-    if (!context?.openVerifyOtpPanel) return;
+    if (!context?.openUpateVerifyOtp) return;
 
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);
@@ -23,28 +21,7 @@ const VerifyOtpPanel = () => {
     } else {
       setCanResend(true);
     }
-  }, [seconds, context?.openVerifyOtpPanel]);
-
-  // ✅ FIXED INPUT HANDLER
-  const handleOtpChange = (e) => {
-    let value = e.target.value;
-
-    // শুধু number রাখবে
-    value = value.replace(/[^0-9]/g, "");
-
-    // max 6 digit
-    if (value.length <= 6) {
-      setOtp(value);
-    }
-  };
-
-  // ✅ Paste support
-  const handlePaste = (e) => {
-    const pasteData = e.clipboardData.getData("Text");
-    const cleaned = pasteData.replace(/[^0-9]/g, "").slice(0, 6);
-    setOtp(cleaned);
-    e.preventDefault();
-  };
+  }, [seconds, context?.openUpateVerifyOtp]);
 
   // OTP Verify
   const handleVerify = async () => {
@@ -66,39 +43,45 @@ const VerifyOtpPanel = () => {
         otp: String(otp),
       };
 
-      const res = await postData("/auth/verify-otp", payload);
+      console.log("Verify Payload:", payload);
+
+    const res = await postData("/auth/Upadte-verify-otp", payload);
 
       setIsLoading(false);
 
-      if (!res?.error) {
+    if (!res?.error) {
 
-        context.openAlertBox(
-          "success",
-          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
-        );
+  context.openAlertBox(
+    "success",
+    "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+  );
 
-        // Auto login
-        if (res?.data?.accesstoken) {
-          localStorage.setItem("accesstoken", res.data.accesstoken);
-          localStorage.setItem("refreshtoken", res.data.refreshtoken);
-          localStorage.setItem("userData", JSON.stringify(res.data.user));
-          localStorage.setItem("isLogin", "true");
+  // 🔥 Auto Login Process
+  if (res?.data?.accesstoken) {
 
-          context.setIsLogin(true);
-          context.setUserData(res.data.user);
-        }
+    localStorage.setItem("accesstoken", res.data.accesstoken);
+    localStorage.setItem("refreshtoken", res.data.refreshtoken);
+    localStorage.setItem("userData", JSON.stringify(res.data.user));
+    localStorage.setItem("isLogin", "true");
 
-        context.closeOtpPanel();
+    context.setIsLogin(true);
+    context.setUserData(res.data.user);
+  }
 
-      } else {
+  // OTP panel বন্ধ
+  context.closeUpdateOtpPanel();
+
+  // Home page এ redirect
+  
+} else {
         context.openAlertBox(
           "error",
           res?.message || "OTP verification failed"
         );
       }
-
     } catch (error) {
       setIsLoading(false);
+      console.error("Verify Error:", error);
       context.openAlertBox("error", "Server error. Please try again.");
     }
   };
@@ -110,9 +93,7 @@ const VerifyOtpPanel = () => {
     try {
       setIsLoading(true);
 
-      const res = await postData("/auth/resend-otp", {
-        mobile: String(mobile),
-      });
+      const res = await postData("/auth/resend-otp",{ mobile: String(mobile) });
 
       setIsLoading(false);
 
@@ -132,7 +113,7 @@ const VerifyOtpPanel = () => {
     }
   };
 
-  if (!context?.openVerifyOtpPanel) return null;
+  if (!context?.openUpateVerifyOtp) return null;
 
   return (
     <div
@@ -151,22 +132,16 @@ const VerifyOtpPanel = () => {
 
       <input
         type="text"
-        inputMode="numeric"   // ✅ mobile keyboard fix
-        pattern="[0-9]*"
         value={otp}
-        onChange={handleOtpChange}
-        onPaste={handlePaste}
+        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
         maxLength={6}
         placeholder="Enter 6 digit OTP"
-        autoFocus
         style={{
           width: "100%",
           padding: "10px",
           marginTop: "15px",
           marginBottom: "15px",
           fontSize: "16px",
-          letterSpacing: "5px",
-          textAlign: "center",
         }}
       />
 
@@ -200,7 +175,7 @@ const VerifyOtpPanel = () => {
       </div>
 
       <button
-        onClick={context.closeOtpPanel}
+        onClick={context.closeUpdateOtpPanel}
         style={{
           marginTop: "10px",
           width: "100%",
@@ -216,4 +191,4 @@ const VerifyOtpPanel = () => {
   );
 };
 
-export default VerifyOtpPanel;
+export default UpdateVerifyOtp;

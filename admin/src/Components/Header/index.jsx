@@ -34,7 +34,8 @@ import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
 import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
 import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
-import VerifyOtpPanel from '../../Pages/SignUp/VerifyOtpPanel.jsx';
+import VerifyOtpPanel from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
+import UpdateVerifyOtp from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
 
 // Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -316,7 +317,7 @@ const logout = async () => {
 
   {/* Content */}
   <div className="p-4 overflow-y-auto max-h-[70vh]">
-    <VerifyOtpPanel />
+    <UpdateVerifyOtp/>
   </div>
 </Dialog>
 

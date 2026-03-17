@@ -64,7 +64,8 @@ const [otpData, setOtpData] = useState(null);
     setOtpData(null);
   };
  const toggleVerifyOtp = (newOpen) => () => {
-  setOpenUpadteVerifyOtp(newOpen);
+ 
+  setOpenVerifyOtpPanel(newOpen);
   };
 
   const openAlertBox = (status, msg) => {
