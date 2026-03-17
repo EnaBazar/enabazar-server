@@ -3,7 +3,8 @@ import './responsive.css'
 import React, { createContext, useEffect, useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-
+import Dialog from "@mui/material/Dialog";
+import { IoMdClose } from "react-icons/io";
 import Dashboard from './Pages/Dashboard';
 import Login from './Pages/Login';
 import SignUp from './Pages/SignUp';
@@ -196,6 +197,7 @@ toggleUpdateVerifyOtp
     { path: "/product/addWieght", element: <Layout><AddWieght /></Layout> },
     { path: "/bannerV1/list", element: <Layout><BannerV1List /></Layout> },
     { path: "/blog/list", element: <Layout><BlogList /></Layout> },
+       
   ]);
 
   return (
@@ -203,7 +205,39 @@ toggleUpdateVerifyOtp
       <MyContext.Provider value={values}>
         <RouterProvider router={router} />
         <Toaster />
-       {openVerifyOtpPanel && <VerifyOtpPanel />}
+    {/*verify otp panel*/} 
+<Dialog
+  open={openVerifyOtpPanel}
+  onClose={toggleVerifyOtp(false)}   // ✅ fix
+  PaperProps={{
+    sx: {
+      width: "90%",
+      maxWidth: 380,
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)",
+      background: "rgba(255, 255, 255, 0.2)",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Header */}
+  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
+    <IoMdClose   // ✅ already imported
+      className="text-[22px] text-red-600 cursor-pointer"
+      onClick={toggleVerifyOtp(false)}
+    />
+  </div>
+
+  {/* Content */}
+  <div className="p-4 overflow-y-auto max-h-[70vh]">
+    <VerifyOtpPanel/>
+  </div>
+</Dialog>
+
+
+
+
+
       </MyContext.Provider>
     </>
   );

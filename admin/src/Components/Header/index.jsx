@@ -323,34 +323,7 @@ const logout = async () => {
 </Dialog>
 
 
- {/*verify otp panel*/} 
-<Dialog
-  open={context.openVerifyOtpPanel}
-  onClose={context.toggleVerifyOtp(false)}   // ✅ fix
-  PaperProps={{
-    sx: {
-      width: "90%",
-      maxWidth: 380,
-      borderRadius: "16px",
-      backdropFilter: "blur(6px)",
-      background: "rgba(255, 255, 255, 0.2)",
-      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
-    },
-  }}
->
-  {/* Header */}
-  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
-    <IoMdClose   // ✅ already imported
-      className="text-[22px] text-red-600 cursor-pointer"
-      onClick={context.toggleVerifyOtp(false)}
-    />
-  </div>
 
-  {/* Content */}
-  <div className="p-4 overflow-y-auto max-h-[70vh]">
-    <VerifyOtpPanel/>
-  </div>
-</Dialog>
 
 
     </>
