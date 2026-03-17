@@ -120,7 +120,7 @@ export const editDatas = async (url,updatedData ) => {
   
     
     var response;
-  await axios.put(apiUrl + url,updatedData).then((res)=>{
+  await axios.put(apiUrl + url).then((res)=>{
       
     console.log(res)
    response=res;
