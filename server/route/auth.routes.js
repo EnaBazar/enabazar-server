@@ -23,7 +23,7 @@ AuthRoutes.get("/logout",auth,logoutController)
 AuthRoutes.put('/user-avatar',auth,upload.array('avatar'),userAvatarController);
 AuthRoutes.delete('/deleteImage',auth,removeimageFromCloudinary);
 AuthRoutes.put('/:id',auth,updateUserDeatils);
-AuthRoutes.put('/loginOtp:id',auth,loginotpverification);
+AuthRoutes.put('/loginOtp:id',loginotpverification);
 AuthRoutes.post('/forgot-password',forgotPasswordController);
 AuthRoutes.post('/verify-forgot-password-otp',verifyForgotPasswordOtp);
 AuthRoutes.post('/reset-password',resetpassword);
