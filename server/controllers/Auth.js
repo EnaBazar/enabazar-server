@@ -763,6 +763,59 @@ export async function updateUserDeatils(request, response) {
   }
 }
  
+
+ // Login with Otp Verification
+ 
+export async function loginotpverification(request, response) {
+  try {
+    const userId = request.userId;
+    const { name, mobile } = request.body;
+
+    const userExist = await usermodel.findById(userId);
+    if (!userExist) {
+      return response.status(400).json({
+        error: true,
+        message: "User not found"
+      });
+    }
+
+ 
+   
+
+    // 🔥 Mobile change হলে
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+
+    userExist.name = name;
+    userExist.mobile = mobile; // temp field
+    userExist.otp = otp;
+    userExist.otpExpires = otpExpires;
+    userExist.verify_mobile = false;
+
+    await userExist.save();
+
+    // এখানে SMS send করবে
+   await sendSMS(mobile, otp);
+    return response.json({
+      error: false,
+      message: "OTP sent to new mobile number",
+      isMobileChange: true
+    });
+
+  } catch (error) {
+    return response.status(500).json({
+      error: true,
+      message: error.message
+    });
+  }
+}
+
+
+
+
+
+
  // forgot password recovery
  
  

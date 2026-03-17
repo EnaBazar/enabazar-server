@@ -4,9 +4,7 @@ import {CgLogIn} from "react-icons/cg"
 import {FaRegUser} from "react-icons/fa6"
 import {IoMdEye} from 'react-icons/io';
 import {IoMdEyeOff} from 'react-icons/io';
-import {FcGoogle} from "react-icons/fc"
 import Button from '@mui/material/Button';
-import { BsFacebook } from 'react-icons/bs';
 import { FormControlLabel, Input, TextField } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { useContext } from 'react';
@@ -19,8 +17,7 @@ const Login = () => {
   
    const [isLoading,setIsLoading]= useState(false);
     const [IsShowPassword,setIsShowPassword] = useState(false);
-  const [loadingFacBook, setLoadingFaceBook] = React.useState(false);
-  const [loadingGoogle, setLoadingGoogle] = React.useState(false);
+ 
   
     const [formFields,setFormFields]= useState({
          
@@ -31,50 +28,23 @@ const Login = () => {
       const context = useContext(MyContext)
       const history = useNavigate();
       
-      
-  
-  
-  function handleClickGoogle() {
-    setLoadingGoogle(true);
-  }
-  
-  
-  
-  function handleClickFaceBook() {
-    setLoadingFaceBook(true);
-  }
-  
+   const handleChange = (e) => {
+    const { name, value } = e.target;
 
+    if (name === "mobile") {
+      const numericValue = value.replace(/\D/g, "").slice(0, 11);
 
-    const forgotPassword =()=>{
+      setFormFields((prev) => ({ ...prev, mobile: numericValue }));
 
-      
-        if(formFields.mobile===""){
-           
-         context.openAlertBox("error","Please entry your Mobile")
-         return false; 
-        }else{
-      
-           localStorage.setItem("userEmail",formFields.mobile)
-           localStorage.setItem("actionType",'forgot-password')
-           
-               postData("/auth/forgot-password",
-             { email:formFields.email ,
-                
-           }).then((res)=> {
-           if(res?.error===false){
-             context.openAlertBox("success",res?.message);
-             history("/verify-account")          
-           }else{
-             context.openAlertBox("error",res?.message);
-           }
-           })
-           
-        }
-         
-       
+      if (!bdMobileRegex.test(numericValue)) {
+        setErrors({ mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন" });
+      } else {
+        setErrors({ mobile: "" });
+      }
+    } else {
+      setFormFields((prev) => ({ ...prev, [name]: value }));
     }
-    
+  };
     const onchangeInput=(e)=>{
       
       const {name,value} = e.target;
@@ -87,54 +57,37 @@ const Login = () => {
     }
     
         const valideValue = Object.values(formFields).every(el => el)
-        
-    const handleSubmit=(e)=>{
-      
+
+        const isValid =
+    formFields.name.trim().length >= 3 &&
+    bdMobileRegex.test(formFields.mobile) &&
+    !errors.mobile;
+
+    const handleSubmit = (e) => {
       e.preventDefault();
-      setIsLoading(true)
-      
-    
-      if(formFields.mobile==="")
-        {
-          context.openAlertBox("error","Please entry your Eamil")
-          return false
-        }
-        
-        if(formFields.name==="")
-          {
-            context.openAlertBox("error","Please entry your name")
-            return false
-          }
-      
-      postData("/auth/login",formFields,{withCredentials:true}).then((res)=>{
-      console.log(res)
-       if(res?.error !== true){
-  setIsLoading(false)
-    context.setIsLogin(true);
-  context.openAlertBox("success",res?.message);
-
-  setFormFields({
-    mobile: "",
-    password: ""
-  })
-
-  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-  context.setIsLogin(true);
-  history("/");       
- // Force Home Page Reload
-}else{
-          context.openAlertBox("error",res?.message);
-          setFormFields({
-            mobile: "",
-            password: ""
-          })
+      if (!isValid) return;
+  
+      setIsLoading(true);
+  
+      editData(`/auth/loginOtp${userId}`, formFields, { withCredentials: true }).then(
+        (res) => {
           setIsLoading(false);
+  
+          if (!res?.data?.error) {
+            context.openAlertBox("success", res?.data?.message || "Profile Updated");
+     
+     
+            const Mobile = formFields.mobile;
+            context.openUpdateOtpPanel({ mobile: Mobile });
          
+        
+         
+          } else {
+            context.openAlertBox("error", res?.data?.message || "Update Failed");
+          }
         }
-       
-      })
-    }
+      );
+    };
     
 
   return (
