@@ -178,9 +178,9 @@ const Login = () => {
        <br/>
        
        <div className='w-full flex items-center justify-center gap-3'>
-       <span className='flex items-center w-[100px] h-[1px] bg-gray-500'></span>
-       <span className='text-[10px] lg:text-[13px] font-[500]'>Or, Sign in with your email</span>
-       <span className='flex items-center w-[100px] h-[1px] bg-gray-500'></span>
+     <h1 className='text-center text-[18px] !px-10 sm:text-[30px] font-[800] mt-4'>আপনার মোবাইল নাম্বার দিয়ে প্রবেশ করুন!</h1>
+       
+   
        </div>
        
        <br/><br/>
@@ -231,12 +231,7 @@ onChange={onchangeInput}
        label="Remember Me"
        />
        
-       <a
-       onClick={forgotPassword}
-       className='text-blue-600 
-       text-[14px] font-[700] hover: cursor-pointer'>
-       Forgot Password ?
-       </a>
+    
        </div>
 
        <div className='flex items-center justify-between mb-3'>
