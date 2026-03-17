@@ -291,9 +291,9 @@ const logout = async () => {
           {context?.isOpenFullScreenPanel?.model === "Order List" && <Orders />}
       </Dialog>
 
- {/*verify otp panel*/} 
+ {/*Update verify otp panel*/} 
 <Dialog
-  open={context.openUpdateOtpPanel}
+  open={context.openUpateVerifyOtp}
   onClose={() => context.toggleUpdateVerifyOtp(false)}
   PaperProps={{
     sx: {
@@ -320,6 +320,7 @@ const logout = async () => {
     <UpdateVerifyOtp/>
   </div>
 </Dialog>
+
 
 
     </>

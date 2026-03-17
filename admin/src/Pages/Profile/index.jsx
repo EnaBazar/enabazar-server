@@ -13,7 +13,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const bdMobileRegex = /^01[3-9]\d{8}$/;
-
+ 
   const [previews, setPreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [address, setAddress] = useState([]);
@@ -34,23 +34,42 @@ const Profile = () => {
     if (!token) navigate("/login");
   }, [context?.isLogin]);
 
-  /* ================= LOAD USER ================= */
+  /* ================= LOAD USER + ADDRESS ================= */
+  const loadAddress = () => {
+    fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then(
+      (res) => {
+        setAddress(res.data);
+        context.setAddress(res.data);
+      }
+    );
+  };
+
   useEffect(() => {
     if (context?.userData?._id) {
       setUserId(context.userData._id);
+
       setFormFields({
         name: context.userData.name || "",
         mobile: context.userData.mobile || "",
       });
-      fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then(
-        (res) => {
-          setAddress(res.data);
-          context.setAddress(res.data);
-        }
-      );
-      if (context?.userData?.avatar) setPreviews([context.userData.avatar]);
+
+      // ✅ Avatar fallback
+      if (context?.userData?.avatar && context.userData.avatar.length > 0) {
+        setPreviews([context.userData.avatar]);
+      } else {
+        setPreviews([]); // fallback handled in UI
+      }
+
+      loadAddress();
     }
   }, [context?.userData]);
+
+  // ✅ address auto refresh after add/edit panel close
+  useEffect(() => {
+    if (!context?.isOpenFullScreenPanel?.open) {
+      loadAddress();
+    }
+  }, [context?.isOpenFullScreenPanel?.open]);
 
   /* ================= INPUT CHANGE ================= */
   const handleChange = (e) => {
@@ -58,6 +77,7 @@ const Profile = () => {
 
     if (name === "mobile") {
       const numericValue = value.replace(/\D/g, "").slice(0, 11);
+
       setFormFields((prev) => ({ ...prev, mobile: numericValue }));
 
       if (!bdMobileRegex.test(numericValue)) {
@@ -70,13 +90,13 @@ const Profile = () => {
     }
   };
 
-  /* ================= VALIDATION ================= */
-  const isValid =
+ const isValid =
     formFields.name.trim().length >= 3 &&
     bdMobileRegex.test(formFields.mobile) &&
     !errors.mobile;
 
-  /* ================= UPDATE PROFILE ================= */
+
+ /* ================= UPDATE PROFILE ================= */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isValid) return;
@@ -108,14 +128,7 @@ const Profile = () => {
     deleteData(`/address/${id}`).then((res) => {
       if (!res?.error) {
         context.openAlertBox("success", "Address Deleted");
-        fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then(
-          (res) => {
-            setAddress(res.data);
-            context.setAddress(res.data);
-          }
-        );
-      } else {
-        context.openAlertBox("error", "Delete Failed");
+        loadAddress(); // ✅ instant refresh
       }
     });
   };
@@ -125,32 +138,53 @@ const Profile = () => {
     const files = e.target.files;
     if (!files.length) return;
 
+    const file = files[0];
+
+    // ✅ instant preview (before upload)
+    const localPreview = URL.createObjectURL(file);
+    setPreviews([localPreview]);
+
     const formData = new FormData();
-    formData.append("avatar", files[0]);
+    formData.append("avatar", file);
+
     setUploading(true);
 
     uploadImage("/auth/user-avatar", formData).then((res) => {
       setUploading(false);
-      setPreviews([res?.data?.avtar]);
+
+      if (res?.data?.avtar) {
+        setPreviews([res.data.avtar]); // server image
+
+        // context update
+        context.setUserData((prev) => ({
+          ...prev,
+          avatar: res.data.avtar,
+        }));
+      }
     });
   };
 
   /* ================= UI ================= */
   return (
-    <div className="card my-5 pt-5 w-full max-w-4xl mx-auto shadow-md sm:rounded-lg bg-white px-5 pb-5">
+    <div className="card my-5 pt-5 w-full max-w-4xl mx-auto shadow-md bg-white px-5 pb-5">
+
       <h2 className="text-[20px] font-semibold mb-4">User Profile</h2>
 
       {/* Avatar */}
       <div className="relative w-[110px] h-[110px] rounded-full overflow-hidden mb-4 group bg-gray-200">
+
         {uploading ? (
           <CircularProgress />
-        ) : previews?.length ? (
-          <img src={previews[0]} className="w-full h-full object-cover" />
         ) : (
-          <img src="/user.png" className="w-full h-full object-cover" />
+          <img
+            src={previews?.length ? previews[0] : "/user.png"} // ✅ fallback
+            className="w-full h-full object-cover"
+          />
         )}
+
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 cursor-pointer">
           <FaCloudDownloadAlt className="text-white text-[22px]" />
+
           <input
             type="file"
             className="absolute inset-0 opacity-0 cursor-pointer"
@@ -161,6 +195,7 @@ const Profile = () => {
 
       {/* Form */}
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+
         <TextField
           label="Full Name"
           size="small"
@@ -169,7 +204,6 @@ const Profile = () => {
           onChange={handleChange}
         />
 
-        {/* Simple mobile input, no flag/dropdown */}
         <TextField
           label="Mobile Number"
           size="small"
@@ -181,9 +215,9 @@ const Profile = () => {
           helperText={errors.mobile}
         />
 
-        {/* Address */}
+        {/* Add Address */}
         <div
-          className="border border-dashed p-3 rounded-md hover:bg-[#e7f3f9] cursor-pointer text-center font-medium w-[200px]"
+          className="border border-dashed p-3 rounded-md cursor-pointer text-center w-[200px]"
           onClick={() => {
             context.setAddressMode("add");
             context.setAddressId(null);
@@ -218,14 +252,23 @@ const Profile = () => {
                 </button>
               </div>
               <div className="flex gap-2">
-                <Radio
-                  checked={selectedValue === addr._id}
-                  value={addr._id}
-                  onChange={(e) => setSelectedValue(e.target.value)}
-                />
+           
                 <div>
-                  <p>{addr.address_line}</p>
-                  <p>{addr.city}</p>
+                  {/* Address Type */}
+  <span className="inline-block !pl-2 pr-2 bg-sky-600 text-[13px] sm:text-[15px] text-white font-[500] rounded-sm">
+    {addr.addressType}
+  </span>
+
+  {/* Name & Mobile */}
+  <h4 className="pt-2 text-[13px] sm:text-[15px] flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+    <span>{context?.userData?.name}</span>
+    <span>{context?.userData?.mobile}</span>
+  </h4>
+
+  {/* Full Address */}
+  <span className="pt-1 text-[12px] sm:text-[14px] block w-full sm:w-[90%] break-words">
+    {addr.address_line}, {addr.upazila}, {addr.city},
+  </span>
                 </div>
               </div>
             </div>
@@ -235,6 +278,7 @@ const Profile = () => {
         <Button type="submit" disabled={!isValid || isLoading} className="btn-blue w-[200px]">
           {isLoading ? <CircularProgress size={20} /> : "Update Profile"}
         </Button>
+
       </form>
     </div>
   );
