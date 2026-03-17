@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
 
+
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
   const mobile = context?.otpData?.mobile || "";
@@ -87,7 +88,7 @@ const VerifyOtpPanel = () => {
         }
 
         context.closeOtpPanel();
-
+window.location.href = "/";
       } else {
         context.openAlertBox(
           "error",
