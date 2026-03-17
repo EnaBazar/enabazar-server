@@ -10,15 +10,16 @@ import Checkbox from '@mui/material/Checkbox';
 import { useContext } from 'react';
 import { MyContext } from '../../App';
 import  CircularProgress  from '@mui/material/CircularProgress';
-import { postData } from '../../utils/api';
+import { editData, postData } from '../../utils/api';
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 const Login = () => {
   
    const [isLoading,setIsLoading]= useState(false);
-    const [IsShowPassword,setIsShowPassword] = useState(false);
- 
-  
+   const [userId, setUserId] = useState("");
+   const [errors, setErrors] = useState({ mobile: "" });
+    const bdMobileRegex = /^01[3-9]\d{8}$/;
     const [formFields,setFormFields]= useState({
          
        mobile:"",
@@ -28,6 +29,20 @@ const Login = () => {
       const context = useContext(MyContext)
       const history = useNavigate();
       
+
+
+  useEffect(() => {
+    if (context?.userData?._id) {
+      setUserId(context.userData._id);
+
+   
+    }
+  }, [context?.userData]);
+
+
+
+
+
    const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -140,36 +155,27 @@ const Login = () => {
        
        <form className='w-full !px-10 ' onSubmit={handleSubmit}>
 <div className='form-group w-full !mb-5 relative'>
-<TextField 
-type='text'
-id="name"
- label="আপনার নাম"
-  name='name'
-value={formFields.name}
-disabled={isLoading===true ? true : false}
-onChange={onchangeInput}
-  variant="outlined"
+ <TextField
+          label="Full Name"
+          size="small"
+          name="name"
+          value={formFields.name}
+          onChange={handleChange}
   className='w-full' 
   
   />
-<Button  className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
- !h-[35px] !min-w-[35px] !rounded-full 
- !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
- {
-    IsShowPassword===true ?  <IoMdEye className="text-[20px] opacity-75"/> :  <IoMdEyeOff className="text-[20px] opacity-75"/>
- }
-</Button>
+
 </div>
 <div className='form-group w-full !mb-5'>
-<TextField 
-type='number'
-id="mobile"
-name="mobile"
-value={formFields.mobile}
-disabled={isLoading===true ? true : false}
-onChange={onchangeInput}
- label="মোবাইল নাম্বার"
-  variant="outlined"
+<TextField
+          label="Mobile Number"
+          size="small"
+          name="mobile"
+          value={formFields.mobile}
+          onChange={handleChange}
+          placeholder="01XXXXXXXXX"
+          error={!!errors.mobile}
+          helperText={errors.mobile}
   className='w-full' 
 
   />
