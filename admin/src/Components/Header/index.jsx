@@ -34,8 +34,9 @@ import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
 import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
 import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
-import VerifyOtpPanel from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
+
 import UpdateVerifyOtp from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
+import VerifyOtpPanel from '../../Pages/SignUp/VerifyOtpPanel.jsx';
 
 // Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -321,6 +322,36 @@ const logout = async () => {
   </div>
 </Dialog>
 
+
+ {/*verify otp panel*/} 
+<Dialog
+  open={context.openVerifyOtpPanel}
+  onClose={() => context.toggleVerifyOtpPanel(false)}
+  PaperProps={{
+    sx: {
+      width: "90%",            // smaller on mobile
+      maxWidth: 380,           // desktop small size
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)", // glass blur effect
+      background: "rgba(255, 255, 255, 0.2)", // semi-transparent
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Header */}
+  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
+    <IoCloseSharp
+      className="text-[22px] text-red-600 cursor-pointer"
+      onClick={context.toggleVerifyOtpPanel(false)}
+
+    />
+  </div>
+
+  {/* Content */}
+  <div className="p-4 overflow-y-auto max-h-[70vh]">
+    <VerifyOtpPanel/>
+  </div>
+</Dialog>
 
 
     </>

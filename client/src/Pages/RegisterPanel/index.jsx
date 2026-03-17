@@ -27,6 +27,8 @@ import { useNavigate } from 'react-router-dom';
     const context = useContext(MyContext)
     const history = useNavigate();
     window.scrollTo(0,0)
+
+    
     const onchangeInput=(e)=>{
       
       const {name,value} = e.target;

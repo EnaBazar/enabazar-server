@@ -22,6 +22,13 @@ const SignUp = () => {
   const [loadingGoogle, setLoadingGoogle] = React.useState(false);
      const [IsShowPassword,setIsShowPassword] = useState(false);
  
+     const bdMobileRegex = /^01[3-9]\d{8}$/;
+
+const [errors, setErrors] = useState({
+  name: "",
+  mobile: "",
+  password: ""
+});
      const [formFields,setFormFields]= useState({
       name:"",
       mobile:"",
@@ -32,80 +39,112 @@ const SignUp = () => {
     const context = useContext(MyContext)
     const history = useNavigate();
     
-    const onchangeInput=(e)=>{
-      
-      const {name,value} = e.target;
-      setFormFields(()=>{
-        return{
-          ...formFields,
-          [name]:value
-        }
-      })
+ const onchangeInput = (e) => {
+  const { name, value } = e.target;
+
+  if (name === "mobile") {
+    const numericValue = value.replace(/\D/g, "").slice(0, 11);
+
+    setFormFields((prev) => ({
+      ...prev,
+      mobile: numericValue,
+    }));
+
+    if (!bdMobileRegex.test(numericValue)) {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "",
+      }));
     }
+
+  } else if (name === "name") {
+
+    setFormFields((prev) => ({ ...prev, name: value }));
+
+    if (value.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        name: "",
+      }));
+    }
+
+  } else if (name === "password") {
+
+    setFormFields((prev) => ({ ...prev, password: value }));
+
+    if (value.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "পাসওয়ার্ড কমপক্ষে ৩ অক্ষরের হতে হবে",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        password: "",
+      }));
+    }
+  }
+};
     
     const valideValue = Object.values(formFields).every(el => el)
     
-const handleSubmit=(e)=>{
-  
+const handleSubmit = (e) => {
   e.preventDefault();
-  setIsLoading(true)
-  
-  
-  if(formFields.name==="")
-  {
-    context.openAlertBox("error","Please add full name")
-    return false
-  }
-  
-  if(formFields.mobile==="")
-    {
-      context.openAlertBox("error","Please entry your mobile")
-      return false
-    }
-    
-    if(formFields.password==="")
-      {
-        context.openAlertBox("error","Please entry your Password")
-        return false
-      } 
-  
-  postData("/auth/register",formFields).then((res)=>{
-    console.log(res)
-    
-    
-    if(res?.error !== true){
-      setIsLoading(false)
-      context.openAlertBox("success",res?.message);
-      localStorage.setItem("userEmail",formFields.mobile)
-      setFormFields({
-      name:"",
-      mobile:"",
-      password:""
-      })
 
-    }else{
-      context.openAlertBox("error",res?.message);
+  if (!bdMobileRegex.test(formFields.mobile)) {
+    context.openAlertBox("error", "সঠিক মোবাইল নাম্বার দিন");
+    return;
+  }
+
+  if (formFields.name.trim().length < 3) {
+    context.openAlertBox("error", "নাম কমপক্ষে ৩ অক্ষরের হতে হবে");
+    return;
+  }
+
+  if (formFields.password.trim().length < 3) {
+    context.openAlertBox("error", "পাসওয়ার্ড দিন");
+    return;
+  }
+
+  setIsLoading(true);
+
+  postData("/auth/register", formFields).then((res) => {
+
+    setIsLoading(false);
+
+    if (!res?.error) {
+
+      context.openAlertBox("success", res?.message || "Registered Successfully");
+
+      // ✅ OTP PANEL OPEN
+      context?.openOtpPanel({
+        mobile: formFields.mobile
+      });
+
+      // reset form
       setFormFields({
-     name:"",
-      mobile:"",
-      password:""
-      })
-      setIsLoading(false);
-     
+        name: "",
+        mobile: "",
+        password: ""
+      });
+
+    } else {
+      context.openAlertBox("error", res?.message);
     }
-   
-  })
-}
+  });
+};
  
-  function handleClickGoogle() {
-    setLoadingGoogle(true);
-  }
-  
-  
-  
-  function handleClickFaceBook() {
-    setLoadingFaceBook(true);
-  }
+
 
   return (
     
@@ -148,75 +187,49 @@ const handleSubmit=(e)=>{
        
        <h1 className='text-center text-[18px] sm:text-[30px] font-[800] mt-4'>Join us today! Get Special<br/> benefits and stay up-to-date.</h1>
        
-       <div className='flex items-center justify-center w-full mt-5 gap-2'>
-       <Button
-          size="small"
-          onClick={handleClickGoogle}
-          endIcon={<FcGoogle className='!text-[25px]'/>}
-          loading={loadingGoogle}
-          loadingPosition='end'
-          variant="outlined"
-        className='!bg-none !py-2 !text-[14px] !capitalize !px-5 !text-[rgba(0,0,0,0.7)]'
-        >
-        signing with Google
-        </Button>
-        
-     
-        
-        
-       </div>
-       
+  
        <br/>
        
-       <div className='w-full flex items-center justify-center gap-3'>
-       <span className='flex items-center w-[100px] h-[1px] bg-gray-500'></span>
-       <span className='text-[10px] lg:text-[13px] font-[500]' >Or, Sign in with your email</span>
-       <span className='flex items-center w-[100px] h-[1px] bg-gray-500'></span>
-       </div>
+     
        
-       <br/><br/>
-       
+      
        <form className='w-full !px-10' onSubmit={handleSubmit}>
   
        <div className='form-group w-full !mb-5'>
-       <TextField 
-       type='text'
-       id="name"
-       name="name"
-       value={formFields.name}
-       disabled={isLoading===true ? true : false}
-        label="Full Name"
-         variant="outlined"
-         className='w-full' 
-         onChange={onchangeInput}
-         />
+<TextField
+  name="name"
+  value={formFields.name}
+  onChange={onchangeInput}
+  error={!!errors.name}
+  helperText={errors.name}
+  label="Full Name"
+    className='w-full'
+/>
        </div>
        <div className='form-group w-full !mb-5'>
-       <TextField 
-       type='number'
-       id="mobile"
-       name="mobile"
-       value={formFields.mobile}
-       disabled={isLoading===true ? true : false}
-        label="Mobile"
-         variant="outlined"
-         className='w-full' 
-         onChange={onchangeInput}
-         />
+<TextField
+  type="text"
+  name="mobile"
+  value={formFields.mobile}
+  onChange={onchangeInput}
+  error={!!errors.mobile}
+  helperText={errors.mobile}
+     className='w-full' 
+  label="Mobile"
+/>
        
        </div>
        <div className='form-group w-full !mb-5 relative'>
-       <TextField 
-       type={IsShowPassword===false ? 'password': 'text'}
-       id="Password"
-        label="Password*"
-        name="password"
-        value={formFields.password}
-        disabled={isLoading===true ? true : false}
-         variant="outlined"
-         className='w-full' 
-         onChange={onchangeInput}
-         />
+<TextField
+  type={IsShowPassword ? "text" : "password"}
+  name="password"
+    className='w-full'
+  value={formFields.password}
+  onChange={onchangeInput}
+  error={!!errors.password}
+  helperText={errors.password}
+  label="Password"
+/>
        <Button className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
         !h-[35px] !min-w-[35px] !rounded-full 
         !text-black' onClick={()=>{setIsShowPassword(!IsShowPassword)}}>
