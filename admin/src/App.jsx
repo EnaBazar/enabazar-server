@@ -37,7 +37,7 @@ const MyContext = createContext();
 function App() {
   const [userData, setUserData] = useState(null);
   const [isToggleSidebar, setIsToggleSidebar] = useState(true);
-  const [isLogin, setIsLogin] = useState(false);
+  
   const [address, setAddress] = useState([]);
   const [catData, setCatData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -74,7 +74,10 @@ const [otpData, setOtpData] = useState(null);
     setOtpData(null);
   };
 
-
+const [isLogin, setIsLogin] = useState(() => {
+  const token = localStorage.getItem('accesstoken');
+  return token ? true : null; // null = loading state
+});
  const toggleVerifyOtp = (newOpen) => () => {
  
   setOpenVerifyOtpPanel(newOpen);
@@ -93,27 +96,20 @@ const [otpData, setOtpData] = useState(null);
     }
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('accesstoken');
-    if (token) {
-      setIsLogin(true);
+useEffect(() => {
+  if (!isLogin) return; // null বা false হলে skip
 
-      fetchDataFromApi(`/auth/user-dtails`).then((res) => {
-        setUserData(res.data);
-
-        if (res?.response?.data?.error === true) {
-          if (res?.response?.data?.message === "You have not login") {
-            localStorage.removeItem("accesstoken");
-            localStorage.removeItem("refreshtoken");
-            openAlertBox("error", "Your session is closed please login again!");
-            setIsLogin(false);
-          }
-        }
-      });
+  fetchDataFromApi(`/auth/user-dtails`).then((res) => {
+    if (res?.data) {
+      setUserData(res.data);
     } else {
+      localStorage.removeItem("accesstoken");
+      localStorage.removeItem("refreshtoken");
       setIsLogin(false);
+      openAlertBox("error", "Your session expired. Please login again.");
     }
-  }, [isLogin]);
+  });
+}, [isLogin]);
 
   useEffect(() => {
     getCat();

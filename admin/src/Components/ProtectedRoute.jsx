@@ -5,11 +5,10 @@ import { MyContext } from "../App";
 const ProtectedRoute = ({ children }) => {
   const { isLogin } = useContext(MyContext);
 
-  if (!isLogin) {
-    return <Navigate to="/login" replace />;
-  }
+  // যদি token check হচ্ছে (initial null), loading/null state
+  if (isLogin === null) return null;
 
-  return children;
+  return isLogin ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
