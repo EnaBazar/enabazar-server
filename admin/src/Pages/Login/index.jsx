@@ -145,9 +145,9 @@ const Login = () => {
     
      <div className="col1 w-[50%] lg:w-[10%] flex items-center 
      justify-end ">
-  <Link to={"/"}> 
+
     <img src="/logo.png"/>
-  </Link>
+ 
 </div>
       
        
