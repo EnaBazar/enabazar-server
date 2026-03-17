@@ -43,14 +43,29 @@ function App() {
 const [orderCount, setOrderCount] = useState(0);
   const [addressMode, setAddressMode]= useState("add");
 const [addressId,setAddressId] = useState(null)
+   const [openVerifyOtpPanel, setOpenVerifyOtpPanel] = useState(false);
+const [otpData, setOtpData] = useState(null);
+
 
   const [isOpenFullScreenPanel, setIsOpenFullScreenPanel] = useState({
     open: false,
     model: '',
     id: ""
   });
-console.log(isOpenFullScreenPanel)
 
+
+
+  const openOtpPanel = (data) => {
+  setOtpData(data);           // data = { mobile: "017xxxxxxx" }
+  setOpenVerifyOtpPanel(true); // OTP Panel খোলা হবে
+};
+  const closeOtpPanel = () => {
+    setOpenVerifyOtpPanel(false);
+    setOtpData(null);
+  };
+ const toggleVerifyOtp = (newOpen) => () => {
+  setOpenUpadteVerifyOtp(newOpen);
+  };
 
   const openAlertBox = (status, msg) => {
     if (status === "success") {
@@ -124,7 +139,14 @@ console.log(isOpenFullScreenPanel)
       setAddressMode,
   addressMode,
 addressId,
-setAddressId
+setAddressId,
+otpData, 
+setOtpData,
+openVerifyOtpPanel,
+ setOpenVerifyOtpPanel,
+toggleVerifyOtp,
+openOtpPanel,
+closeOtpPanel
   };
 
   const router = createBrowserRouter([

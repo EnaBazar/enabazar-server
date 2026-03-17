@@ -24,6 +24,8 @@ const Profile = () => {
   const context = useContext(MyContext);
   const history = useNavigate();
 
+  const bdMobileRegex = /^01[3-9]\d{8}$/;
+
   const [previews, setPreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [address, setAddress] = useState([]);
@@ -31,6 +33,10 @@ const Profile = () => {
   const [selectedValue, setSelectedValue] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+
+  const [errors, setErrors] = useState({
+    mobile: "",
+  });
 
   const [formFields, setFormFields] = useState({
     name: "",
@@ -40,26 +46,24 @@ const Profile = () => {
   const [userId, setUserId] = useState("");
 
   /* ================= LOGIN CHECK ================= */
-
   useEffect(() => {
     const token = localStorage.getItem("accesstoken");
-    if (token === null) {
+    if (!token) {
       history("/login");
     }
   }, [context?.isLogin]);
 
-  /* ================= LOAD USER DATA ================= */
-
+  /* ================= LOAD USER ================= */
   useEffect(() => {
     if (context?.userData?._id) {
       setUserId(context.userData._id);
 
       setFormFields({
-        name: context?.userData?.name,
-        mobile: context?.userData?.mobile,
+        name: context?.userData?.name || "",
+        mobile: context?.userData?.mobile || "",
       });
 
-      setPhone(context?.userData?.mobile);
+      setPhone(context?.userData?.mobile || "");
 
       fetchDataFromApi(`/address/get?userId=${context?.userData?._id}`).then(
         (res) => {
@@ -71,48 +75,83 @@ const Profile = () => {
   }, [context?.userData]);
 
   /* ================= INPUT CHANGE ================= */
-
   const onchangeInput = (e) => {
     const { name, value } = e.target;
 
-    setFormFields((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (name === "mobile") {
+      const numericValue = value.replace(/\D/g, "");
+
+      if (numericValue.length <= 11) {
+        setFormFields((prev) => ({
+          ...prev,
+          mobile: numericValue,
+        }));
+
+        if (!bdMobileRegex.test(numericValue)) {
+          setErrors({
+            mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+          });
+        } else {
+          setErrors({
+            mobile: "",
+          });
+        }
+      }
+    } else {
+      setFormFields((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
-  /* ================= UPDATE PROFILE ================= */
+  /* ================= VALIDATION ================= */
+  const valideValue =
+    formFields.name.trim().length >= 3 &&
+    bdMobileRegex.test(formFields.mobile) &&
+    !errors.mobile;
 
+  /* ================= UPDATE PROFILE ================= */
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formFields.name) {
-      context.openAlertBox("error", "Please enter your name");
-      return;
-    }
-
-    if (!formFields.mobile) {
-      context.openAlertBox("error", "Please enter your mobile");
-      return;
-    }
+    if (!valideValue) return;
 
     setIsLoading(true);
 
     editData(`/auth/${userId}`, formFields, { withCredentials: true }).then(
       (res) => {
-        setIsLoading(false);
+        console.log("RES:", res);
 
-        if (!res?.error) {
-          context.openAlertBox("success", "Profile Updated");
+        if (res?.data?.error === false || res?.error === false) {
+
+          context.openAlertBox("success", res?.data?.message || "Profile Updated");
+
+          // 🔥 OTP trigger FIX (backend + frontend fallback)
+          const oldMobile = context?.userData?.mobile;
+          const newMobile = formFields.mobile;
+
+          const isChanged =
+            oldMobile !== newMobile ||
+            res?.data?.isMobileChange === true ||
+            res?.isMobileChange === true;
+
+          if (isChanged) {
+            context.openVerifyOtpPanel({
+              mobile: newMobile,
+            });
+          }
+
         } else {
-          context.openAlertBox("error", res?.message);
+          context.openAlertBox("error", res?.data?.message || "Update Failed");
         }
+
+        setIsLoading(false);
       }
     );
   };
 
-  /* ================= SELECT DEFAULT ADDRESS ================= */
-
+  /* ================= SELECT ADDRESS ================= */
   const handleChange = (event) => {
     setSelectedValue(event.target.value);
 
@@ -122,7 +161,6 @@ const Profile = () => {
   };
 
   /* ================= DELETE ADDRESS ================= */
-
   const handleDeleteAddress = (id) => {
     deleteData(`/address/${id}`).then((res) => {
       if (!res?.error) {
@@ -141,7 +179,6 @@ const Profile = () => {
   };
 
   /* ================= AVATAR ================= */
-
   useEffect(() => {
     if (context?.userData?.avatar) {
       setPreviews([context?.userData?.avatar]);
@@ -172,7 +209,6 @@ const Profile = () => {
       <h2 className="text-[20px] font-semibold mb-4">User Profile</h2>
 
       {/* Avatar */}
-
       <div className="relative w-[110px] h-[110px] rounded-full overflow-hidden mb-4 group bg-gray-200">
 
         {uploading ? (
@@ -184,20 +220,16 @@ const Profile = () => {
         )}
 
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 cursor-pointer">
-
           <FaCloudDownloadAlt className="text-white text-[22px]" />
-
           <input
             type="file"
             className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={onChangeFile}
           />
-
         </div>
       </div>
 
-      {/* Profile Form */}
-
+      {/* Form */}
       <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
 
         <TextField
@@ -212,19 +244,37 @@ const Profile = () => {
           defaultCountry="bd"
           value={phone}
           onChange={(phone) => {
+            const numericValue = phone.replace(/\D/g, "").slice(0, 11);
+
             setPhone(phone);
-            setFormFields((prev) => ({ ...prev, mobile: phone }));
+
+            setFormFields((prev) => ({
+              ...prev,
+              mobile: numericValue,
+            }));
+
+            if (!bdMobileRegex.test(numericValue)) {
+              setErrors({
+                mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+              });
+            } else {
+              setErrors({
+                mobile: "",
+              });
+            }
           }}
         />
 
-        {/* Add Address */}
+        {errors.mobile && (
+          <p className="text-red-500 text-sm">{errors.mobile}</p>
+        )}
 
+        {/* Address */}
         <div
           className="border border-dashed p-3 rounded-md hover:bg-[#e7f3f9] cursor-pointer text-center font-medium w-[200px]"
           onClick={() => {
             context.setAddressMode("add");
             context.setAddressId(null);
-
             context.setIsOpenFullScreenPanel({
               open: true,
               model: "AddNewAddress",
@@ -235,91 +285,53 @@ const Profile = () => {
         </div>
 
         {/* Address List */}
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
 
           {address?.map((addr) => (
-
-            <div
-              key={addr._id}
-              className="border rounded-lg p-4 relative bg-white shadow-sm hover:shadow-md"
-            >
-
-              {addr.selected && (
-                <span className="absolute top-2 left-2 text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-          
-                </span>
-              )}
+            <div key={addr._id} className="border rounded-lg p-4 relative">
 
               <div className="absolute right-2 top-2 flex gap-3">
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-
-                    context.setAddressMode("edit");
-                    context.setAddressId(addr._id);
-
-                    context.setIsOpenFullScreenPanel({
-                      open: true,
-                      model: "EditeAddress",
-                    });
-                  }}
-                >
-                  <FiEdit size={18} />
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  context.setAddressMode("edit");
+                  context.setAddressId(addr._id);
+                  context.setIsOpenFullScreenPanel({
+                    open: true,
+                    model: "EditeAddress",
+                  });
+                }}>
+                  <FiEdit />
                 </button>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteAddress(addr._id);
-                  }}
-                >
-                  <AiOutlineDelete size={18} />
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteAddress(addr._id);
+                }}>
+                  <AiOutlineDelete />
                 </button>
-
               </div>
 
               <div className="flex gap-2">
-
                 <Radio
-                  {...label}
                   checked={selectedValue === addr._id}
                   value={addr._id}
                   onChange={handleChange}
                 />
 
                 <div>
-
-                  <h3 className="font-semibold text-sm">
-                    {addr.addressType || "Address"}
-                  </h3>
-
-                  <p className="text-sm text-gray-600">
-                    {addr.address_line}
-                  </p>
-
-                  <p className="text-sm text-gray-600">
-                    {addr.upazila}, {addr.city}
-                  </p>
-
-                  <p className="text-xs text-gray-500">
-                    {addr.landmark}
-                  </p>
-
+                  <p>{addr.address_line}</p>
+                  <p>{addr.city}</p>
                 </div>
-
               </div>
 
             </div>
-
           ))}
 
         </div>
 
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={!valideValue || isLoading}
           className="btn-blue w-[200px]"
         >
           {isLoading ? <CircularProgress size={20} /> : "Update Profile"}
