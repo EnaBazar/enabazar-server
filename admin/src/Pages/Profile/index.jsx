@@ -94,7 +94,7 @@ const Profile = () => {
           const oldMobile = context?.userData?.mobile;
           const newMobile = formFields.mobile;
           if (oldMobile !== newMobile) {
-            context.openOtpPanel({ mobile: newMobile });
+            context.openUpdateOtpPanel({ mobile: newMobile });
           }
         } else {
           context.openAlertBox("error", res?.data?.message || "Update Failed");

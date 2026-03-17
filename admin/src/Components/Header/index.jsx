@@ -293,8 +293,8 @@ const logout = async () => {
 
  {/*verify otp panel*/} 
 <Dialog
-  open={context.openVerifyOtpPanel}
-  onClose={() => context.toggleVerifyOtpPanel(false)}
+  open={context.openUpdateOtpPanel}
+  onClose={() => context.toggleUpdateVerifyOtp(false)}
   PaperProps={{
     sx: {
       width: "90%",            // smaller on mobile
@@ -310,7 +310,7 @@ const logout = async () => {
   <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
     <IoMdClose
       className="text-[22px] text-red-600 cursor-pointer"
-      onClick={context.toggleVerifyOtp(false)}
+      onClick={context.toggleUpdateVerifyOtp(false)}
 
     />
   </div>
