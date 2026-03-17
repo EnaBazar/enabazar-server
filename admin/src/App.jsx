@@ -30,6 +30,8 @@ import Reports from './Pages/Reports';
 import SalesList from './Pages/sales';
 import AdminChat from './Components/AdminChat';
 import UserDetails from './Pages/Users/UserDetails';
+import Header from './Components/Header';
+import VerifyOtpPanel from './Pages/SignUp/VerifyOtpPanel';
 
 const MyContext = createContext();
 
@@ -201,6 +203,7 @@ toggleUpdateVerifyOtp
       <MyContext.Provider value={values}>
         <RouterProvider router={router} />
         <Toaster />
+       {openVerifyOtpPanel && <VerifyOtpPanel />}
       </MyContext.Provider>
     </>
   );

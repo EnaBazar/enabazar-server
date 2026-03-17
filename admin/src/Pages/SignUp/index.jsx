@@ -20,9 +20,8 @@ const SignUp = () => {
    const [isLoading,setIsLoading]= useState(false);
   const [loadingFacBook, setLoadingFaceBook] = React.useState(false);
   const [loadingGoogle, setLoadingGoogle] = React.useState(false);
-     const [IsShowPassword,setIsShowPassword] = useState(false);
- 
-     const bdMobileRegex = /^01[3-9]\d{8}$/;
+  const [IsShowPassword,setIsShowPassword] = useState(false);
+ const bdMobileRegex = /^01[3-9]\d{8}$/;
 
 const [errors, setErrors] = useState({
   name: "",
