@@ -50,7 +50,7 @@ setAnchorEl(null);
 
   {/* Full Address */}
   <span className="pt-1 text-[12px] sm:text-[14px] block w-full sm:w-[90%] break-words">
-    {props?.address?.address_line}, {props?.address?.city}, {props?.address?.state},
+    {props?.address?.address_line},{props?.address?.upazila}, {props?.address?.city}
   </span>
 
   {/* Action Menu */}

@@ -232,22 +232,24 @@ const Profile = () => {
           {address?.map((addr) => (
             <div key={addr._id} className="border rounded-lg p-4 relative">
               <div className="absolute right-2 top-2 flex gap-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    context.setAddressMode("edit");
-                    context.setAddressId(addr._id);
-                    context.setIsOpenFullScreenPanel({ open: true, model: "EditeAddress" });
-                  }}
-                >
+         <button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    context.setAddressMode("edit");
+    context.setAddressId(addr._id);
+    context.setIsOpenFullScreenPanel({ open: true, model: "EditeAddress" });
+  }}
+>
                   <FiEdit />
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteAddress(addr._id);
-                  }}
-                >
+           <button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleDeleteAddress(addr._id);
+  }}
+>
                   <AiOutlineDelete />
                 </button>
               </div>
