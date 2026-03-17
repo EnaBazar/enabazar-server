@@ -24,16 +24,14 @@ import AddSize from './Pages/Products/AddSize';
 import AddWieght from './Pages/Products/AddWieght';
 import BannerV1List from './Pages/Banners/BannerV1List';
 import BlogList from './Pages/Blog';
-
 import { fetchDataFromApi } from './utils/api';
 import Layout from './Components/Layout';   // নতুন Layout ইউজ করবো
 import Reports from './Pages/Reports';
 import SalesList from './Pages/sales';
 import AdminChat from './Components/AdminChat';
 import UserDetails from './Pages/Users/UserDetails';
-import Header from './Components/Header';
 import VerifyOtpPanel from './Pages/SignUp/VerifyOtpPanel';
-
+import ProtectedRoute from "./Components/ProtectedRoute";
 const MyContext = createContext();
 
 function App() {
@@ -174,26 +172,68 @@ toggleUpdateVerifyOtp
   };
 
   const router = createBrowserRouter([
-   {
-  path: "/",
-  element: isLogin ? <Dashboard /> : <Login />
-},
-    { path: "/login", element: <Login /> },
-    { path: "/sign-up", element: <SignUp /> },
+
+ { 
+    path: "/", 
+    element: (
+      <ProtectedRoute>
+        <Layout><Dashboard /></Layout>
+      </ProtectedRoute>
+    ) 
+  },
+
+  { path: "/login", element: <Login /> },
+  { path: "/sign-up", element: <SignUp /> },
+
+  { 
+    path: "/products", 
+    element: (
+      <ProtectedRoute>
+        <Layout><Products /></Layout>
+      </ProtectedRoute>
+    ) 
+  },
+
+  { 
+    path: "/users", 
+    element: (
+      <ProtectedRoute>
+        <Layout><Users /></Layout>
+      </ProtectedRoute>
+    ) 
+  },
+
+  { 
+    path: "/orders", 
+    element: (
+      <ProtectedRoute>
+        <Layout><Orders /></Layout>
+      </ProtectedRoute>
+    ) 
+  },
+
+  { 
+    path: "/profile", 
+    element: (
+      <ProtectedRoute>
+        <Layout><Profile /></Layout>
+      </ProtectedRoute>
+    ) 
+  },
+
     { path: "/forgot-password", element: <ForgotPassword /> },
     { path: "/verify-account", element: <VerifyAccount /> },
     { path: "/change-password", element: <ChangePassword /> },
-    { path: "/products", element: <Layout><Products /></Layout> },
+  
     { path: "/homeSliderlist", element: <Layout><HomeSliderBanners /></Layout> },
     { path: "/Categorylist", element: <Layout><CategoryList /></Layout> },
     { path: "/SubCategorylist", element: <Layout><SubCategoryList /></Layout> },
-    { path: "/users", element: <Layout><Users /></Layout> },
+ 
       { path: "/usersdetails", element: <Layout><UserDetails /></Layout> },
     { path: "/report", element: <Layout><Reports /></Layout> },
     { path: "/salles", element: <Layout><SalesList /></Layout> },
     { path: "/chat", element: <Layout><AdminChat /></Layout> },
-    { path: "/orders", element: <Layout><Orders /></Layout> },
-    { path: "/profile", element: <Layout><Profile /></Layout> },
+   
     { path: "/product/:id", element: <Layout><ProductDetails /></Layout> },
     { path: "/product/addRams", element: <Layout><AddRams /></Layout> },
     { path: "/product/addSize", element: <Layout><AddSize /></Layout> },
