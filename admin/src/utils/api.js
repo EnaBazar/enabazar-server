@@ -115,6 +115,20 @@ export const editData = async (url,updatedData ) => {
     
 }
 
+export const editDatas = async (url,updatedData ) => {
+    
+  
+    
+    var response;
+  await axios.put(apiUrl + url,updatedData,params).then((res)=>{
+      
+    console.log(res)
+   response=res;
+  })
+  return response;
+   
+    
+}
 
 export const deleteImages = async (url, image) => {
   try {

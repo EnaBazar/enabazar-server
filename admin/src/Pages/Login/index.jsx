@@ -10,7 +10,7 @@ import Checkbox from '@mui/material/Checkbox';
 import { useContext } from 'react';
 import { MyContext } from '../../App';
 import  CircularProgress  from '@mui/material/CircularProgress';
-import { editData, postData } from '../../utils/api';
+import { editData, editDatas, postData } from '../../utils/api';
 import { useState } from 'react';
 import { useEffect } from 'react';
 
@@ -84,7 +84,7 @@ const Login = () => {
   
       setIsLoading(true);
   
-      editData(`/auth/loginOtp${userId}`, formFields, { withCredentials: true }).then(
+      editDatas(`/auth/loginOtp${userId}`, formFields).then(
         (res) => {
           setIsLoading(false);
   
