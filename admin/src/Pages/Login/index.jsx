@@ -155,7 +155,7 @@ const Login = () => {
  <NavLink to="/login" exact="true" activeclassname="isActive">
  <Button className='!rounded-full !text-[rgba(0,0,0,0.8)]
   !px-4 flex gap-1'>
- <CgLogIn className='text-[18px]'/>Login
+ <CgLogIn className='text-[18px]'/>Login here
  </Button>
  
  </NavLink>
@@ -163,7 +163,7 @@ const Login = () => {
  <NavLink to="/sign-up" exact="true" activeclassname="isActive">
  <Button className='!rounded-full !text-[rgba(0,0,0,0.8)]
   !px-4 flex gap-1'>
- <FaRegUser className='text-[14px]'/>SignUp
+ <FaRegUser className='text-[14px]'/>SignUp here
  </Button>
  </NavLink>
  </div>
