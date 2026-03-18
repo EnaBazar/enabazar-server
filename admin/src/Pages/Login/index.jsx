@@ -78,42 +78,54 @@ const Login = () => {
     
 const valideValue = Object.values(formFields).every(el => el)  
 
-const handleSubmit=(e)=>{
-      e.preventDefault();
-      setIsLoading(true)
-      if(formFields.mobile==="")
-        {
-          context.openAlertBox("error","Please entry your Eamil")
-          return false
-        }
-        
-        if(formFields.name==="")
-          {
-            context.openAlertBox("error","Please entry your name")
-            return false
-          }
-      
-      postData("/auth/loginotp",formFields,{withCredentials:true}).then((res)=>{
-     
-       if(res?.error !== true){
-     context.openAlertBox("success", "OTP পাঠানো হয়েছে");
-   
-     // 🔥 Open OTP Panel
-     context.openOtpPanel({
-  mobile: formFields.mobile,  // `formFields.mobile` হচ্ছে mobile number
-  type: "login"               // "login" action type
-});
-    
-        setIsLoading(false)
+const handleSubmit = (e) => {
+  e.preventDefault();
+  setIsLoading(true);  // লোডিং শুরু
 
-}else{
-          context.openAlertBox("error",res?.message);
-       
-         
+  // মোবাইল নাম্বার চেক করা হচ্ছে
+  if (formFields.mobile === "") {
+    context.openAlertBox("error", "Please enter your mobile number");
+    setIsLoading(false); // লোডিং বন্ধ
+    return false;
+  }
+
+  // নাম চেক করা হচ্ছে
+  if (formFields.name === "") {
+    context.openAlertBox("error", "Please enter your name");
+    setIsLoading(false); // লোডিং বন্ধ
+    return false;
+  }
+
+  postData("/auth/loginotp", formFields, { withCredentials: true })
+    .then((res) => {
+      if (res?.error !== true) {
+        if (res?.message === "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে") {
+          // এই মেসেজ যদি আসে, তাহলে লোডিং বন্ধ করে আলার্ট দেখান
+          context.openAlertBox("error", res?.message);
+          setIsLoading(false); // লোডিং বন্ধ
+          return;
         }
-       
-      })
-    }
+
+        // OTP successfully sent, OTP প্যানেল খুলুন
+        context.openAlertBox("success", "OTP পাঠানো হয়েছে");
+        context.openOtpPanel({
+          mobile: formFields.mobile,
+          type: "login"
+        });
+
+        setIsLoading(false);  // লোডিং বন্ধ
+      } else {
+        context.openAlertBox("error", res?.message);
+        setIsLoading(false);  // লোডিং বন্ধ
+      }
+    })
+    .catch((err) => {
+      // কোনো সার্ভার বা নেটওয়ার্ক সমস্যা হলে
+      context.openAlertBox("error", "Something went wrong. Please try again later.");
+      console.error("Error:", err);
+      setIsLoading(false); // লোডিং বন্ধ
+    });
+};
     
 
   return (
