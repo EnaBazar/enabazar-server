@@ -213,7 +213,7 @@ onChange={onchangeInput}
        </div>
 
        <div className='flex items-center justify-between mb-3'>
-<span className='text-[13px]'>Don`t have a Account?</span>
+<span className='text-[13px]'>আগের রেজিস্ট্রোেশন সা থাকলে ?</span>
       <Link to="/sign-up"
     
        className='text-blue-600 
