@@ -1,5 +1,5 @@
 import express from 'express';
-import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginotpverification, loginPanelUserController, loginUserController, logoutController, refreshToken, register, 
+import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPasswordController, getAllReviews, getAllusers, getReviews, loginotpverification, loginPanelUserController, loginUserController, logoutController, otplogin, refreshToken, register, 
         registerPanel, 
         removeimageFromCloudinary, resendOtp, resetpassword, resetpasswordaccont, UpadteverifyMobileOtp, updateUserDeatils, userAvatarController, 
         userDeatils, 
@@ -14,6 +14,7 @@ const AuthRoutes=express.Router()
 
 
 AuthRoutes.post('/register',register)
+AuthRoutes.post('/loginotp',otplogin)
 AuthRoutes.post('/registerPanel',registerPanel)
 AuthRoutes.post("/verifyemail",VerifyEmail)
 AuthRoutes.post("/login",loginUserController)

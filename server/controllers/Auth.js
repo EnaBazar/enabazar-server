@@ -86,6 +86,47 @@ const register = async (req, res) => {
   }
 };
 
+const otplogin = async (req, res) => {
+
+  try {
+    const { mobile } = req.body;
+
+    if (!mobile) {
+      return res.json({ error: true, message: "Mobile required" });
+    }
+
+    // 🔍 user check
+    const user = await usermodel.findOne({ mobile });
+
+    if (!user) {
+      return res.json({ error: true, message: "User not found" });
+    }
+
+    // 🔥 generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // 👉 save OTP (DB বা Redis)
+    user.otp = otp;
+    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+    user.verify_mobile = false;
+     
+    await user.save();
+
+    await sendSMS(mobile, otp);
+    console.log("OTP:", otp);
+
+    return res.json({
+      error: false,
+      message: "OTP sent successfully",
+    });
+
+  } catch (err) {
+    res.json({ error: true, message: "Server error" });
+  }
+}
+
+
+
 export async function verifyMobileOtp(req, res) {
   try {
     const { mobile, otp } = req.body;
@@ -1410,4 +1451,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {register, VerifyEmail,registerPanel}
+export {register,otplogin, VerifyEmail,registerPanel}
