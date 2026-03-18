@@ -63,7 +63,7 @@ import { useEffect } from 'react';
     
      <div className="col1 w-[40%] lg:w-[50%] flex items-center 
      justify-end lg:justify-start">
-  <Link to={"/"}> 
+  <Link to={"/dashboard"}> 
     <img src="/logo.png"/>
   </Link>
 </div>

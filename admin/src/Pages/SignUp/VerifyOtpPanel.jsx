@@ -88,7 +88,7 @@ const VerifyOtpPanel = () => {
         }
 
         context.closeOtpPanel();
-window.location.href = "/";
+window.location.href = "/dashboard";
       } else {
         context.openAlertBox(
           "error",

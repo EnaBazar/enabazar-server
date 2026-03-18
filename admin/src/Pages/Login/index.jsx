@@ -4,96 +4,83 @@ import {CgLogIn} from "react-icons/cg"
 import {FaRegUser} from "react-icons/fa6"
 import {IoMdEye} from 'react-icons/io';
 import {IoMdEyeOff} from 'react-icons/io';
-import {FcGoogle} from "react-icons/fc"
-import Button from '@mui/material/Button';
-import { BsFacebook } from 'react-icons/bs';
-import { FormControlLabel, Input, TextField } from '@mui/material';
+import { FormControlLabel} from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { useContext } from 'react';
 import { MyContext } from '../../App';
 import  CircularProgress  from '@mui/material/CircularProgress';
 import { postData } from '../../utils/api';
 import { useState } from 'react';
+import { TextField, Button } from "@mui/material";
+
+
+
 
 const Login = () => {
-  
-   const [isLoading,setIsLoading]= useState(false);
-    const [IsShowPassword,setIsShowPassword] = useState(false);
-  const [loadingFacBook, setLoadingFaceBook] = React.useState(false);
-  const [loadingGoogle, setLoadingGoogle] = React.useState(false);
-  
-    const [formFields,setFormFields]= useState({
-         
+    const context = useContext(MyContext)
+  const [isLoading,setIsLoading]= useState(false);
+  const [IsShowPassword,setIsShowPassword] = useState(false);
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bdMobileRegex = /^01[3-9]\d{8}$/;
+
+  const [errors, setErrors] = useState({
+    name: "",
+    mobile: "",
+  });
+  const [formFields,setFormFields]= useState({       
        mobile:"",
-       name:""
-         
+       name:"" 
       });
-      const context = useContext(MyContext)
-      const history = useNavigate();
-      
+ const history = useNavigate();
       
   
-  
-  function handleClickGoogle() {
-    setLoadingGoogle(true);
-  }
-  
-  
-  
-  function handleClickFaceBook() {
-    setLoadingFaceBook(true);
-  }
-  
+  const onchangeInput  = (e) => {
+  const { name, value } = e.target;
 
+  if (name === "mobile") {
+    const numericValue = value.replace(/\D/g, "").slice(0, 11);
+    setFormFields((prev) => ({
+      ...prev,
+      mobile: numericValue,
+    }));
 
-    const forgotPassword =()=>{
-
-      
-        if(formFields.mobile===""){
-           
-         context.openAlertBox("error","Please entry your Mobile")
-         return false; 
-        }else{
-      
-           localStorage.setItem("userEmail",formFields.mobile)
-           localStorage.setItem("actionType",'forgot-password')
-           
-               postData("/auth/forgot-password",
-             { email:formFields.email ,
-                
-           }).then((res)=> {
-           if(res?.error===false){
-             context.openAlertBox("success",res?.message);
-             history("/verify-account")          
-           }else{
-             context.openAlertBox("error",res?.message);
-           }
-           })
-           
-        }
-         
-       
+    if (!bdMobileRegex.test(numericValue)) {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "সঠিক ১১ ডিজিটের মোবাইল নাম্বার দিন",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "",
+      }));
     }
-    
-    const onchangeInput=(e)=>{
-      
-      const {name,value} = e.target;
-      setFormFields(()=>{
-        return{
-          ...formFields,
-          [name]:value
-        }
-      })
+
+  } else if (name === "name") {
+
+    setFormFields((prev) => ({ ...prev, name: value }));
+
+    if (value.trim().length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        name: "নাম কমপক্ষে ৩ অক্ষরের হতে হবে",
+      }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        name: "",
+      }));
     }
+
+  } 
+};
     
-        const valideValue = Object.values(formFields).every(el => el)
-        
-    const handleSubmit=(e)=>{
-      
+const valideValue = Object.values(formFields).every(el => el)  
+
+const handleSubmit=(e)=>{
       e.preventDefault();
       setIsLoading(true)
-      
-    
       if(formFields.mobile==="")
         {
           context.openAlertBox("error","Please entry your Eamil")
@@ -106,30 +93,22 @@ const Login = () => {
             return false
           }
       
-      postData("/auth/login",formFields,{withCredentials:true}).then((res)=>{
-      console.log(res)
+      postData("/auth/loginotp",formFields,{withCredentials:true}).then((res)=>{
+     
        if(res?.error !== true){
-  setIsLoading(false)
-    context.setIsLogin(true);
-  context.openAlertBox("success",res?.message);
+     context.openAlertBox("success", "OTP পাঠানো হয়েছে");
+   
+     // 🔥 Open OTP Panel
+     context.openOtpPanel({
+  mobile: formFields.mobile,  // `formFields.mobile` হচ্ছে mobile number
+  type: "login"               // "login" action type
+});
+    
+        setIsLoading(false)
 
-  setFormFields({
-    mobile: "",
-    password: ""
-  })
-
-  localStorage.setItem("accesstoken",res?.data?.accesstoken)     
-  localStorage.setItem("refreshtoken",res?.data?.refreshtoken)
-  context.setIsLogin(true);
-  history("/");       
- // Force Home Page Reload
 }else{
           context.openAlertBox("error",res?.message);
-          setFormFields({
-            mobile: "",
-            password: ""
-          })
-          setIsLoading(false);
+       
          
         }
        
@@ -196,8 +175,7 @@ value={formFields.name}
 disabled={isLoading===true ? true : false}
 onChange={onchangeInput}
   variant="outlined"
-  className='w-full' 
-  
+  className='w-full'   
   />
 <Button  className='!absolute !top-[10px] !right-[10px] z-50 !w-[35x]
  !h-[35px] !min-w-[35px] !rounded-full 

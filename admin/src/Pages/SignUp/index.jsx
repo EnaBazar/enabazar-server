@@ -34,7 +34,6 @@ const [errors, setErrors] = useState({
       password:""
     })
     
-    
     const context = useContext(MyContext)
     const history = useNavigate();
     
@@ -43,7 +42,6 @@ const [errors, setErrors] = useState({
 
   if (name === "mobile") {
     const numericValue = value.replace(/\D/g, "").slice(0, 11);
-
     setFormFields((prev) => ({
       ...prev,
       mobile: numericValue,
@@ -205,7 +203,9 @@ const handleSubmit = (e) => {
     className='w-full'
 />
        </div>
-       <div className='form-group w-full !mb-5'>
+
+
+<div className='form-group w-full !mb-5'>
 <TextField
   type="text"
   name="mobile"
