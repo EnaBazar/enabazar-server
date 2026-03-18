@@ -47,7 +47,7 @@ const Login = () => {
 
   return (
     <div className="card w-[400px] p-5 mx-auto mt-10">
-      <h2 className="text-lg font-semibold mb-4">Login</h2>
+      <h2 className="text-lg font-semibold mb-4">Login your profile</h2>
 
       <TextField
         label="Mobile Number"
