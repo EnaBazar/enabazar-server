@@ -87,50 +87,57 @@ const register = async (req, res) => {
 };
 
 const otplogin = async (req, res) => {
-
   try {
-    const { mobile ,name } = req.body;
+    const { mobile, name } = req.body;
 
     if (!mobile) {
-      return res.json({ error: true, message: "Mobile required" });
+      return res.status(400).json({ error: true, message: "Mobile is required" });
     }
 
-    // 🔍 user check
-    const user = await usermodel.findOne({ mobile,name });
+    if (!name) {
+      return res.status(400).json({ error: true, message: "Name is required" });
+    }
+
+    // 🔍 Check if user exists
+    const user = await usermodel.findOne({ mobile, name });
 
     if (!user) {
-      return res.json({ error: true, message: "User not found" });
+      return res.status(404).json({ error: true, message: "User not found" });
     }
 
-     // 3️⃣ ✅ Mobile verification check
-      if (!user.verify_admin) {
-         return response.status(403).json({
-            message: "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে",
-            error: true,
-            success: false,
-            verifyRequired: true   // 👉 frontend বুঝতে পারবে
-         });
-      }
-    // 🔥 generate OTP
+    // 3️⃣ ✅ Check if mobile is verified by admin
+    if (!user.verify_admin) {
+      return res.status(403).json({
+        message: "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে",
+        error: true,
+        success: false,
+       // 👉 frontend can understand this
+      });
+    }
+
+    // 🔥 Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
-    // 👉 save OTP (DB বা Redis)
+    // 👉 Save OTP in DB
     user.otp = otp;
-    user.otpExpires = Date.now() + 5 * 60 * 1000; // 5 min
+    user.otpExpires = Date.now() + 5 * 60 * 1000; // OTP expires in 5 minutes
     user.verify_mobile = false;
-     
+
     await user.save();
 
+    // 📤 Send OTP via SMS
     await sendSMS(mobile, otp);
-    console.log("OTP:", otp);
+    console.log("OTP:", otp); // Keep this for debugging purposes only (remove in production)
 
-    return res.json({
+    // ✅ Return success response
+    return res.status(200).json({
       error: false,
       message: "OTP sent successfully",
     });
 
   } catch (err) {
-    res.json({ error: true, message: "Server error" });
+    console.error("Error in OTP login:", err); // Log the detailed error
+    return res.status(500).json({ error: true, message: "Server error", details: err.message });
   }
 }
 
