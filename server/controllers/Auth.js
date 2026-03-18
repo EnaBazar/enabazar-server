@@ -103,9 +103,9 @@ const otplogin = async (req, res) => {
     }
 
      // 3️⃣ ✅ Mobile verification check
-      if (!user.verify_mobile) {
+      if (!user.verify_admin) {
          return response.status(403).json({
-            message: "আপনার মোবাইল নাম্বারটা রেজিট্রেশন করা নাই",
+            message: "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে",
             error: true,
             success: false,
             verifyRequired: true   // 👉 frontend বুঝতে পারবে
