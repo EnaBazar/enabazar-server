@@ -38,12 +38,13 @@ newMobile: {
   default: null,
   trim: true,
 },
+
     verify_mobile: {
       type: Boolean,
       default: false,
     },
 
-    verify_email: {
+    verify_admin: {
       type: Boolean,
       default: false,
     },

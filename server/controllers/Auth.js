@@ -89,19 +89,28 @@ const register = async (req, res) => {
 const otplogin = async (req, res) => {
 
   try {
-    const { mobile } = req.body;
+    const { mobile ,name } = req.body;
 
     if (!mobile) {
       return res.json({ error: true, message: "Mobile required" });
     }
 
     // 🔍 user check
-    const user = await usermodel.findOne({ mobile });
+    const user = await usermodel.findOne({ mobile,name });
 
     if (!user) {
       return res.json({ error: true, message: "User not found" });
     }
 
+     // 3️⃣ ✅ Mobile verification check
+      if (!user.verify_mobile) {
+         return response.status(403).json({
+            message: "আপনার মোবাইল নাম্বারটা রেজিট্রেশন করা নাই",
+            error: true,
+            success: false,
+            verifyRequired: true   // 👉 frontend বুঝতে পারবে
+         });
+      }
     // 🔥 generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
