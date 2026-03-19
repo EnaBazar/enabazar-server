@@ -22,7 +22,7 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // OTP ইনপুট পরিবর্তন এবং অটো ফোকাস
+  // OTP পরিবর্তন এবং পরবর্তী ইনপুটে ফোকাস
   const handleOtpChange = (e, index) => {
     let value = e.target.value.replace(/[^0-9]/g, ""); // শুধু সংখ্যা
 
