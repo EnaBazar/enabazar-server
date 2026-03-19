@@ -13,16 +13,19 @@ const UserDetails = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [total, setTotal] = useState(0);
-
   const timerRef = useRef(null);
 
   const fetchUsers = async () => {
-    const res = await fetchDataFromApi(
-      `/auth/search-user?q=${encodeURIComponent(search)}&page=${page + 1}&limit=${rowsPerPage}}`
-    );
-    if (res?.success) {
-      setUsers(res.users);
-      setTotal(res.total);
+    try {
+      const res = await fetchDataFromApi(
+        `/user/search-user?q=${encodeURIComponent(search)}&page=${page + 1}&limit=${rowsPerPage}&verify=${verifyFilter}`
+      );
+      if (res?.success) {
+        setUsers(res.users);
+        setTotal(res.total);
+      }
+    } catch {
+      openAlertBox("error", "Failed to fetch users");
     }
   };
 
@@ -31,7 +34,8 @@ const UserDetails = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearch(value);
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if(timerRef.current) clearTimeout(timerRef.current);
+
     timerRef.current = setTimeout(() => {
       setPage(0);
       fetchUsers();
@@ -39,7 +43,7 @@ const UserDetails = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
+    if(!window.confirm("Do you want to delete this user?")) return;
     try {
       await deleteData(`/auth/${id}`);
       openAlertBox("success", "User deleted");
@@ -49,9 +53,30 @@ const UserDetails = () => {
     }
   };
 
+  // City Stats
+  const cityStats = users.reduce((acc, u) => {
+    u.address_details?.forEach(addr => {
+      if(addr.city) acc[addr.city] = (acc[addr.city] || 0) + 1;
+    });
+    return acc;
+  }, {});
+
   return (
-    <div className="p-4">
-      <div className="flex flex-col md:flex-row justify-between mb-4 gap-2">
+    <div className="p-4 space-y-4">
+
+      {/* City Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Object.entries(cityStats).map(([city, count]) => (
+          <div key={city} className="bg-white shadow rounded p-3 text-center">
+            <p className="text-sm text-gray-500">City</p>
+            <p className="font-bold text-[#ff5252] text-lg">{city}</p>
+            <p className="text-xs mt-1">Users: {count}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Search + Filter */}
+      <div className="flex flex-col md:flex-row gap-2 justify-between items-center">
         <input
           type="text"
           placeholder="Search Name or Mobile (বাংলা / English)"
@@ -59,7 +84,6 @@ const UserDetails = () => {
           onChange={handleSearchChange}
           className="border rounded px-2 py-1 w-full md:w-64"
         />
-
         <select
           value={verifyFilter}
           onChange={(e) => setVerifyFilter(e.target.value)}
@@ -71,6 +95,7 @@ const UserDetails = () => {
         </select>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full border text-sm">
           <thead className="bg-gray-100">
@@ -83,7 +108,7 @@ const UserDetails = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {users.map(u => (
               <tr key={u._id} className="border-b hover:bg-gray-50">
                 <td className="p-2">{u.name}</td>
                 <td className="p-2">{u.mobile}</td>
@@ -107,8 +132,9 @@ const UserDetails = () => {
         </table>
       </div>
 
+      {/* Pagination */}
       <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[5,10,25]}
         component="div"
         count={total}
         rowsPerPage={rowsPerPage}
@@ -121,3 +147,4 @@ const UserDetails = () => {
 };
 
 export default UserDetails;
+

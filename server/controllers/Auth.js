@@ -149,29 +149,7 @@ const otplogin = async (req, res) => {
   }
 }
 
-// GET /auth/search-user?q=...&page=1&limit=10&verify=all
-const searchuser = async (req, res) => {
-  const { q = "", page = 1, limit = 10, verify = "all" } = req.query;
 
-  const filter = {
-    $or: [
-      { name: { $regex: q, $options: "i" } },
-      { mobile: { $regex: q, $options: "i" } }
-    ]
-  };
-
-  if (verify === "verified") filter.verify_mobile = true;
-  else if (verify === "unverified") filter.verify_mobile = false;
-
-  const users = await usermodel
-    .find(filter)
-    .skip((page - 1) * limit)
-    .limit(parseInt(limit));
-
-  const total = await usermodel.countDocuments(filter);
-
-  res.json({ success: true, users, total });
-};
 
 export async function verifyMobileOtp(req, res) {
   try {
@@ -1497,4 +1475,4 @@ export async function deletemultipleUsers(request, response) {
                     success: true
                 })
             }
-export {searchuser,register,otplogin, VerifyEmail,registerPanel}
+export {register,otplogin, VerifyEmail,registerPanel}
