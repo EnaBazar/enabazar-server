@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
 
-
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
   const mobile = context?.otpData?.mobile || "";
@@ -24,59 +23,48 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // ✅ FIXED INPUT HANDLER
+  // ✅ OTP input handler
   const handleOtpChange = (e) => {
-    let value = e.target.value;
-
-    // শুধু number রাখবে
-    value = value.replace(/[^0-9]/g, "");
-
-    // max 6 digit
-    if (value.length <= 6) {
-      setOtp(value);
-    }
+    let value = e.target.value.replace(/[^0-9]/g, "");
+    if (value.length <= 6) setOtp(value);
   };
 
   // ✅ Paste support
   const handlePaste = (e) => {
-    const pasteData = e.clipboardData.getData("Text");
-    const cleaned = pasteData.replace(/[^0-9]/g, "").slice(0, 6);
+    const cleaned = e.clipboardData.getData("Text").replace(/[^0-9]/g, "").slice(0, 6);
     setOtp(cleaned);
     e.preventDefault();
   };
 
+  // ✅ Clipboard API auto-fill for web
+  useEffect(() => {
+    if (!context?.openVerifyOtpPanel) return;
+    const interval = setInterval(async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (/^\d{6}$/.test(text) && text !== otp) {
+          setOtp(text);
+        }
+      } catch (err) {
+        // permission denied or unsupported, ignore
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [context?.openVerifyOtpPanel, otp]);
+
   // OTP Verify
   const handleVerify = async () => {
-    if (!mobile) {
-      context.openAlertBox("error", "Mobile number missing!");
-      return;
-    }
-
-    if (otp.length !== 6) {
-      context.openAlertBox("error", "Please enter 6-digit OTP");
-      return;
-    }
+    if (!mobile) return context.openAlertBox("error", "Mobile number missing!");
+    if (otp.length !== 6) return context.openAlertBox("error", "Please enter 6-digit OTP");
 
     try {
       setIsLoading(true);
-
-      const payload = {
-        mobile: String(mobile),
-        otp: String(otp),
-      };
-
-      const res = await postData("/auth/verify-otp", payload);
-
+      const res = await postData("/auth/verify-otp", { mobile: String(mobile), otp: String(otp) });
       setIsLoading(false);
 
       if (!res?.error) {
+        context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
 
-        context.openAlertBox(
-          "success",
-          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
-        );
-
-        // Auto login
         if (res?.data?.accesstoken) {
           localStorage.setItem("accesstoken", res.data.accesstoken);
           localStorage.setItem("refreshtoken", res.data.refreshtoken);
@@ -88,14 +76,10 @@ const VerifyOtpPanel = () => {
         }
 
         context.closeOtpPanel();
-window.location.href = "/dashboard";
+        window.location.href = "/dashboard";
       } else {
-        context.openAlertBox(
-          "error",
-          res?.message || "OTP verification failed"
-        );
+        context.openAlertBox("error", res?.message || "OTP verification failed");
       }
-
     } catch (error) {
       setIsLoading(false);
       context.openAlertBox("error", "Server error. Please try again.");
@@ -105,14 +89,9 @@ window.location.href = "/dashboard";
   // Resend OTP
   const handleResend = async () => {
     if (!mobile) return;
-
     try {
       setIsLoading(true);
-
-      const res = await postData("/auth/resend-otp", {
-        mobile: String(mobile),
-      });
-
+      const res = await postData("/auth/resend-otp", { mobile: String(mobile) });
       setIsLoading(false);
 
       if (!res?.error) {
@@ -120,10 +99,7 @@ window.location.href = "/dashboard";
         setSeconds(60);
         setCanResend(false);
       } else {
-        context.openAlertBox(
-          "error",
-          res?.message || "Failed to resend OTP"
-        );
+        context.openAlertBox("error", res?.message || "Failed to resend OTP");
       }
     } catch (error) {
       setIsLoading(false);
@@ -135,85 +111,89 @@ window.location.href = "/dashboard";
 
   return (
     <div
-      style={{
-        padding: 20,
-        maxWidth: 400,
-        margin: "auto",
-        background: "#fff",
-        borderRadius: 8,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-      }}
+      className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      onClick={context.closeOtpPanel} // বাইরে click করলে close হবে
     >
-      <h3 style={{ textAlign: "center" }}>
-        Verify Your OTP {mobile && `for ${mobile}`}
-      </h3>
-
-      <input
-        type="text"
-        inputMode="numeric" 
-  autoComplete="one-time-code"
-        
-        // ✅ mobile keyboard fix
-        pattern="[0-9]*"
-        value={otp}
-        onChange={handleOtpChange}
-        onPaste={handlePaste}
-        maxLength={6}
-        placeholder="Enter 6 digit OTP"
-        autoFocus
+      <div
+        onClick={(e) => e.stopPropagation()} // ভিতরে click করলে close হবে না
         style={{
-          width: "100%",
-          padding: "10px",
-          marginTop: "15px",
-          marginBottom: "15px",
-          fontSize: "16px",
-          letterSpacing: "5px",
-          textAlign: "center",
-        }}
-      />
-
-      <button
-        onClick={handleVerify}
-        disabled={isLoading}
-        style={{
-          width: "100%",
-          padding: "10px",
-          background: "#ff5252",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
+          padding: 20,
+          maxWidth: 400,
+          width: "90%",
+          background: "#fff",
+          borderRadius: 8,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
         }}
       >
-        {isLoading ? "Verifying..." : "Verify"}
-      </button>
+        <h3 style={{ textAlign: "center" }}>
+          Verify OTP {mobile && `for ${mobile}`}
+        </h3>
 
-      <div style={{ textAlign: "center", marginTop: "15px" }}>
-        {canResend ? (
-          <button
-            onClick={handleResend}
-            disabled={isLoading}
-            style={{ border: "none", background: "none", color: "blue" }}
-          >
-            Resend OTP
-          </button>
-        ) : (
-          <p>Resend in {seconds}s</p>
-        )}
+        <input
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code" // Mobile auto-fill
+          pattern="[0-9]*"
+          value={otp}
+          onChange={handleOtpChange}
+          onPaste={handlePaste}
+          maxLength={6}
+          placeholder="Enter 6 digit OTP"
+          autoFocus
+          style={{
+            width: "100%",
+            padding: "10px",
+            marginTop: "15px",
+            marginBottom: "15px",
+            fontSize: "16px",
+            letterSpacing: "5px",
+            textAlign: "center",
+          }}
+        />
+
+        <button
+          onClick={handleVerify}
+          disabled={isLoading}
+          style={{
+            width: "100%",
+            padding: "10px",
+            background: "#ff5252",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          {isLoading ? "Verifying..." : "Verify"}
+        </button>
+
+        <div style={{ textAlign: "center", marginTop: "15px" }}>
+          {canResend ? (
+            <button
+              onClick={handleResend}
+              disabled={isLoading}
+              style={{ border: "none", background: "none", color: "blue" }}
+            >
+              Resend OTP
+            </button>
+          ) : (
+            <p>Resend in {seconds}s</p>
+          )}
+        </div>
+
+        <button
+          onClick={context.closeOtpPanel}
+          style={{
+            marginTop: "10px",
+            width: "100%",
+            background: "gray",
+            color: "#fff",
+            border: "none",
+            padding: "8px",
+          }}
+        >
+          Cancel
+        </button>
       </div>
-
-      <button
-        onClick={context.closeOtpPanel}
-        style={{
-          marginTop: "10px",
-          width: "100%",
-          background: "gray",
-          color: "#fff",
-          border: "none",
-          padding: "8px",
-        }}
-      >
-        Cancel
-      </button>
     </div>
   );
 };
