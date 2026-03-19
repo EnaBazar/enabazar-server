@@ -145,7 +145,7 @@ window.location.href = "/dashboard";
       }}
     >
       <h3 style={{ textAlign: "center" }}>
-        Verify OTP {mobile && `for ${mobile}`}
+        Verify Your OTP {mobile && `for ${mobile}`}
       </h3>
 
       <input
