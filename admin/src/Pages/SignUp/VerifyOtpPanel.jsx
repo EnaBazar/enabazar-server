@@ -46,36 +46,37 @@ const VerifyOtpPanel = () => {
   };
 
   // OTP Verify
-  const handleVerify = async () => {
-    if (!mobile) {
-      context.openAlertBox("error", "Mobile number missing!");
-      return;
-    }
+const handleVerify = async () => {
+  if (!mobile) {
+    context.openAlertBox("error", "Mobile number missing!");
+    return;
+  }
 
-    if (otp.length !== 6) {
-      context.openAlertBox("error", "Please enter 6-digit OTP");
-      return;
-    }
+  if (otp.length !== 6) {
+    context.openAlertBox("error", "Please enter 6-digit OTP");
+    return;
+  }
 
-    try {
-      setIsLoading(true);
+  try {
+    setIsLoading(true);
 
-      const payload = {
-        mobile: String(mobile),
-        otp: String(otp),
-      };
+    const payload = {
+      mobile: String(mobile),
+      otp: String(otp),
+    };
 
-      const res = await postData("/auth/verify-otp", payload);
+    const res = await postData("/auth/verify-otp", payload);
 
-      setIsLoading(false);
+    setIsLoading(false);
 
-      if (!res?.error) {
+    if (!res?.error) {
+      context.openAlertBox(
+        "success",
+        "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+      );
 
-        context.openAlertBox(
-          "success",
-          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
-        );
-
+      // 🔒 Admin check happens only during auto-login
+      if (res?.data?.user?.verify_admin) {
         // Auto login
         if (res?.data?.accesstoken) {
           localStorage.setItem("accesstoken", res.data.accesstoken);
@@ -85,22 +86,34 @@ const VerifyOtpPanel = () => {
 
           context.setIsLogin(true);
           context.setUserData(res.data.user);
-        }
 
-        context.closeOtpPanel();
-window.location.href = "/dashboard";
+          context.closeOtpPanel();
+          window.location.href = "/dashboard";
+        }
       } else {
+        // User not allowed by admin → redirect to login page
         context.openAlertBox(
           "error",
-          res?.message || "OTP verification failed"
+          "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে। লগইন পেজে ফিরে যাচ্ছেন।"
         );
+        context.closeOtpPanel();
+        window.location.href = "/login"; // redirect to login
       }
 
-    } catch (error) {
-      setIsLoading(false);
-      context.openAlertBox("error", "Server error. Please try again.");
+    } else {
+      context.openAlertBox(
+        "error",
+        res?.message || "OTP verification failed"
+      );
     }
-  };
+
+  } catch (error) {
+    setIsLoading(false);
+    context.openAlertBox("error", "Server error. Please try again.");
+  }
+};
+
+
 
   // Resend OTP
   const handleResend = async () => {
