@@ -52,6 +52,14 @@ const register = async (req, res) => {
       await usermodel.deleteOne({ _id: exist._id });
     }
 
+    // 🔍 Check if user is allowed by admin
+    if (exist && exist.verify_admin === false) {
+      return res.status(403).json({
+        error: true,
+        message: "আপনাকে প্রবেশের জন্য অনুমতি নিতে হবে",
+      });
+    }
+
     // 🔐 password hash
     const salt = await bcryptjs.genSalt(10);
     const hashPassword = await bcryptjs.hash(password, salt);
