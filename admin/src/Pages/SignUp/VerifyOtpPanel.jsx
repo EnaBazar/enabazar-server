@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
+
 
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
   const mobile = context?.otpData?.mobile || "";
+
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const inputRefs = useRef([]);
 
   // Countdown Timer
   useEffect(() => {
     if (!context?.openVerifyOtpPanel) return;
+
     if (seconds > 0) {
       const timer = setTimeout(() => setSeconds((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
@@ -22,23 +24,20 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // OTP পরিবর্তন এবং পরবর্তী ইনপুটে ফোকাস
-  const handleOtpChange = (e, index) => {
-    let value = e.target.value.replace(/[^0-9]/g, ""); // শুধু সংখ্যা
+  // ✅ FIXED INPUT HANDLER
+  const handleOtpChange = (e) => {
+    let value = e.target.value;
 
-    if (value.length <= 1) {
-      const newOtp = otp.split("");
-      newOtp[index] = value; // OTP আপডেট
-      setOtp(newOtp.join(""));
+    // শুধু number রাখবে
+    value = value.replace(/[^0-9]/g, "");
 
-      // পরবর্তী ইনপুট ফিল্ডে ফোকাস চলে যাবে
-      if (value && index < 5) {
-        inputRefs.current[index + 1]?.focus();
-      }
+    // max 6 digit
+    if (value.length <= 6) {
+      setOtp(value);
     }
   };
 
-  // পেস্ট করার ফিচার
+  // ✅ Paste support
   const handlePaste = (e) => {
     const pasteData = e.clipboardData.getData("Text");
     const cleaned = pasteData.replace(/[^0-9]/g, "").slice(0, 6);
@@ -46,7 +45,7 @@ const VerifyOtpPanel = () => {
     e.preventDefault();
   };
 
-  // OTP ভেরিফাই করার ফাংশন
+  // OTP Verify
   const handleVerify = async () => {
     if (!mobile) {
       context.openAlertBox("error", "Mobile number missing!");
@@ -67,10 +66,15 @@ const VerifyOtpPanel = () => {
       };
 
       const res = await postData("/auth/verify-otp", payload);
+
       setIsLoading(false);
 
       if (!res?.error) {
-        context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
+
+        context.openAlertBox(
+          "success",
+          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+        );
 
         // Auto login
         if (res?.data?.accesstoken) {
@@ -84,17 +88,21 @@ const VerifyOtpPanel = () => {
         }
 
         context.closeOtpPanel();
-        window.location.href = "/dashboard";
+window.location.href = "/dashboard";
       } else {
-        context.openAlertBox("error", res?.message || "OTP verification failed");
+        context.openAlertBox(
+          "error",
+          res?.message || "OTP verification failed"
+        );
       }
+
     } catch (error) {
       setIsLoading(false);
       context.openAlertBox("error", "Server error. Please try again.");
     }
   };
 
-  // OTP রিসেন্ড করার ফাংশন
+  // Resend OTP
   const handleResend = async () => {
     if (!mobile) return;
 
@@ -112,7 +120,10 @@ const VerifyOtpPanel = () => {
         setSeconds(60);
         setCanResend(false);
       } else {
-        context.openAlertBox("error", res?.message || "Failed to resend OTP");
+        context.openAlertBox(
+          "error",
+          res?.message || "Failed to resend OTP"
+        );
       }
     } catch (error) {
       setIsLoading(false);
@@ -137,32 +148,29 @@ const VerifyOtpPanel = () => {
         Verify OTP {mobile && `for ${mobile}`}
       </h3>
 
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        {[...Array(6)].map((_, index) => (
-          <input
-            key={index}
-            ref={(el) => (inputRefs.current[index] = el)}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={otp[index] || ""}
-            onChange={(e) => handleOtpChange(e, index)}
-            onPaste={handlePaste}
-            maxLength={1}
-            placeholder="0"
-            autoFocus={index === 0}
-            style={{
-              width: "30px",
-              padding: "10px",
-              marginTop: "15px",
-              marginBottom: "15px",
-              fontSize: "16px",
-              letterSpacing: "5px",
-              textAlign: "center",
-            }}
-          />
-        ))}
-      </div>
+      <input
+        type="text"
+        inputMode="numeric" 
+  autoComplete="one-time-code"
+        
+        // ✅ mobile keyboard fix
+        pattern="[0-9]*"
+        value={otp}
+        onChange={handleOtpChange}
+        onPaste={handlePaste}
+        maxLength={6}
+        placeholder="Enter 6 digit OTP"
+        autoFocus
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "15px",
+          marginBottom: "15px",
+          fontSize: "16px",
+          letterSpacing: "5px",
+          textAlign: "center",
+        }}
+      />
 
       <button
         onClick={handleVerify}
