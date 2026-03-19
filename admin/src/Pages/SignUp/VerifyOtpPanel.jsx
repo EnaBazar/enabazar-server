@@ -22,27 +22,24 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // ✅ WebOTP API auto-fill
+  // WebOTP API auto-fill (Android Chrome)
   useEffect(() => {
+    if (!context?.openVerifyOtpPanel) return;
     if (!("OTPCredential" in window)) return;
 
-    let abortController = new AbortController();
+    const abortCtrl = new AbortController();
 
     navigator.credentials.get({
       otp: { transport: ["sms"] },
-      signal: abortController.signal
-    }).then((otpCredential) => {
-      if (otpCredential?.code) {
-        setOtp(otpCredential.code);
-        // auto-verify
-        handleVerify(otpCredential.code);
+      signal: abortCtrl.signal,
+    }).then((otpCred) => {
+      if (otpCred?.code) {
+        setOtp(otpCred.code);
+        handleVerify(otpCred.code); // auto-submit
       }
-    }).catch((err) => {
-      // ignore errors if user cancels or not supported
-      console.log("WebOTP not available", err);
-    });
+    }).catch(err => console.log("OTP autofill not available:", err));
 
-    return () => abortController.abort();
+    return () => abortCtrl.abort();
   }, [context?.openVerifyOtpPanel]);
 
   const handleOtpChange = (e) => {
@@ -56,18 +53,19 @@ const VerifyOtpPanel = () => {
     e.preventDefault();
   };
 
-  const handleVerify = async (autoOtp) => {
-    const otpToSend = autoOtp || otp;
+  const handleVerify = async (otpValue) => {
+    const otpToVerify = otpValue || otp;
     if (!mobile) return context.openAlertBox("error", "Mobile number missing!");
-    if (otpToSend.length !== 6) return context.openAlertBox("error", "Please enter 6-digit OTP");
+    if (otpToVerify.length !== 6) return context.openAlertBox("error", "Please enter 6-digit OTP");
 
     try {
       setIsLoading(true);
-      const res = await postData("/auth/verify-otp", { mobile: String(mobile), otp: otpToSend });
+      const res = await postData("/auth/verify-otp", { mobile: String(mobile), otp: otpToVerify });
       setIsLoading(false);
 
       if (!res?.error) {
         context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
+
         if (res?.data?.accesstoken) {
           localStorage.setItem("accesstoken", res.data.accesstoken);
           localStorage.setItem("refreshtoken", res.data.refreshtoken);
@@ -77,6 +75,7 @@ const VerifyOtpPanel = () => {
           context.setIsLogin(true);
           context.setUserData(res.data.user);
         }
+
         context.closeOtpPanel();
         window.location.href = "/dashboard";
       } else {
