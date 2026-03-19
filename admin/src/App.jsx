@@ -297,20 +297,25 @@ function App() {
       <Toaster />
 
       {/* Verify OTP Panel */}
-      <Dialog
-        open={openVerifyOtpPanel}
-        onClose={toggleVerifyOtp(false)}
-        PaperProps={{
-          sx: {
-            width: "90%",
-            maxWidth: 380,
-            borderRadius: "16px",
-            backdropFilter: "blur(6px)",
-            background: "rgba(255, 255, 255, 0.2)",
-            boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
-          },
-        }}
-      >
+ <Dialog
+  open={openVerifyOtpPanel}
+  onClose={(event, reason) => {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") {
+      return; // ❌ বাইরে click বা ESC এ close হবে না
+    }
+    closeOtpPanel(); // ✅ শুধু manual close
+  }}
+  PaperProps={{
+    sx: {
+      width: "90%",
+      maxWidth: 380,
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)",
+      background: "rgba(255, 255, 255, 0.2)",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
         {/* Header */}
         <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
           <IoMdClose
