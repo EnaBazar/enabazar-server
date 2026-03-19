@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { MyContext } from "../../App";
 import { postData } from "../../utils/api";
 
+
 const VerifyOtpPanel = () => {
   const context = useContext(MyContext);
   const mobile = context?.otpData?.mobile || "";
@@ -23,50 +24,59 @@ const VerifyOtpPanel = () => {
     }
   }, [seconds, context?.openVerifyOtpPanel]);
 
-  // OTP auto-fill support (WebOTP API for Android Chrome)
-  useEffect(() => {
-    if (!("OTPCredential" in window)) return;
-
-    const ac = new AbortController();
-    navigator.credentials
-      .get({ otp: { transport: ["sms"] }, signal: ac.signal })
-      .then((otpCredential) => {
-        if (otpCredential?.code) {
-          setOtp(otpCredential.code);
-          handleVerify(); // auto-submit OTP
-        }
-      })
-      .catch((err) => console.log("OTP autofill not available:", err));
-
-    return () => ac.abort();
-  }, [context?.openVerifyOtpPanel]);
-
-  // Input handler
+  // ✅ FIXED INPUT HANDLER
   const handleOtpChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 6);
-    setOtp(value);
+    let value = e.target.value;
+
+    // শুধু number রাখবে
+    value = value.replace(/[^0-9]/g, "");
+
+    // max 6 digit
+    if (value.length <= 6) {
+      setOtp(value);
+    }
   };
 
-  // Paste handler
+  // ✅ Paste support
   const handlePaste = (e) => {
-    const pasteData = e.clipboardData.getData("Text").replace(/[^0-9]/g, "").slice(0, 6);
-    setOtp(pasteData);
+    const pasteData = e.clipboardData.getData("Text");
+    const cleaned = pasteData.replace(/[^0-9]/g, "").slice(0, 6);
+    setOtp(cleaned);
     e.preventDefault();
   };
 
   // OTP Verify
   const handleVerify = async () => {
-    if (!mobile) return context.openAlertBox("error", "Mobile number missing!");
-    if (otp.length !== 6) return context.openAlertBox("error", "Please enter 6-digit OTP");
+    if (!mobile) {
+      context.openAlertBox("error", "Mobile number missing!");
+      return;
+    }
+
+    if (otp.length !== 6) {
+      context.openAlertBox("error", "Please enter 6-digit OTP");
+      return;
+    }
 
     try {
       setIsLoading(true);
-      const res = await postData("/auth/verify-otp", { mobile: String(mobile), otp: String(otp) });
+
+      const payload = {
+        mobile: String(mobile),
+        otp: String(otp),
+      };
+
+      const res = await postData("/auth/verify-otp", payload);
+
       setIsLoading(false);
 
       if (!res?.error) {
-        context.openAlertBox("success", "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!");
 
+        context.openAlertBox(
+          "success",
+          "আপনার নাম্বার সফলভাবে ভেরিফাই করা হয়েছে!"
+        );
+
+        // Auto login
         if (res?.data?.accesstoken) {
           localStorage.setItem("accesstoken", res.data.accesstoken);
           localStorage.setItem("refreshtoken", res.data.refreshtoken);
@@ -78,11 +88,15 @@ const VerifyOtpPanel = () => {
         }
 
         context.closeOtpPanel();
-        window.location.href = "/dashboard";
+window.location.href = "/dashboard";
       } else {
-        context.openAlertBox("error", res?.message || "OTP verification failed");
+        context.openAlertBox(
+          "error",
+          res?.message || "OTP verification failed"
+        );
       }
-    } catch (err) {
+
+    } catch (error) {
       setIsLoading(false);
       context.openAlertBox("error", "Server error. Please try again.");
     }
@@ -94,7 +108,11 @@ const VerifyOtpPanel = () => {
 
     try {
       setIsLoading(true);
-      const res = await postData("/auth/resend-otp", { mobile: String(mobile) });
+
+      const res = await postData("/auth/resend-otp", {
+        mobile: String(mobile),
+      });
+
       setIsLoading(false);
 
       if (!res?.error) {
@@ -102,9 +120,12 @@ const VerifyOtpPanel = () => {
         setSeconds(60);
         setCanResend(false);
       } else {
-        context.openAlertBox("error", res?.message || "Failed to resend OTP");
+        context.openAlertBox(
+          "error",
+          res?.message || "Failed to resend OTP"
+        );
       }
-    } catch (err) {
+    } catch (error) {
       setIsLoading(false);
       context.openAlertBox("error", "Server error. Please try again.");
     }
@@ -123,12 +144,16 @@ const VerifyOtpPanel = () => {
         boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
       }}
     >
-      <h3 style={{ textAlign: "center" }}>Verify OTP {mobile && `for ${mobile}`}</h3>
+      <h3 style={{ textAlign: "center" }}>
+        Verify Your OTP {mobile && `for ${mobile}`}
+      </h3>
 
       <input
         type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
+        inputMode="numeric" 
+  autoComplete="one-time-code"
+        
+        // ✅ mobile keyboard fix
         pattern="[0-9]*"
         value={otp}
         onChange={handleOtpChange}
