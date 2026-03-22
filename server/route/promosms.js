@@ -1,16 +1,20 @@
 // backend/routes/promosms.js
 import express from "express";
+import fetch from "node-fetch";
 
 const smsRouter = express.Router();
 
-// POST /api/sendBulkSMS
+// POST /promosms/sendBulkSMS
 // body: { mobiles: [Array of numbers], message: "Custom message" }
 smsRouter.post("/sendBulkSMS", async (req, res) => {
   try {
     const { mobiles, message } = req.body;
 
+    // Validation
     if (!mobiles || !Array.isArray(mobiles) || mobiles.length === 0) {
-      return res.status(400).json({ success: false, message: "No mobile numbers provided." });
+      return res
+        .status(400)
+        .json({ success: false, message: "No mobile numbers provided." });
     }
 
     if (!message || message.trim() === "") {
@@ -25,30 +29,46 @@ smsRouter.post("/sendBulkSMS", async (req, res) => {
     for (let mobile of mobiles) {
       // Format number for Bangladesh (+88)
       const formattedNumber = mobile.startsWith("0") ? "+88" + mobile : mobile;
-      const url = `https://bulksmsdhaka.net/api/sendtext?apikey=${apiKey}&callerID=${callerID}&number=${formattedNumber}&message=${encodeURIComponent(message)}`;
+
+      const url = `https://bulksmsdhaka.net/api/sendtext?apikey=${apiKey}&callerID=${callerID}&number=${formattedNumber}&message=${encodeURIComponent(
+        message
+      )}`;
 
       try {
         const response = await fetch(url);
-        const data = await response.json(); // API returns JSON
-        results.push({ mobile, success: data.success || false, response: data });
+
+        // Try to parse JSON; fallback to raw text
+        let data;
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { success: text.toLowerCase().includes("success"), raw: text };
+        }
+
+        const success = data.success === true || data.success === "true";
+        results.push({ mobile, success, response: data });
+
+        console.log(`SMS to ${mobile}:`, success ? "Success" : "Failed", data);
       } catch (err) {
         results.push({ mobile, success: false, response: err.message });
+        console.error(`Error sending SMS to ${mobile}:`, err.message);
       }
     }
 
-    const successCount = results.filter(r => r.success).length;
+    const successCount = results.filter((r) => r.success).length;
 
     return res.json({
       success: true,
       message: `SMS sending complete. Success: ${successCount}/${mobiles.length}`,
-      details: results
+      details: results,
     });
-
   } catch (error) {
-    console.error("SMS sending error:", error);
-    return res.status(500).json({ success: false, message: "Server error while sending SMS." });
+    console.error("SMS sending server error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error while sending SMS." });
   }
 });
-
 
 export default smsRouter;

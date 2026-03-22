@@ -92,48 +92,84 @@ const UserDetails = () => {
   };
 
   // Send custom SMS
-  const sendCustomSMS = async () => {
-    if (!customMessage.trim()) {
-      openAlertBox("error", "Please enter a message before sending.");
-      return;
-    }
-    if (selectedCities.length === 0) {
-      openAlertBox("error", "Please select at least one city.");
-      return;
-    }
+// Send custom SMS
+const sendCustomSMS = async () => {
+  if (!customMessage.trim()) {
+    openAlertBox("error", "Please enter a message before sending.");
+    return;
+  }
+  if (selectedCities.length === 0) {
+    openAlertBox("error", "Please select at least one city.");
+    return;
+  }
 
-    const mobiles = [];
-    filteredUsers.forEach((user) => {
-      user.address_details?.forEach((addr) => {
-        if (selectedCities.includes(addr.city) && user.mobile) {
-          mobiles.push(user.mobile);
-        }
-      });
+  // Collect mobiles from selected cities
+  const mobiles = [];
+  filteredUsers.forEach((user) => {
+    user.address_details?.forEach((addr) => {
+      if (selectedCities.includes(addr.city) && user.mobile) {
+        mobiles.push(user.mobile);
+      }
+    });
+  });
+
+  if (mobiles.length === 0) {
+    openAlertBox("error", "No users found in the selected city/cities.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/promosms/sendBulkSMS", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobiles, message: customMessage }),
     });
 
-    if (mobiles.length === 0) {
-      openAlertBox("error", "No users found in the selected city/cities.");
+    // Frontend logging for debugging
+    let data;
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error("Failed to parse backend response:", err);
+      const text = await res.text();
+      console.log("Raw response from server:", text);
+      openAlertBox("error", "Unable to parse SMS server response.");
       return;
     }
 
-    try {
-      const res = await fetch("/promosms/sendBulkSMS", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobiles, message: customMessage }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        openAlertBox("success", data.message);
-        setCustomMessage("");
+    console.log("SMS API response:", data);
+
+    if (data.success) {
+      // Show summary of success/failure per mobile if available
+      if (data.details && Array.isArray(data.details)) {
+        const failedNumbers = data.details
+          .filter((r) => !r.success)
+          .map((r) => r.mobile);
+
+        if (failedNumbers.length > 0) {
+          openAlertBox(
+            "warning",
+            `SMS sent but failed for: ${failedNumbers.join(", ")}`
+          );
+        } else {
+          openAlertBox("success", data.message || "SMS sent successfully!");
+        }
       } else {
-        openAlertBox("error", data.message || "Failed to send SMS.");
+        openAlertBox("success", data.message || "SMS sent successfully!");
       }
-    } catch (error) {
-      console.error(error);
-      openAlertBox("error", "Unable to send SMS. Please try again later.");
+
+      setCustomMessage("");
+    } else {
+      openAlertBox("error", data.message || "Failed to send SMS.");
     }
-  };
+  } catch (error) {
+    console.error("Fetch error while sending SMS:", error);
+    openAlertBox(
+      "error",
+      "Unable to send SMS. Please check server or network."
+    );
+  }
+};
 
   // Highlight search match
   const highlightMatch = (text) => {
