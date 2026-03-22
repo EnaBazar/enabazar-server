@@ -12,14 +12,21 @@ const UserDetails = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch Users
+  const [selectedCities, setSelectedCities] = useState([]);
+  const [customMessage, setCustomMessage] = useState("");
+
+  // Fetch users
   const getUsers = async () => {
     try {
+      setLoading(true);
       const res = await fetchDataFromApi("/auth/getAllUser");
-      if (res?.success) setUsers(res.users);
+      if (res?.success) setUsers(res.users || []);
     } catch (error) {
       openAlertBox("error", "Users fetch করতে সমস্যা হয়েছে");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -27,7 +34,7 @@ const UserDetails = () => {
     getUsers();
   }, []);
 
-  // Optimistic delete
+  // Delete user
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -49,123 +56,195 @@ const UserDetails = () => {
 
   // Filtered users
   const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.name?.toLowerCase().includes(search.toLowerCase()) ||
-        user.email?.toLowerCase().includes(search.toLowerCase()) ||
-        user.mobile?.includes(search)
-    );
+    return users.filter((user) => {
+      const name = user.name || "";
+      const email = user.email || "";
+      const mobile = user.mobile || "";
+      const addrString = user.address_details?.map(a => `${a.city} ${a.upazila}`).join(" ") || "";
+
+      const term = search.toLowerCase();
+      return (
+        name.toLowerCase().includes(term) ||
+        email.toLowerCase().includes(term) ||
+        mobile.includes(term) ||
+        addrString.toLowerCase().includes(term)
+      );
+    });
   }, [users, search]);
 
   // City statistics
   const cityStats = useMemo(() => {
-    const cityCount = {};
-    users.forEach((user) => {
-      const city = user.address_details?.[0]?.city;
-      if (city) cityCount[city] = (cityCount[city] || 0) + 1;
+    const stats = {};
+    filteredUsers.forEach((user) => {
+      user.address_details?.forEach((addr) => {
+        if (!stats[addr.city]) stats[addr.city] = new Set();
+        stats[addr.city].add(addr.upazila);
+      });
     });
-    return cityCount;
-  }, [users]);
+    return stats; // { city: Set of upazilas }
+  }, [filteredUsers]);
+
+  // Handle city checkbox
+  const toggleCitySelection = (city) => {
+    setSelectedCities(prev =>
+      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
+    );
+  };
+
+  // Send custom SMS
+  const sendCustomSMS = async () => {
+    if (!customMessage.trim()) {
+      openAlertBox("error", "Please enter a message before sending.");
+      return;
+    }
+    if (selectedCities.length === 0) {
+      openAlertBox("error", "Please select at least one city.");
+      return;
+    }
+
+    const mobiles = [];
+    filteredUsers.forEach((user) => {
+      user.address_details?.forEach((addr) => {
+        if (selectedCities.includes(addr.city) && user.mobile) {
+          mobiles.push(user.mobile);
+        }
+      });
+    });
+
+    if (mobiles.length === 0) {
+      openAlertBox("error", "No users found in the selected city/cities.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/promosms/sendBulkSMS", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobiles, message: customMessage }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        openAlertBox("success", data.message);
+        setCustomMessage("");
+      } else {
+        openAlertBox("error", data.message || "Failed to send SMS.");
+      }
+    } catch (error) {
+      console.error(error);
+      openAlertBox("error", "Unable to send SMS. Please try again later.");
+    }
+  };
+
+  // Highlight search match
+  const highlightMatch = (text) => {
+    if (!search) return text;
+    const regex = new RegExp(`(${search})`, "gi");
+    return text.replace(regex, "<mark class='bg-yellow-200'>$1</mark>");
+  };
 
   return (
-    <section className="py-10 w-full">
+    <section className="py-6 w-full text-[12px]">
       <div className="container mx-auto w-[95%] flex flex-col gap-6">
 
-        {/* City Stats List */}
-        <div className="bg-white shadow-md rounded-md p-4 border">
-          <h3 className="text-xl font-semibold mb-4">City Statistics</h3>
-          <div className="max-h-64 overflow-y-auto">
-            {Object.entries(cityStats).length > 0 ? (
-              <ul className="space-y-2">
-                {Object.entries(cityStats).map(([city, count]) => (
-                  <li
-                    key={city}
-                    className="flex justify-between items-center p-3 bg-[#ffebeb] rounded-md"
-                  >
-                    <span className="font-medium">{city}</span>
-                    <span className="font-bold text-[#ff5252]">{count} Users</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-center">No city data available</p>
-            )}
+        {/* City Statistics */}
+        <div className="bg-white shadow rounded p-3 border">
+          <h3 className="text-sm font-semibold mb-2">City Statistics (Click to Select)</h3>
+          <div className="flex flex-wrap gap-3 max-h-40 overflow-y-auto">
+            {Object.entries(cityStats).map(([city, upazilas]) => (
+              <label
+                key={city}
+                className={`flex items-center gap-1 px-2 py-1 border rounded cursor-pointer text-[11px]
+                ${selectedCities.includes(city) ? "bg-blue-100 border-blue-400" : "bg-gray-50"}`}
+              >
+                <input
+                  type="checkbox"
+                  className="accent-blue-500"
+                  checked={selectedCities.includes(city)}
+                  onChange={() => toggleCitySelection(city)}
+                />
+                <span>{city} ({upazilas.size})</span>
+              </label>
+            ))}
           </div>
         </div>
 
+        {/* Custom SMS */}
+        <div className="bg-white shadow rounded p-3 border flex flex-col gap-2">
+          <h3 className="text-sm font-semibold">Send Promotional SMS</h3>
+          <textarea
+            value={customMessage}
+            onChange={(e) => setCustomMessage(e.target.value)}
+            placeholder="Type your message here..."
+            className="border rounded p-2 w-full text-[12px]"
+            rows={3}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={sendCustomSMS}
+          >
+            Send SMS
+          </Button>
+        </div>
+
         {/* Users Table */}
-        <div className="bg-white shadow-md rounded-md p-5 flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-4">
+        <div className="bg-white shadow rounded p-3 border">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b pb-2 mb-2">
             <div>
-              <h2 className="text-xl font-semibold">Users List</h2>
-              <p className="text-sm mt-1">
-                Total Users: <span className="text-[#ff5252] font-bold">{users.length}</span>
+              <h2 className="text-sm font-semibold">Users List</h2>
+              <p className="text-[11px] mt-1">
+                Total Users: <span className="text-blue-500 font-bold">{filteredUsers.length}</span>
               </p>
             </div>
-
             <input
               type="text"
               placeholder="Search user..."
-              className="border rounded-md px-3 py-2 text-sm outline-none w-full md:w-64"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="border rounded px-2 py-1 text-[11px] outline-none w-full md:w-64"
             />
           </div>
 
-          <div className="w-full overflow-x-auto mt-5">
-            <table className="w-full text-sm text-left border-collapse">
-              <thead className="uppercase bg-[rgba(0,0,0,0.05)] text-[12px]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-[11px] border-collapse">
+              <thead className="bg-gray-100 uppercase">
                 <tr>
-                  <th className="px-4 py-2">Image</th>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Mobile</th>
-                  <th className="px-4 py-2">Address</th>
-                  <th className="px-4 py-2">Action</th>
+                  <th className="p-2">Image</th>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>Upazila</th>
+                  <th>City</th>
+                  <th>Action</th>
                 </tr>
               </thead>
-
               <tbody>
+                {filteredUsers.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan={6} className="text-center py-4 text-gray-500">
+                      No users found
+                    </td>
+                  </tr>
+                )}
+
                 {filteredUsers
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((user) => (
-                    <tr key={user._id} className="border-b hover:bg-gray-50 transition">
-                      <td className="px-4 py-3">
-                        <div className="w-12 h-12 rounded-full overflow-hidden">
-                          <img
-                            src={user?.avatar || "/user.png"}
-                            alt={user.name || "User Avatar"}
-                            onError={(e) => (e.target.src = "/user.png")}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                    <tr key={user._id} className="border-b hover:bg-gray-50">
+                      <td className="p-2">
+                        <img
+                          src={user.avatar || "/user.png"}
+                          className="w-8 h-8 rounded-full"
+                          alt={user.name || "User Avatar"}
+                          onError={(e) => (e.target.src = "/user.png")}
+                        />
                       </td>
-                      <td className="px-4 py-3 font-medium">{user.name}</td>
-                      <td className="px-4 py-3">{user.mobile || "--"}</td>
-                   
-<td className="px-4 py-3 max-w-[300px] text-[12px] overflow-hidden whitespace-nowrap">
-  {user.address_details?.length > 0 ? (
-    <span className="flex gap-2 items-center">
-      {user.address_details
-        .map((addr) => (
-          <span key={addr._id} className="flex items-center gap-1">
-            <span>
-              {addr.address_line}, {addr.state},{addr.city}
-            </span>
-            <span className="bg-[#ff5252] text-white px-1 rounded text-[10px]">
-              {addr.addressType}
-            </span>
-          </span>
-        ))}
-    </span>
-  ) : (
-    <span className="text-gray-400">No Address</span>
-  )}
-</td>
-
-
-                      <td className="px-4 py-3">
+                      <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.name) }} />
+                      <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.mobile) }} />
+                      <td>{user.address_details?.[0]?.upazila || "--"}</td>
+                      <td>{user.address_details?.[0]?.city || "--"}</td>
+                      <td>
                         <Button
-                          variant="outlined"
                           color="error"
                           size="small"
                           onClick={() => handleDelete(user._id)}
@@ -175,19 +254,10 @@ const UserDetails = () => {
                       </td>
                     </tr>
                   ))}
-
-                {filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="text-center py-4 text-gray-500">
-                      No users found
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination */}
           <TablePagination
             rowsPerPageOptions={[5, 10, 25, 50]}
             component="div"
@@ -196,6 +266,7 @@ const UserDetails = () => {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
+            className="text-[11px]"
           />
         </div>
       </div>

@@ -5,14 +5,10 @@ import { addReviews, authWithGoogle, deletemultipleUsers, DeleteUsers, forgotPas
         userDeatils, 
         VerifyEmail, verifyForgotPasswordOtp, 
         verifyMobileOtp}
- from '../controllers/Auth.js';
+from '../controllers/Auth.js';
 import auth from '../middleware/auth.js';
 import upload from '../middleware/multer.js';
-
 const AuthRoutes=express.Router()
-
-
-
 AuthRoutes.post('/register',register)
 AuthRoutes.post('/loginotp',otplogin)
 AuthRoutes.post('/registerPanel',registerPanel)
