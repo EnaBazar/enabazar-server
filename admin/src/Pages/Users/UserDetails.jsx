@@ -118,57 +118,21 @@ const sendCustomSMS = async () => {
     return;
   }
 
-  try {
-    const res = await fetch("/promosms/sendBulkSMS", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobiles, message: customMessage }),
-    });
+try {
+  const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobiles, message: customMessage }),
+  });
 
-    // Frontend logging for debugging
-    let data;
-    try {
-      data = await res.json();
-    } catch (err) {
-      console.error("Failed to parse backend response:", err);
-      const text = await res.text();
-      console.log("Raw response from server:", text);
-      openAlertBox("error", "Unable to parse SMS server response.");
-      return;
-    }
+  console.log("Raw fetch response:", res);
 
-    console.log("SMS API response:", data);
-
-    if (data.success) {
-      // Show summary of success/failure per mobile if available
-      if (data.details && Array.isArray(data.details)) {
-        const failedNumbers = data.details
-          .filter((r) => !r.success)
-          .map((r) => r.mobile);
-
-        if (failedNumbers.length > 0) {
-          openAlertBox(
-            "warning",
-            `SMS sent but failed for: ${failedNumbers.join(", ")}`
-          );
-        } else {
-          openAlertBox("success", data.message || "SMS sent successfully!");
-        }
-      } else {
-        openAlertBox("success", data.message || "SMS sent successfully!");
-      }
-
-      setCustomMessage("");
-    } else {
-      openAlertBox("error", data.message || "Failed to send SMS.");
-    }
-  } catch (error) {
-    console.error("Fetch error while sending SMS:", error);
-    openAlertBox(
-      "error",
-      "Unable to send SMS. Please check server or network."
-    );
-  }
+  const data = await res.json();
+  console.log("Backend JSON response:", data);
+} catch (error) {
+  console.error("Fetch error:", error);
+  openAlertBox("error", "Unable to send SMS. Please check server or network.");
+}
 };
 
   // Highlight search match
