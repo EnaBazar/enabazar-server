@@ -1,6 +1,5 @@
 // backend/routes/promosms.js
 import express from "express";
-import fetch from "node-fetch";
 
 const smsRouter = express.Router();
 
@@ -18,7 +17,9 @@ smsRouter.post("/sendBulkSMS", async (req, res) => {
     }
 
     if (!message || message.trim() === "") {
-      return res.status(400).json({ success: false, message: "Message is empty." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Message is empty." });
     }
 
     const apiKey = "b65bf467f3282df00975768237e81ce765830322"; // আপনার API key
@@ -35,11 +36,12 @@ smsRouter.post("/sendBulkSMS", async (req, res) => {
       )}`;
 
       try {
+        // Node 18+ built-in fetch
         const response = await fetch(url);
 
         // Try to parse JSON; fallback to raw text
-        let data;
         const text = await response.text();
+        let data;
         try {
           data = JSON.parse(text);
         } catch {

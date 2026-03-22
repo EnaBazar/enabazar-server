@@ -118,4 +118,4 @@ app.use("/promosms", smsRouter);
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-});r
+});
