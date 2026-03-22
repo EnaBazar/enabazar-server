@@ -15,6 +15,7 @@ const UserDetails = () => {
   const [loading, setLoading] = useState(true);
 
   const [selectedCities, setSelectedCities] = useState([]);
+  const [expandedCities, setExpandedCities] = useState([]);
   const [customMessage, setCustomMessage] = useState("");
 
   // Fetch users
@@ -60,7 +61,8 @@ const UserDetails = () => {
       const name = user.name || "";
       const email = user.email || "";
       const mobile = user.mobile || "";
-      const addrString = user.address_details?.map(a => `${a.city} ${a.upazila}`).join(" ") || "";
+      const addrString =
+        user.address_details?.map((a) => `${a.city} ${a.upazila}`).join(" ") || "";
 
       const term = search.toLowerCase();
       return (
@@ -72,68 +74,77 @@ const UserDetails = () => {
     });
   }, [users, search]);
 
-  // City statistics
+  // City statistics with upazila counts
   const cityStats = useMemo(() => {
     const stats = {};
     filteredUsers.forEach((user) => {
       user.address_details?.forEach((addr) => {
-        if (!stats[addr.city]) stats[addr.city] = new Set();
-        stats[addr.city].add(addr.upazila);
+        if (!stats[addr.city]) stats[addr.city] = {};
+        if (!stats[addr.city][addr.upazila]) stats[addr.city][addr.upazila] = 0;
+        stats[addr.city][addr.upazila] += 1;
       });
     });
-    return stats; // { city: Set of upazilas }
+    return stats; // { city: { upazila: userCount } }
   }, [filteredUsers]);
 
-  // Handle city checkbox
+  // City checkbox toggle
   const toggleCitySelection = (city) => {
-    setSelectedCities(prev =>
-      prev.includes(city) ? prev.filter(c => c !== city) : [...prev, city]
+    setSelectedCities((prev) =>
+      prev.includes(city) ? prev.filter((c) => c !== city) : [...prev, city]
+    );
+  };
+
+  // City expand/collapse toggle
+  const toggleCityExpansion = (city) => {
+    setExpandedCities((prev) =>
+      prev.includes(city) ? prev.filter((c) => c !== city) : [...prev, city]
     );
   };
 
   // Send custom SMS
-// Send custom SMS
-const sendCustomSMS = async () => {
-  if (!customMessage.trim()) {
-    openAlertBox("error", "Please enter a message before sending.");
-    return;
-  }
-  if (selectedCities.length === 0) {
-    openAlertBox("error", "Please select at least one city.");
-    return;
-  }
+  const sendCustomSMS = async () => {
+    if (!customMessage.trim()) {
+      openAlertBox("error", "Please enter a message before sending.");
+      return;
+    }
+    if (selectedCities.length === 0) {
+      openAlertBox("error", "Please select at least one city.");
+      return;
+    }
 
-  // Collect mobiles from selected cities
-  const mobiles = [];
-  filteredUsers.forEach((user) => {
-    user.address_details?.forEach((addr) => {
-      if (selectedCities.includes(addr.city) && user.mobile) {
-        mobiles.push(user.mobile);
-      }
+    const mobiles = [];
+    filteredUsers.forEach((user) => {
+      user.address_details?.forEach((addr) => {
+        if (selectedCities.includes(addr.city) && user.mobile) {
+          mobiles.push(user.mobile);
+        }
+      });
     });
-  });
 
-  if (mobiles.length === 0) {
-    openAlertBox("error", "No users found in the selected city/cities.");
-    return;
-  }
+    if (mobiles.length === 0) {
+      openAlertBox("error", "No users found in the selected city/cities.");
+      return;
+    }
 
-try {
-  const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mobiles, message: customMessage }),
-  });
+    try {
+      const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobiles, message: customMessage }),
+      });
 
-  console.log("Raw fetch response:", res);
-
-  const data = await res.json();
-  console.log("Backend JSON response:", data);
-} catch (error) {
-  console.error("Fetch error:", error);
-  openAlertBox("error", "Unable to send SMS. Please check server or network.");
-}
-};
+      const data = await res.json();
+      if (data.success) {
+        openAlertBox("success", `SMS sent successfully! (${mobiles.length} users)`);
+        setCustomMessage("");
+      } else {
+        openAlertBox("error", data.message || "SMS পাঠানো ব্যর্থ হয়েছে");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      openAlertBox("error", "Unable to send SMS. Please check server or network.");
+    }
+  };
 
   // Highlight search match
   const highlightMatch = (text) => {
@@ -149,21 +160,45 @@ try {
         {/* City Statistics */}
         <div className="bg-white shadow rounded p-3 border">
           <h3 className="text-sm font-semibold mb-2">City Statistics (Click to Select)</h3>
-          <div className="flex flex-wrap gap-3 max-h-40 overflow-y-auto">
+          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
             {Object.entries(cityStats).map(([city, upazilas]) => (
-              <label
-                key={city}
-                className={`flex items-center gap-1 px-2 py-1 border rounded cursor-pointer text-[11px]
-                ${selectedCities.includes(city) ? "bg-blue-100 border-blue-400" : "bg-gray-50"}`}
-              >
-                <input
-                  type="checkbox"
-                  className="accent-blue-500"
-                  checked={selectedCities.includes(city)}
-                  onChange={() => toggleCitySelection(city)}
-                />
-                <span>{city} ({upazilas.size})</span>
-              </label>
+              <div key={city} className="flex flex-col border rounded">
+                <label
+                  className={`flex items-center justify-between px-2 py-1 cursor-pointer text-[11px]
+                    ${selectedCities.includes(city) ? "bg-blue-100 border-blue-400" : "bg-gray-50"}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="accent-blue-500"
+                      checked={selectedCities.includes(city)}
+                      onChange={() => toggleCitySelection(city)}
+                    />
+                    <span>{city} ({Object.values(upazilas).reduce((a,b)=>a+b,0)})</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-[10px] text-gray-500"
+                    onClick={() => toggleCityExpansion(city)}
+                  >
+                    {expandedCities.includes(city) ? "▲" : "▼"}
+                  </button>
+                </label>
+
+                {expandedCities.includes(city) && (
+                  <div className="pl-6 pb-1 flex flex-col gap-1 text-[10px]">
+                    {Object.entries(upazilas).map(([upazila, count]) => (
+                      <span
+                        key={upazila}
+                        className="px-2 py-0.5 border rounded bg-gray-100 flex justify-between w-32"
+                      >
+                        <span>{upazila}</span>
+                        <span>({count})</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
