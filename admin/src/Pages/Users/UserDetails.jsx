@@ -146,7 +146,6 @@ const UserDetails = () => {
     }
   };
 
-  // Highlight search match
   const highlightMatch = (text) => {
     if (!search) return text;
     const regex = new RegExp(`(${search})`, "gi");
@@ -160,8 +159,8 @@ const UserDetails = () => {
         {/* City Statistics */}
         <div className="bg-white shadow rounded p-3 border">
           <h3 className="text-sm font-semibold mb-2">City Statistics (Click to Select)</h3>
-          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-            {Object.entries(cityStats).map(([city, upazilas]) => (
+          <div className="flex flex-col gap-2 max-h-[360px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            {Object.entries(cityStats).map(([city, upazilas], idx) => (
               <div key={city} className="flex flex-col border rounded">
                 <label
                   className={`flex items-center justify-between px-2 py-1 cursor-pointer text-[11px]
@@ -190,7 +189,7 @@ const UserDetails = () => {
                     {Object.entries(upazilas).map(([upazila, count]) => (
                       <span
                         key={upazila}
-                        className="px-2 py-0.5 border rounded bg-gray-100 flex justify-between w-32"
+                        className="px-2 py-0.5 border rounded bg-gray-100 flex justify-between w-full sm:w-36"
                       >
                         <span>{upazila}</span>
                         <span>({count})</span>
@@ -224,7 +223,7 @@ const UserDetails = () => {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white shadow rounded p-3 border">
+        <div className="bg-white shadow rounded p-3 border overflow-x-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b pb-2 mb-2">
             <div>
               <h2 className="text-sm font-semibold">Users List</h2>
@@ -241,57 +240,54 @@ const UserDetails = () => {
             />
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-[11px] border-collapse">
-              <thead className="bg-gray-100 uppercase">
+          <table className="w-full text-[11px] border-collapse">
+            <thead className="bg-gray-100 uppercase">
+              <tr>
+                <th className="p-2">Image</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Upazila</th>
+                <th>City</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 && !loading && (
                 <tr>
-                  <th className="p-2">Image</th>
-                  <th>Name</th>
-                  <th>Mobile</th>
-                  <th>Upazila</th>
-                  <th>City</th>
-                  <th>Action</th>
+                  <td colSpan={6} className="text-center py-4 text-gray-500">
+                    No users found
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4 text-gray-500">
-                      No users found
+              )}
+              {filteredUsers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((user) => (
+                  <tr key={user._id} className="border-b hover:bg-gray-50">
+                    <td className="p-2">
+                      <img
+                        src={user.avatar || "/user.png"}
+                        className="w-8 h-8 rounded-full"
+                        alt={user.name || "User Avatar"}
+                        onError={(e) => (e.target.src = "/user.png")}
+                      />
+                    </td>
+                    <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.name) }} />
+                    <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.mobile) }} />
+                    <td>{user.address_details?.[0]?.upazila || "--"}</td>
+                    <td>{user.address_details?.[0]?.city || "--"}</td>
+                    <td>
+                      <Button
+                        color="error"
+                        size="small"
+                        onClick={() => handleDelete(user._id)}
+                      >
+                        <GoTrash />
+                      </Button>
                     </td>
                   </tr>
-                )}
-
-                {filteredUsers
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((user) => (
-                    <tr key={user._id} className="border-b hover:bg-gray-50">
-                      <td className="p-2">
-                        <img
-                          src={user.avatar || "/user.png"}
-                          className="w-8 h-8 rounded-full"
-                          alt={user.name || "User Avatar"}
-                          onError={(e) => (e.target.src = "/user.png")}
-                        />
-                      </td>
-                      <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.name) }} />
-                      <td dangerouslySetInnerHTML={{ __html: highlightMatch(user.mobile) }} />
-                      <td>{user.address_details?.[0]?.upazila || "--"}</td>
-                      <td>{user.address_details?.[0]?.city || "--"}</td>
-                      <td>
-                        <Button
-                          color="error"
-                          size="small"
-                          onClick={() => handleDelete(user._id)}
-                        >
-                          <GoTrash />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+                ))}
+            </tbody>
+          </table>
 
           <TablePagination
             rowsPerPageOptions={[5, 10, 25, 50]}
