@@ -101,50 +101,72 @@ const UserDetails = () => {
     );
   };
 
-  // Send custom SMS
-  const sendCustomSMS = async () => {
-    if (!customMessage.trim()) {
-      openAlertBox("error", "Please enter a message before sending.");
-      return;
-    }
-    if (selectedCities.length === 0) {
-      openAlertBox("error", "Please select at least one city.");
-      return;
-    }
+const sendCustomSMS = async () => {
+  if (!customMessage.trim()) {
+    openAlertBox("error", "Please enter a message before sending.");
+    return;
+  }
 
-    const mobiles = [];
-    filteredUsers.forEach((user) => {
-      user.address_details?.forEach((addr) => {
-        if (selectedCities.includes(addr.city) && user.mobile) {
-          mobiles.push(user.mobile);
-        }
-      });
+  if (selectedCities.length === 0) {
+    openAlertBox("error", "Please select at least one city.");
+    return;
+  }
+
+  let smsList = [];
+
+  filteredUsers.forEach((user) => {
+    user.address_details?.forEach((addr) => {
+      if (selectedCities.includes(addr.city) && user.mobile) {
+        smsList.push({
+          mobile: user.mobile,
+          message: `Dear ${user.name || "Customer"}, ${customMessage}`,
+        });
+      }
+    });
+  });
+
+  // ✅ duplicate mobile remove
+  const uniqueMap = new Map();
+  smsList.forEach((item) => {
+    if (!uniqueMap.has(item.mobile)) {
+      uniqueMap.set(item.mobile, item);
+    }
+  });
+
+  smsList = Array.from(uniqueMap.values());
+
+  if (smsList.length === 0) {
+    openAlertBox("error", "No users found.");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ smsList }),
     });
 
-    if (mobiles.length === 0) {
-      openAlertBox("error", "No users found in the selected city/cities.");
-      return;
-    }
+    const data = await res.json();
 
-    try {
-      const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobiles, message: customMessage }),
-      });
+    console.log("SMS Response:", data);
 
-      const data = await res.json();
-      if (data.success) {
-        openAlertBox("success", `SMS sent successfully! (${mobiles.length} users)`);
-        setCustomMessage("");
-      } else {
-        openAlertBox("error", data.message || "SMS পাঠানো ব্যর্থ হয়েছে");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      openAlertBox("error", "Unable to send SMS. Please check server or network.");
+    if (data.success) {
+      openAlertBox(
+        "success",
+        data.message || `SMS sent successfully (${smsList.length})`
+      );
+      setCustomMessage("");
+    } else {
+      openAlertBox("error", data.message || "SMS failed");
     }
-  };
+  } catch (error) {
+    console.error("SMS Error:", error);
+    openAlertBox("error", "Network error. Please try again.");
+  }
+};
 
   const highlightMatch = (text) => {
     if (!search) return text;
@@ -213,12 +235,13 @@ const UserDetails = () => {
             rows={3}
           />
           <Button
+          className="btn-orgnge !w-[40%]"
             variant="contained"
-            color="primary"
+        
             size="small"
             onClick={sendCustomSMS}
           >
-            Send SMS
+            Send
           </Button>
         </div>
 
