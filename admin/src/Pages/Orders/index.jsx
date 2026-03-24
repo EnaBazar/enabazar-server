@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState,useMemo } from "react";
 import Button from "@mui/material/Button";
 import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
 import SearchBox from "../../Components/SearchBox";
@@ -15,6 +15,10 @@ import pdfMake from "../../Fonts/pdfFonts.js";
 import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
 import sendSMSCustomer from "../../../../server/utils/sendSMSCustomer.js";
 import JsBarcode from "jsbarcode";
+import { useNavigate } from "react-router-dom";
+
+
+
 
 const Orders = () => {
   const context = useContext(MyContext);
@@ -30,6 +34,10 @@ const [message, setmessage] = useState("");
 const [sendingSms, setSendingSms] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+const [showStatusBox, setShowStatusBox] = useState(false);
+const [showCityBox, setShowCityBox] = useState(false);
+const [activeCity, setActiveCity] = useState(null);
+
 
 
 const generateBarcode = (value) => {
@@ -44,6 +52,16 @@ const generateBarcode = (value) => {
 
   return canvas.toDataURL("image/png");
 };
+
+const navigate = useNavigate();
+
+const handleProductClick = (productId) => {
+  if (!productId) return;
+  navigate(`/product/${productId}`);
+};
+
+
+
 
   const getStatusColor = (status) => {
   switch (status) {
@@ -168,6 +186,58 @@ useEffect(() => {
       order?.delivery_address?.mobile?.includes(searchQuery) ||
       order?.delivery_address?.city?.includes(searchQuery)
   );
+
+const orderStats = useMemo(() => {
+  const stats = {};
+
+  filteredOrders.forEach((order) => {
+    const city = order?.delivery_address?.city || "Unknown";
+    const upazila = order?.delivery_address?.upazila || "Unknown";
+    const status = order?.order_status || "pending";
+
+    if (!stats[city]) stats[city] = {};
+
+    if (!stats[city][upazila]) {
+      stats[city][upazila] = {
+        total: 0,
+        pending: 0,
+        confirm: 0,
+        shipped: 0,
+        delivered: 0,
+        return: 0,
+      };
+    }
+
+    stats[city][upazila].total += 1;
+
+    if (stats[city][upazila][status] !== undefined) {
+      stats[city][upazila][status] += 1;
+    }
+  });
+
+  return stats;
+}, [filteredOrders]);
+
+
+const cityTotals = useMemo(() => {
+  const result = {};
+
+  Object.entries(orderStats).forEach(([city, upazilas]) => {
+    let total = 0;
+
+    Object.values(upazilas).forEach((u) => {
+      total += u.total;
+    });
+
+    result[city] = total;
+  });
+
+  return result;
+}, [orderStats]);
+const activeCityData = useMemo(() => {
+  if (!activeCity || !orderStats[activeCity]) return [];
+  return Object.entries(orderStats[activeCity]);
+}, [activeCity, orderStats]);
 
 const pendingOrders = filteredOrders
   .filter((o) => o.order_status === "pending")
@@ -776,13 +846,127 @@ const copyPhone = (phone) => {
 
   </div>
 )}
+{showCityBox && (
+<div className="bg-white shadow-lg rounded-xl p-4 mx-5 mb-5">
+
+  <h2 className="text-[14px] font-semibold mb-3">
+    📊 Order Analytics (City & Upazila)
+  </h2>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    {/* ===== LEFT SIDE: CITY LIST ===== */}
+    <div className="border rounded-lg p-3 bg-gray-50 max-h-[300px] overflow-y-auto">
+
+      <h3 className="text-[12px] font-semibold mb-2 text-blue-600">
+        City List
+      </h3>
+
+      {Object.keys(cityTotals).length === 0 && (
+        <p className="text-gray-500 text-[12px]">No data</p>
+      )}
+
+      <div className="space-y-2">
+        {Object.keys(cityTotals).map((city) => (
+          <div
+            key={city}
+            onClick={() => setActiveCity(city)}
+            className={`p-2 border rounded cursor-pointer flex justify-between text-[10px]
+            ${activeCity === city ? "bg-blue-100" : "bg-white"}`}
+          >
+            <span>{city}</span>
+            <span className="font-bold text-blue-600">
+              {cityTotals[city]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* ===== RIGHT SIDE: UPAZILA DATA ===== */}
+    <div className="md:col-span-2 border rounded-lg p-3 bg-white max-h-[300px] overflow-y-auto">
+
+      {!activeCity ? (
+        <p className="text-gray-500 text-[10px]">
+          Select a city
+        </p>
+      ) : (
+        <>
+          <h3 className="text-[10px] font-semibold text-blue-600 mb-3">
+            {activeCity} - Upazila Wise Data
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            {activeCityData.map(([upazila, data]) => (
+
+              <div
+                key={upazila}
+                className="border rounded-md p-2 bg-gray-50 shadow-sm text-[10px]"
+              >
+                {/* Upazila Name */}
+                <div className="font-semibold mb-1 text-gray-700">
+                  {upazila}
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-1 text-start">
+
+                  <span className="bg-gray-200 rounded px-1">
+                    মোট: {data.total}
+                  </span>
+
+                  <span className="bg-red-100 text-red-600 rounded px-1">
+                    Pending: {data.pending}
+                  </span>
+
+                  <span className="bg-green-100 text-green-600 rounded px-1">
+                    Confirm: {data.confirm}
+                  </span>
+
+                  <span className="bg-orange-100 text-orange-600 rounded px-1">
+                    Shipped: {data.shipped}
+                  </span>
+
+                  <span className="bg-blue-100 text-blue-600 rounded px-1">
+                    Delivered: {data.delivered}
+                  </span>
+
+                  <span className="bg-purple-100 text-purple-600 rounded px-1">
+                    Return: {data.return}
+                  </span>
+
+                </div>
+              </div>
+
+            ))}
+
+          </div>
+        </>
+      )}
+
+    </div>
+
+  </div>
+
+</div>
+)}
+<div className="px-5 mb-3">
+  <button
+    onClick={() => setShowCityBox(!showCityBox)}
+    className="btn-orgnge text-white !w-[60%] px-4 py-2 rounded text-[12px]"
+  >
+    {showCityBox ? "Hide City Order" : "Show City Order"}
+  </button>
+</div>
+
 
   {/* Order Status Box */}
-
-<div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-5 mb-2 ">
+{showStatusBox && (
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-5 mb-2 transition-all duration-300">
 
 {/* Pending */}
-<div className="bg-red-50 border rounded-lg p-3 h-[255px] flex flex-col">
+<div className="bg-red-50 border rounded-lg p-3 h-[155px] flex flex-col">
 
 <h3 className="font-bold text-red-600 mb-2">
 Pending ({pendingOrders.length})
@@ -833,7 +1017,7 @@ Confirm
 
 
 {/* Confirm */}
-<div className="bg-green-50 border rounded-lg p-3 h-[255px] flex flex-col">
+<div className="bg-green-50 border rounded-lg p-3 h-[155px] flex flex-col">
 
 <h3 className="font-bold text-green-600 mb-2">
 Confirm ({confirmOrders.length})
@@ -874,7 +1058,7 @@ Ship
 
 
 {/* Shipped */}
-<div className="bg-orange-50 border rounded-lg p-3 h-[255px] flex flex-col">
+<div className="bg-orange-50 border rounded-lg p-3 h-[155px] flex flex-col">
 
 <h3 className="font-bold text-orange-600 mb-2">
 Shipped ({shippedOrders.length})
@@ -914,7 +1098,7 @@ Deliver
 
 
 {/* Delivered */}
-<div className="bg-yellow-50 border rounded-lg p-3 h-[255px] flex flex-col ">
+<div className="bg-yellow-50 border rounded-lg p-3 h-[155px] flex flex-col ">
 
 <h3 className="font-bold text-yellow-600 mb-2">
 Delivered ({deliveredOrders.length})
@@ -946,8 +1130,17 @@ Delivered ({deliveredOrders.length})
 </div>
 
 </div>
+)}
 
 
+<div className="px-5 mb-3">
+  <button
+    onClick={() => setShowStatusBox(!showStatusBox)}
+    className="btn-orgnge text-white px-4 py-2 !w-[60%] rounded text-[12px]"
+  >
+    {showStatusBox ? "Hide Order Status" : "Show Order Status"}
+  </button>
+</div>
   {/* OrderList */}
       <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
         <table className="w-full text-[10px] text-left">
@@ -959,7 +1152,8 @@ Delivered ({deliveredOrders.length})
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2 hidden sm:table-cell">Phone</th>
               <th className="px-3 py-2 hidden lg:table-cell">Address</th>
-        
+              <th className="px-3 py-2 hidden lg:table-cell">Upzila</th>
+                 <th className="px-3 py-2 hidden lg:table-cell">City</th>
               <th className="px-3 py-2">S.t</th>
               <th className="px-3 py-2 hidden sm:table-cell">D.C</th>
               <th className="px-3 py-2">Total</th>
@@ -991,7 +1185,8 @@ Delivered ({deliveredOrders.length})
                   <td className="px-3 py-2">{order?.userId?.name}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>
                   <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.address_line}</td>
-               
+               <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.upazila}</td>
+               <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.city}</td>
                   <td className="px-3 py-2">{order?.subTotalAmt}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
                   <td className="px-3 py-2">{order?.totalAmt}</td>
@@ -1074,14 +1269,20 @@ Delivered ({deliveredOrders.length})
                           {order?.products?.map((item) => (
                             <tr key={item?.productId?._id} className="bg-white border-b border-[rgba(0,0,0,0.2)]">
                               <td className="px-3 py-2 text-[#ff5252]">{item?.productId}</td>
-                              <td className="px-3 py-2 whitespace-nowrap">{item?.productTitle}</td>
+                           <td
+  className="px-3 py-2 whitespace-nowrap text-blue-600 cursor-pointer hover:underline"
+  onClick={() => handleProductClick(item?.productId)}
+>
+  {item?.productTitle}
+</td>
                               <td className="px-3 py-2">
-                                <img
-                                  src={item?.image || '/no-image.png'}
-                                  alt={item?.productTitle}
-                                  className="w-[50px] h-[50px] object-cover rounded-md"
-                                />
-                              </td>
+  <img
+    src={item?.image || '/no-image.png'}
+    alt={item?.productTitle}
+    className="w-[50px] h-[50px] object-cover rounded-md cursor-pointer"
+    onClick={() => handleProductClick(item?.productId)}
+  />
+</td>
                               <td className="px-3 py-2">{item?.quantity}</td>
                               <td className="px-3 py-2">{item?.price}</td>
                               <td className="px-3 py-2">{item?.quantity * item?.price}</td>

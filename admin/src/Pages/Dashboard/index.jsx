@@ -6,7 +6,7 @@ import { FaPlus } from 'react-icons/fa';
 import { FaAngleDown } from 'react-icons/fa6'
 import { FaAngleUp } from 'react-icons/fa6'
 import Checkbox from '@mui/material/Checkbox';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AiOutlineEdit } from 'react-icons/ai'
 import { IoMdAdd, IoMdRefresh } from 'react-icons/io';
 import { FaRegEye } from 'react-icons/fa6'
@@ -98,6 +98,15 @@ const [endDate, setEndDate] = useState("");
   const [openConfirm, setOpenConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteMode, setDeleteMode] = useState("single"); // single | multiple
+
+
+
+const navigate = useNavigate();
+
+const handleProductClick = (productId) => {
+  if (!productId) return;
+  navigate(`/product/${productId}`);
+};
 
 
   const getStatusColor = (status) => {
@@ -1239,14 +1248,20 @@ return (
                           {order?.products?.map((item) => (
                             <tr key={item?.productId?._id} className="bg-white border-b border-[rgba(0,0,0,0.2)]">
                               <td className="px-3 py-2 text-[#ff5252]">{item?.productId}</td>
-                              <td className="px-3 py-2 whitespace-nowrap">{item?.productTitle}</td>
+                                                      <td
+  className="px-3 py-2 whitespace-nowrap text-blue-600 cursor-pointer hover:underline"
+  onClick={() => handleProductClick(item?.productId)}
+>
+  {item?.productTitle}
+</td>
                               <td className="px-3 py-2">
-                                <img
-                                  src={item?.image || '/no-image.png'}
-                                  alt={item?.productTitle}
-                                  className="w-[50px] h-[50px] object-cover rounded-md"
-                                />
-                              </td>
+  <img
+    src={item?.image || '/no-image.png'}
+    alt={item?.productTitle}
+    className="w-[50px] h-[50px] object-cover rounded-md cursor-pointer"
+    onClick={() => handleProductClick(item?.productId)}
+  />
+</td>
                               <td className="px-3 py-2">{item?.quantity}</td>
                               <td className="px-3 py-2">{item?.price}</td>
                               <td className="px-3 py-2">{item?.quantity * item?.price}</td>
