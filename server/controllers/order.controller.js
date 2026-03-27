@@ -220,7 +220,7 @@ export async function updateOrderController(request, response) {
 
       for (let item of existingOrder.products) {
         if (item.productId) {
-          await productModel.findByIdAndUpdate(
+          await productmodel.findByIdAndUpdate(
             item.productId._id,
             {
               $inc: { countInStock: item.quantity } // stock increase
