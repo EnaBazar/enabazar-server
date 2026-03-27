@@ -104,6 +104,34 @@ export async function getOrderDetailsController(request, response) {
   }
 }
 
+
+// Get OrderBy User Details (User Specific with Pagination)
+// --
+export async function getOrdersByUserIdController(req, res) {
+  try {
+    const { userId } = req.params;
+
+    const orders = await ordermodel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .populate("userId", "name mobile email")
+      .populate("delivery_address")
+      .populate("products.productId");
+
+    return res.status(200).json({
+      success: true,
+      orders,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch user orders",
+    });
+  }
+}
+
+
 // Get Order Count 
 // ------------------------
 export async function getTotalOrdersCountController(request, response) {

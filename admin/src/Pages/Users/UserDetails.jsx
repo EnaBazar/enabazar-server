@@ -171,7 +171,24 @@ const UserDetails = () => {
     return text.replace(regex, "<mark class='bg-yellow-200'>$1</mark>");
   };
 
-  const handleOpenModal = (user) => setSelectedUser(user);
+const handleOpenModal = async (user) => {
+  try {
+    const res = await fetchDataFromApi(`/order/user-orders/${user._id}`);
+
+    if (res?.success) {
+      setSelectedUser({
+        ...user,
+        orders: res.orders || [],
+      });
+    } else {
+      setSelectedUser(user);
+    }
+
+  } catch (error) {
+    setSelectedUser(user);
+    openAlertBox("error", "Orders load করতে সমস্যা হয়েছে");
+  }
+};
   const handleCloseModal = () => setSelectedUser(null);
 
   return (
