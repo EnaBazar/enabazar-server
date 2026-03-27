@@ -142,6 +142,9 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, []);
 
+const isTimeLocked = (order) => {
+  return new Date() - new Date(order.createdAt) < 10 * 60 * 1000;
+};
 
   const toggleOrderProduct = (index) => {
     setIsOpenOrderProduct(isOpenOrderProduct === index ? null : index);
@@ -1252,6 +1255,10 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
   value={order?.order_status || ""}
   onChange={(e) => handleChange(e, order?._id)}
   className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
+  disabled={
+    isTimeLocked(order) ||
+    ["delivered", "return"].includes(order?.order_status)
+  }
 >
   {/* Current Status */}
   <MenuItem value={order?.order_status}>
@@ -1259,11 +1266,12 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
   </MenuItem>
 
   {/* Next Allowed Status */}
-  {getNextStatuses(order?.order_status).map((status) => (
-    <MenuItem key={status} value={status}>
-      {status}
-    </MenuItem>
-  ))}
+  {!isTimeLocked(order) &&
+    getNextStatuses(order?.order_status).map((status) => (
+      <MenuItem key={status} value={status}>
+        {status}
+      </MenuItem>
+    ))}
 </Select>
 </div>
 
