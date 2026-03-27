@@ -73,7 +73,8 @@ const handleProductClick = (productId) => {
 
     case "shipped":
       return "bg-orange-400";
-
+case "return":
+  return "bg-purple-400";
     case "delivered":
       return "bg-yellow-400";
 
@@ -856,96 +857,89 @@ const copyPhone = (phone) => {
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
     {/* ===== LEFT SIDE: CITY LIST ===== */}
-    <div className="border rounded-lg p-3 bg-gray-50 max-h-[300px] overflow-y-auto">
+    <div className="border rounded-lg p-3 bg-gray-50 h-full flex flex-col">
 
-      <h3 className="text-[12px] font-semibold mb-2 text-blue-600">
-        City List
-      </h3>
+  <h3 className="text-[12px] font-semibold mb-2 text-blue-600">
+    City List
+  </h3>
 
-      {Object.keys(cityTotals).length === 0 && (
-        <p className="text-gray-500 text-[12px]">No data</p>
-      )}
-
-      <div className="space-y-2">
-        {Object.keys(cityTotals).map((city) => (
-          <div
-            key={city}
-            onClick={() => setActiveCity(city)}
-            className={`p-2 border rounded cursor-pointer flex justify-between text-[10px]
-            ${activeCity === city ? "bg-blue-100" : "bg-white"}`}
-          >
-            <span>{city}</span>
-            <span className="font-bold text-blue-600">
-              {cityTotals[city]}
-            </span>
-          </div>
-        ))}
+  <div className="flex-1 overflow-y-auto space-y-2">
+    {Object.keys(cityTotals).map((city) => (
+      <div
+        key={city}
+        onClick={() => setActiveCity(city)}
+        className={`p-2 border rounded cursor-pointer flex justify-between text-[10px]
+        ${activeCity === city ? "bg-blue-100" : "bg-white"}`}
+      >
+        <span>{city}</span>
+        <span className="font-bold text-blue-600">
+          {cityTotals[city]}
+        </span>
       </div>
-    </div>
+    ))}
+  </div>
+
+</div>
 
     {/* ===== RIGHT SIDE: UPAZILA DATA ===== */}
-    <div className="md:col-span-2 border rounded-lg p-3 bg-white max-h-[300px] overflow-y-auto">
+   <div className="md:col-span-2 border rounded-lg p-3 bg-white h-full flex flex-col">
 
-      {!activeCity ? (
-        <p className="text-gray-500 text-[10px]">
-          Select a city
-        </p>
-      ) : (
-        <>
-          <h3 className="text-[10px] font-semibold text-blue-600 mb-3">
-            {activeCity} - Upazila Wise Data
-          </h3>
+  {!activeCity ? (
+    <p className="text-gray-500 text-[10px]">
+      Select a city
+    </p>
+  ) : (
+    <>
+      <h3 className="text-[10px] font-semibold text-blue-600 mb-3">
+        {activeCity} - Upazila Wise Data
+      </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
-            {activeCityData.map(([upazila, data]) => (
-
-              <div
-                key={upazila}
-                className="border rounded-md p-2 bg-gray-50 shadow-sm text-[10px]"
-              >
-                {/* Upazila Name */}
-                <div className="font-semibold mb-1 text-gray-700">
-                  {upazila}
-                </div>
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-1 text-start">
-
-                  <span className="bg-gray-200 rounded px-1">
-                    মোট: {data.total}
-                  </span>
-
-                  <span className="bg-red-100 text-red-600 rounded px-1">
-                    Pending: {data.pending}
-                  </span>
-
-                  <span className="bg-green-100 text-green-600 rounded px-1">
-                    Confirm: {data.confirm}
-                  </span>
-
-                  <span className="bg-orange-100 text-orange-600 rounded px-1">
-                    Shipped: {data.shipped}
-                  </span>
-
-                  <span className="bg-blue-100 text-blue-600 rounded px-1">
-                    Delivered: {data.delivered}
-                  </span>
-
-                  <span className="bg-purple-100 text-purple-600 rounded px-1">
-                    Return: {data.return}
-                  </span>
-
-                </div>
+          {activeCityData.map(([upazila, data]) => (
+            <div
+              key={upazila}
+              className="border rounded-md p-2 bg-gray-50 shadow-sm text-[10px]"
+            >
+              <div className="font-semibold mb-1 text-gray-700">
+                {upazila}
               </div>
 
-            ))}
+              <div className="grid grid-cols-2 gap-1 text-start">
+                <span className="bg-gray-200 rounded px-1">
+                  মোট: {data.total}
+                </span>
 
-          </div>
-        </>
-      )}
+                <span className="bg-red-100 text-red-600 rounded px-1">
+                  Pending: {data.pending}
+                </span>
 
-    </div>
+                <span className="bg-green-100 text-green-600 rounded px-1">
+                  Confirm: {data.confirm}
+                </span>
+
+                <span className="bg-orange-100 text-orange-600 rounded px-1">
+                  Shipped: {data.shipped}
+                </span>
+
+                <span className="bg-blue-100 text-blue-600 rounded px-1">
+                  Delivered: {data.delivered}
+                </span>
+
+                <span className="bg-purple-100 text-purple-600 rounded px-1">
+                  Return: {data.return}
+                </span>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      </div>
+    </>
+  )}
+
+</div>
 
   </div>
 
@@ -1217,6 +1211,7 @@ Delivered ({deliveredOrders.length})
   <MenuItem value={"pending"}>Pending</MenuItem>
   <MenuItem value={"confirm"}>Confirm</MenuItem>
   <MenuItem value={"shipped"}>Shipped</MenuItem>
+  <MenuItem value={"return"}>Return</MenuItem>
   <MenuItem value={"delivered"}>Delivered</MenuItem>
 </Select>
 </div>

@@ -204,16 +204,10 @@ export async function updateOrderController(request, response) {
 
     const { id, order_status } = request.body;
 
-    const updatedOrder = await ordermodel
-      .findByIdAndUpdate(
-        id,
-        { order_status: order_status },
-        { new: true }
-      )
-      .populate("userId", "name mobile")
-      .populate("products.productId");
+    // 🔥 Step 1: Get order first (important)
+    const order = await ordermodel.findById(id).populate("products.productId");
 
-    if (!updatedOrder) {
+    if (!order) {
       return response.status(404).json({
         error: true,
         success: false,
@@ -221,24 +215,47 @@ export async function updateOrderController(request, response) {
       });
     }
 
+    // 🔥 Step 2: STOCK UPDATE (ONLY when changing to return)
+    if (order.order_status !== "return" && order_status === "return") {
+
+      for (const item of order.products) {
+        if (item.productId) {
+          await productmodel.findByIdAndUpdate(
+            item.productId._id,
+            {
+              $inc: { countInStock: item.quantity }
+            }
+          );
+        }
+      }
+    }
+
+    // 🔥 Step 3: Update order status
+    order.order_status = order_status;
+    await order.save();
+
+    const updatedOrder = await ordermodel
+      .findById(id)
+      .populate("userId", "name mobile")
+      .populate("products.productId");
+
     const mobile = updatedOrder?.userId?.mobile;
     const name = updatedOrder?.userId?.name;
 
-    // Product List
+    // 🔥 Product List
     let productList = "";
 
     for (let i = 0; i < updatedOrder.products.length; i++) {
-
       const item = updatedOrder.products[i];
 
       if (item.productId) {
         productList += `${i + 1}. ${item.productTitle} x${item.quantity}\n`;
       }
-
     }
 
     let message = "";
 
+    // ✅ SMS messages
     if (order_status === "confirm") {
       message = `হ্যালো ${name}
 অর্ডার নং: ${updatedOrder._id}
@@ -248,7 +265,7 @@ ${productList}
     }
 
     if (order_status === "shipped") {
-message =`হ্যালো ${name}
+      message = `হ্যালো ${name}
 অর্ডার নং: ${updatedOrder._id}
 পণ্যসমূহ:
 ${productList}
@@ -261,6 +278,15 @@ Order ID: ${updatedOrder._id}
 পণ্যসমূহ:
 ${productList}
 আপনার অর্ডার Delivered হয়েছে`;
+    }
+
+    // 🆕 RETURN SMS
+    if (order_status === "return") {
+      message = `হ্যালো ${name}
+Order ID: ${updatedOrder._id}
+পণ্যসমূহ:
+${productList}
+আপনার অর্ডারটি Return হয়েছে`;
     }
 
     if (message) {
@@ -282,7 +308,6 @@ ${productList}
     });
   }
 }
-
 // TOtal Sales Status
 // ------------------------
 export async function totalSalesController(request, response) {
