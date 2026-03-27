@@ -60,7 +60,18 @@ const handleProductClick = (productId) => {
   navigate(`/product/${productId}`);
 };
 
-
+const getNextStatuses = (status) => {
+  switch (status) {
+    case "pending":
+      return ["confirm"];
+    case "confirm":
+      return ["shipped"];
+    case "shipped":
+      return ["delivered", "return"];
+    default:
+      return [];
+  }
+};
 
 
   const getStatusColor = (status) => {
@@ -1241,16 +1252,18 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
   value={order?.order_status || ""}
   onChange={(e) => handleChange(e, order?._id)}
   className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
-  disabled={
-    order?.order_status === "delivered" ||
-    new Date() - new Date(order?.createdAt) < 10 * 60 * 1000
-  }
 >
-  <MenuItem value={"pending"}>Pending</MenuItem>
-  <MenuItem value={"confirm"}>Confirm</MenuItem>
-  <MenuItem value={"shipped"}>Shipped</MenuItem>
-  <MenuItem value={"return"}>Return</MenuItem>
-  <MenuItem value={"delivered"}>Delivered</MenuItem>
+  {/* Current Status */}
+  <MenuItem value={order?.order_status}>
+    {order?.order_status}
+  </MenuItem>
+
+  {/* Next Allowed Status */}
+  {getNextStatuses(order?.order_status).map((status) => (
+    <MenuItem key={status} value={status}>
+      {status}
+    </MenuItem>
+  ))}
 </Select>
 </div>
 
