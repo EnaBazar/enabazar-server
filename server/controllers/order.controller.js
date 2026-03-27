@@ -201,13 +201,16 @@ export async function getAllOrdersForAdminController(request, response) {
 
 // ------------------------
 // Update Order Status
+// ------------------------
+// Update Order Status
 export async function updateOrderController(request, response) {
   try {
-
     const { id, order_status } = request.body;
 
     // আগের order data নাও
-    const existingOrder = await ordermodel.findById(id).populate("products.productId");
+    const existingOrder = await ordermodel.findById(id)
+      .populate("userId", "name mobile returnCount isBlocked")
+      .populate("products.productId");
 
     if (!existingOrder) {
       return response.status(404).json({
@@ -217,20 +220,38 @@ export async function updateOrderController(request, response) {
       });
     }
 
-    // ===== RETURN হলে STOCK UPDATE =====
-    if (order_status === "return") {
+    const user = existingOrder.userId;
 
+    // ✅ BLOCKED USER CONFIRM BLOCK
+    if (order_status === "confirm" && user.isBlocked) {
+      return response.status(403).json({
+        error: true,
+        success: false,
+        message: "আপনি 3 বার return করেছেন, তাই নতুন order confirm করা যাবে না।",
+      });
+    }
+
+    // ===== RETURN হলে STOCK UPDATE & RETURN COUNT =====
+    if (order_status === "return") {
+      // Stock update
       for (let item of existingOrder.products) {
         if (item.productId) {
           await productmodel.findByIdAndUpdate(
             item.productId._id,
-            {
-              $inc: { countInStock: item.quantity } // stock increase
-            }
+            { $inc: { countInStock: item.quantity } }
           );
         }
       }
 
+      // User returnCount increase
+      user.returnCount = (user.returnCount || 0) + 1;
+
+      // Auto block if returnCount >= 3
+      if (user.returnCount >= 3) {
+        user.isBlocked = true;
+      }
+
+      await user.save();
     }
 
     // ===== UPDATE ORDER =====
@@ -240,7 +261,7 @@ export async function updateOrderController(request, response) {
         { order_status: order_status },
         { new: true }
       )
-      .populate("userId", "name mobile")
+      .populate("userId", "name mobile returnCount isBlocked")
       .populate("products.productId");
 
     const mobile = updatedOrder?.userId?.mobile;
@@ -248,13 +269,13 @@ export async function updateOrderController(request, response) {
 
     // Product List
     let productList = "";
-
     updatedOrder.products.forEach((item, i) => {
       if (item.productId) {
         productList += `${i + 1}. ${item.productTitle} x${item.quantity}\n`;
       }
     });
 
+    // ===== SMS MESSAGE =====
     let message = "";
 
     if (order_status === "confirm") {
@@ -278,12 +299,12 @@ ${productList}
 আপনার অর্ডার Delivered হয়েছে`;
     }
 
-    // ✅ RETURN SMS
     if (order_status === "return") {
       message = `হ্যালো ${name}
 অর্ডার নং: ${updatedOrder._id}
 ${productList}
-আপনি অর্ডারটি রির্টান করেছেন,যদি যথাযত কারন থাকে তাহলে আগামীতে মানসম্মত পন্য প্রধানে প্রতিজ্ঞাবদ্ধ । ধন্যবাদ।`;
+আপনি অর্ডারটি Return করেছেন। 
+যদি যথাযথ কারণ থাকে, আগামীতে মানসম্মত পণ্য প্রাধান্য দেওয়া হবে। ধন্যবাদ।`;
     }
 
     if (message) {

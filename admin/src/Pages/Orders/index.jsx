@@ -1256,8 +1256,9 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
   onChange={(e) => handleChange(e, order?._id)}
   className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
   disabled={
-    isTimeLocked(order) ||
-    ["delivered", "return"].includes(order?.order_status)
+    isTimeLocked(order) || // সময়সীমা না হয়ে disable
+    ["delivered", "return"].includes(order?.order_status) || // delivered/return disable
+    order?.userId?.isBlocked // blocked user জন্য confirm disable
   }
 >
   {/* Current Status */}
@@ -1267,11 +1268,16 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
 
   {/* Next Allowed Status */}
   {!isTimeLocked(order) &&
-    getNextStatuses(order?.order_status).map((status) => (
-      <MenuItem key={status} value={status}>
-        {status}
-      </MenuItem>
-    ))}
+    getNextStatuses(order?.order_status).map((status) => {
+      // blocked user confirm disable
+      const isBlockedConfirm = status === "confirm" && order?.userId?.isBlocked;
+
+      return (
+        <MenuItem key={status} value={status} disabled={isBlockedConfirm}>
+          {status} {isBlockedConfirm ? "(Blocked user)" : ""}
+        </MenuItem>
+      );
+    })}
 </Select>
 </div>
 

@@ -25,8 +25,7 @@ const userSchema = new mongoose.Schema(
       default: ""
    }
 ],
-
-    // 🔐 Mobile should be String
+// 🔐 Mobile should be String
     mobile: {
       type: String,
       required: true,
@@ -117,7 +116,14 @@ newMobile: {
       enum: ["ADMIN", "USER"],
       default: "USER",
     },
-
+isBlocked: {
+  type: Boolean,
+  default: false
+},
+returnCount: {
+  type: Number,
+  default: 0
+},
     signUpWithGoogle: {
       type: Boolean,
       default: false,
