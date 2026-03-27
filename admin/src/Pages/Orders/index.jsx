@@ -1123,6 +1123,44 @@ Delivered ({deliveredOrders.length})
 </div>
 </div>
 
+{/* Return */}
+<div className="bg-purple-50 border rounded-lg p-3 h-[155px] flex flex-col">
+
+<h3 className="font-bold text-purple-600 mb-2">
+Return ({filteredOrders.filter(o => o.order_status === "return").length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{filteredOrders
+  .filter((o) => o.order_status === "return")
+  .slice(0, 10)
+  .map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+
+<p className="font-semibold">
+  Order Id: {order._id}
+</p>
+
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
 </div>
 )}
 

@@ -204,10 +204,10 @@ export async function updateOrderController(request, response) {
 
     const { id, order_status } = request.body;
 
-    // 🔥 Step 1: Get order first (important)
-    const order = await ordermodel.findById(id).populate("products.productId");
+    // আগের order data নাও
+    const existingOrder = await ordermodel.findById(id).populate("products.productId");
 
-    if (!order) {
+    if (!existingOrder) {
       return response.status(404).json({
         error: true,
         success: false,
@@ -215,51 +215,49 @@ export async function updateOrderController(request, response) {
       });
     }
 
-    // 🔥 Step 2: STOCK UPDATE (ONLY when changing to return)
-    if (order.order_status !== "return" && order_status === "return") {
+    // ===== RETURN হলে STOCK UPDATE =====
+    if (order_status === "return") {
 
-      for (const item of order.products) {
+      for (let item of existingOrder.products) {
         if (item.productId) {
-          await productmodel.findByIdAndUpdate(
+          await productModel.findByIdAndUpdate(
             item.productId._id,
             {
-              $inc: { countInStock: item.quantity }
+              $inc: { countInStock: item.quantity } // stock increase
             }
           );
         }
       }
+
     }
 
-    // 🔥 Step 3: Update order status
-    order.order_status = order_status;
-    await order.save();
-
+    // ===== UPDATE ORDER =====
     const updatedOrder = await ordermodel
-      .findById(id)
+      .findByIdAndUpdate(
+        id,
+        { order_status: order_status },
+        { new: true }
+      )
       .populate("userId", "name mobile")
       .populate("products.productId");
 
     const mobile = updatedOrder?.userId?.mobile;
     const name = updatedOrder?.userId?.name;
 
-    // 🔥 Product List
+    // Product List
     let productList = "";
 
-    for (let i = 0; i < updatedOrder.products.length; i++) {
-      const item = updatedOrder.products[i];
-
+    updatedOrder.products.forEach((item, i) => {
       if (item.productId) {
         productList += `${i + 1}. ${item.productTitle} x${item.quantity}\n`;
       }
-    }
+    });
 
     let message = "";
 
-    // ✅ SMS messages
     if (order_status === "confirm") {
       message = `হ্যালো ${name}
 অর্ডার নং: ${updatedOrder._id}
-পণ্যসমূহ:
 ${productList}
 আপনার অর্ডার Confirm হয়েছে`;
     }
@@ -267,26 +265,23 @@ ${productList}
     if (order_status === "shipped") {
       message = `হ্যালো ${name}
 অর্ডার নং: ${updatedOrder._id}
-পণ্যসমূহ:
 ${productList}
-আপনার অর্ডারটি কুরিয়ার সার্ভিসে পাঠানো হয়েছে`;
+আপনার অর্ডারটি কুরিয়ারে পাঠানো হয়েছে`;
     }
 
     if (order_status === "delivered") {
       message = `হ্যালো ${name}
-Order ID: ${updatedOrder._id}
-পণ্যসমূহ:
+অর্ডার নং: ${updatedOrder._id}
 ${productList}
 আপনার অর্ডার Delivered হয়েছে`;
     }
 
-    // 🆕 RETURN SMS
+    // ✅ RETURN SMS
     if (order_status === "return") {
       message = `হ্যালো ${name}
-Order ID: ${updatedOrder._id}
-পণ্যসমূহ:
+অর্ডার নং: ${updatedOrder._id}
 ${productList}
-আপনার অর্ডারটি Return হয়েছে`;
+আপনার অর্ডারটি Return করা হয়েছে। ধন্যবাদ।`;
     }
 
     if (message) {
