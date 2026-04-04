@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
    avatar: [
    {
       type: String,
-      default: ""
+      default: "/user.png"
    }
 ],
 // 🔐 Mobile should be String

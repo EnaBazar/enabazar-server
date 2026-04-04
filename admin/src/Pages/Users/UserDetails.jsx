@@ -42,6 +42,10 @@ const UserDetails = () => {
     getUsers();
   }, []);
 
+
+  const handlePrint = () => {
+  window.print();
+};
   // Delete user
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -175,18 +179,17 @@ const handleOpenModal = async (user) => {
   try {
     const res = await fetchDataFromApi(`/order/user-orders/${user._id}`);
 
-    if (res?.success) {
-      setSelectedUser({
-        ...user,
-        orders: res.orders || [],
-      });
-    } else {
-      setSelectedUser(user);
-    }
+    setSelectedUser({
+      ...user,
+      orders: res?.orders || [], // ✅ exact match backend
+    });
 
   } catch (error) {
-    setSelectedUser(user);
     openAlertBox("error", "Orders load করতে সমস্যা হয়েছে");
+    setSelectedUser({
+      ...user,
+      orders: [],
+    });
   }
 };
   const handleCloseModal = () => setSelectedUser(null);
@@ -360,72 +363,148 @@ const handleOpenModal = async (user) => {
         </div>
 
         {/* User Details Modal */}
-        <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
-          <DialogTitle>User Details</DialogTitle>
-          <DialogContent dividers>
-            {selectedUser && (
-              <Box display="flex" flexDirection="column" gap={3}>
-                {/* Basic Info */}
-                <Box display="flex" gap={3} alignItems="center">
-                  <img src={selectedUser.avatar || "/user.png"} width={80} height={80} style={{ borderRadius: "50%" }} />
-                  <Box display="flex" flexDirection="column" gap={0.5}>
-                    <Typography><b>Name:</b> {selectedUser.name}</Typography>
-                    <Typography><b>Mobile:</b> {selectedUser.mobile}</Typography>
-                    <Typography><b>Email:</b> {selectedUser.email}</Typography>
-                    <Typography><b>Status:</b> {selectedUser.isBlocked ? "Blocked" : "Active"}</Typography>
-                    <Typography><b>Addresses:</b></Typography>
-                    {selectedUser.address_details?.map((a, idx) => (
-                      <Typography key={idx} ml={2}>- {a.city}, {a.upazila}</Typography>
-                    ))}
-                  </Box>
-                </Box>
+    <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
+  <DialogTitle sx={{ fontWeight: 600 }}>User Details</DialogTitle>
 
-                {/* Orders Section */}
-                <Box>
-                  <Typography variant="h6" mb={1}>Order History</Typography>
-                  {selectedUser.orders?.length > 0 ? (
-                    <Box className="overflow-x-auto">
-                      <table className="w-full min-w-[700px] text-sm border-collapse table-auto">
-                        <thead className="bg-gray-100 text-gray-700">
-                          <tr>
-                            <th className="p-2 text-left">Order ID</th>
-                            <th className="p-2 text-left">Date</th>
-                            <th className="p-2 text-left">Items</th>
-                            <th className="p-2 text-left">Quantity</th>
-                            <th className="p-2 text-left">Price</th>
-                            <th className="p-2 text-left">Confirmed</th>
-                            <th className="p-2 text-left">Shipped</th>
-                            <th className="p-2 text-left">Returned</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedUser.orders.map((order) => (
-                            <tr key={order._id} className="border-b hover:bg-gray-50">
-                              <td className="p-2">{order._id}</td>
-                              <td className="p-2">{new Date(order.createdAt).toLocaleDateString()}</td>
-                              <td className="p-2">{order.items.map(i => i.name).join(", ")}</td>
-                              <td className="p-2">{order.items.map(i => i.quantity).reduce((a,b)=>a+b,0)}</td>
-                              <td className="p-2">${order.items.map(i => i.price * i.quantity).reduce((a,b)=>a+b,0).toFixed(2)}</td>
-                              <td className="p-2">{order.isConfirmed ? "✔" : "❌"}</td>
-                              <td className="p-2">{order.isShipped ? "✔" : "❌"}</td>
-                              <td className="p-2">{order.isReturned ? "✔" : "❌"}</td>
-                            </tr>
-                            
-                          ))}
-                        </tbody>
-                      </table>
-                    </Box>
-                  ) : (
-                    <Typography>No orders found.</Typography>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseModal}>Close</Button>
-          </DialogActions>
-        </Dialog>
+  <DialogContent dividers>
+    {selectedUser && (
+      <Box className="print-area" display="flex" flexDirection="column" gap={3}>
+
+        {/* 🔷 Header (Invoice Style) */}
+        <Box textAlign="center" borderBottom="1px solid #eee" pb={2}>
+          <Typography variant="h5" fontWeight={600}>
+            User Profile & Orders
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Generated on: {new Date().toLocaleString()}
+          </Typography>
+        </Box>
+
+        {/* 🔷 User Info Card */}
+        <Box
+          display="flex"
+          gap={3}
+          alignItems="center"
+          p={2}
+          border="1px solid #eee"
+          borderRadius={2}
+          bgcolor="#fafafa"
+        >
+          <img
+            src={selectedUser.avatar ? selectedUser.avatar : "/user.png"}
+            width={90}
+            height={90}
+            style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #ddd" }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/user.png";
+            }}
+          />
+
+          <Box display="flex" flexDirection="column" gap={0.5} >
+            <Typography><b>Name:</b> {selectedUser.name}</Typography>
+            <Typography><b>Mobile:</b> {selectedUser.mobile}</Typography>
+            <Typography><b>Email:</b> {selectedUser.email}</Typography>
+
+            <Typography>
+              <b>Status:</b>{" "}
+              <span style={{
+                color: selectedUser.isBlocked ? "red" : "green",
+                fontWeight: 600
+              }}>
+                {selectedUser.isBlocked ? "Blocked" : "Active"}
+              </span>
+            </Typography>
+
+            <Typography><b>Addresses:</b></Typography>
+            {selectedUser.address_details?.map((a, idx) => (
+              <Typography key={idx} ml={2} fontSize="13px">
+                • {a.city}, {a.upazila}
+              </Typography>
+            ))}
+          </Box>
+        </Box>
+
+        {/* 🔷 Orders Section */}
+        <Box>
+          <Typography variant="h6" fontWeight={600} mb={1}>
+            Order History
+          </Typography>
+
+          {selectedUser?.orders?.length > 0 ? (
+            <Box sx={{ overflowX: "auto" }}>
+              <table className="w-full text-[10px] border border-gray-200 rounded-lg overflow-hidden">
+                
+                <thead style={{ background: "#f5f5f5" }}>
+                  <tr>
+                    <th className="p-2 text-left">Order ID</th>
+                    <th className="p-2 text-left">Date</th>
+                    <th className="p-2 text-left">Products</th>
+                    <th className="p-2 text-left">Qty</th>
+                    <th className="p-2 text-left">Total</th>
+                    <th className="p-2 text-left">Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {selectedUser.orders.map((order) => (
+                    <tr key={order._id} style={{ borderBottom: "1px solid #eee" }}>
+
+                      <td className="p-2">{order._id}</td>
+
+                      <td className="p-2">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-2">
+                        {order.products.map((p, i) => (
+                          <div key={i}>
+                            {p.productTitle} × {p.quantity}
+                          </div>
+                        ))}
+                      </td>
+
+                      <td className="p-2">
+                        {order.products.reduce((sum, p) => sum + p.quantity, 0)}
+                      </td>
+
+                      <td className="p-2 font-semibold">
+                        ৳{order.totalAmt}
+                      </td>
+
+                      <td className="p-2">
+                        {order.order_status === "confirm" && <span style={{color:"green"}}>● Confirmed</span>}
+                        {order.order_status === "shipped" && <span style={{color:"orange"}}>● Shipped</span>}
+                        {order.order_status === "delivered" && <span style={{color:"blue"}}>● Delivered</span>}
+                        {order.order_status === "return" && <span style={{color:"red"}}>● Returned</span>}
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+            </Box>
+          ) : (
+            <Typography>No orders found.</Typography>
+          )}
+        </Box>
+
+      </Box>
+    )}
+  </DialogContent>
+
+  {/* 🔷 Footer */}
+  <DialogActions sx={{ justifyContent: "space-between", px: 3 }}>
+    <Button onClick={handlePrint} variant="contained">
+      Print
+    </Button>
+
+    <Button onClick={handleCloseModal}>
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
 
       </div>
     </section>
