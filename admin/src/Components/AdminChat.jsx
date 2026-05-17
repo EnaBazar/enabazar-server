@@ -11,13 +11,9 @@ export default function AdminChat() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [messages, setMessages] = useState([]);
   const [msg, setMsg] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
   const [token, setToken] = useState(null);
-
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
   const notifyAudioRef = useRef(null);
   const context = useContext(MyContext);
   const PRIMARY = "#FC8934";
@@ -102,7 +98,9 @@ export default function AdminChat() {
             : c
         )
       );
- context.setChatUnreadCount(prev => prev + 1);
+
+      if (isActive) {
+          context.setChatUnreadCount(prev => prev + 1);
         setMessages((prev) => [...prev, chat]);
         notifyAudioRef.current?.play();
 
@@ -110,7 +108,7 @@ export default function AdminChat() {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
-   
+      }
     };
 
     socketRef.current.on("newMessage", handleNewMessage);
