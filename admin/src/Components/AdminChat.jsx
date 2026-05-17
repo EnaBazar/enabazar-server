@@ -79,46 +79,36 @@ export default function AdminChat() {
   }, [token]);
 
   /* ================= SOCKET MESSAGE ================= */
-/* ================= SOCKET MESSAGE ================= */
-useEffect(() => {
-  if (!socketRef.current) return;
+  useEffect(() => {
+    if (!socketRef.current) return;
 
-  const handleNewMessage = async (chat) => {
-    if (chat.from === "admin") return;
+    const handleNewMessage = async (chat) => {
+      if (chat.from === "admin") return;
 
-    const isActive = selectedCustomer?._id === chat.customerId;
+      const isActive = selectedCustomer?._id === chat.customerId;
 
-    // Customer list update
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c._id === chat.customerId
-          ? {
-              ...c,
-              unreadCount: isActive ? 0 : c.unreadCount + 1,
-            }
-          : c
-      )
-    );
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c._id === chat.customerId
+            ? { ...c, unreadCount: isActive ? 0 : c.unreadCount + 1 }
+            : c
+        )
+      );
 
-    if (isActive) {
-      // এখানে শুধু chat list-এ push করছিলো
-      setMessages((prev) => [...prev, chat]);
-      notifyAudioRef.current?.play();
+      if (isActive) {
+        setMessages((prev) => [...prev, chat]);
+        notifyAudioRef.current?.play();
 
-      await fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } else {
-      // যদি current chat active না থাকে, unread count update কর
-      context.setChatUnreadCount(prev => prev + 1); // ✅ এখানে বসবে
-    }
-  };
+        await fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    };
 
-  socketRef.current.on("newMessage", handleNewMessage);
-  return () =>
-    socketRef.current.off("newMessage", handleNewMessage);
-}, [selectedCustomer, token]);
+    socketRef.current.on("newMessage", handleNewMessage);
+    return () => socketRef.current.off("newMessage", handleNewMessage);
+  }, [selectedCustomer, token]);
 
   /* ================= SELECT CUSTOMER ================= */
   const selectCustomer = async (customer) => {
