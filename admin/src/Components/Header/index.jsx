@@ -62,7 +62,7 @@ const [isOpenChatPanel, setIsOpenChatPanel] = useState(false);
   const context = useContext(MyContext);
   const history = useNavigate();
 // On receiving new message
-context.setChatUnreadCount(prev => prev + 1);
+
   // --- Notification Count ---
   useEffect(() => {
     fetchDataFromApi("/order/unread-count").then((res) => {
