@@ -46,7 +46,7 @@ function App() {
   const [orderCount, setOrderCount] = useState(0);
   const [addressMode, setAddressMode] = useState("add");
   const [addressId, setAddressId] = useState(null);
-
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [openVerifyOtpPanel, setOpenVerifyOtpPanel] = useState(false);
   const [otpData, setOtpData] = useState(null);
   const [openUpateVerifyOtp, setOpenUpadteVerifyOtp] = useState(false);
@@ -115,6 +115,8 @@ function App() {
   };
 
   const values = {
+   chatUnreadCount,
+      setChatUnreadCount,
     isToggleSidebar, setIsToggleSidebar,
     isLogin, setIsLogin,
     isOpenFullScreenPanel, setIsOpenFullScreenPanel,
