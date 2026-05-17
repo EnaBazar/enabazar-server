@@ -552,7 +552,9 @@ const UserDetails = () => {
                       </td>
 
                       <td className="p-2">
+                         {order.order_status === "pending" && <span style={{color:"green"}}>● Pending</span>}
                         {order.order_status === "confirm" && <span style={{color:"green"}}>● Confirmed</span>}
+
                         {order.order_status === "shipped" && <span style={{color:"orange"}}>● Shipped</span>}
                         {order.order_status === "delivered" && <span style={{color:"blue"}}>● Delivered</span>}
                         {order.order_status === "return" && <span style={{color:"red"}}>● Returned</span>}
