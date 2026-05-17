@@ -1,25 +1,44 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
+import Button from '@mui/material/Button';
 import { RiMenu2Line } from 'react-icons/ri';
-import { FaRegBell, FaRegCommentDots } from 'react-icons/fa';
-import { IoMdClose, IoMdLogOut } from 'react-icons/io';
+import { useNavigate, Link } from "react-router-dom";
+import Badge from '@mui/material/Badge';
 import { styled } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
+import { FaRegBell, FaRegUser } from 'react-icons/fa';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
+import { IoMdLogOut, IoMdClose } from 'react-icons/io';
 import { MyContext } from '../../App';
-import { fetchDataFromApi } from '../../utils/api';
+import { editData, fetchDataFromApi } from '../../utils/api';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Slide from '@mui/material/Slide';
+// Pages
+import AddProduct from "../../Pages/AddProduct";
+import AddHomeSlide from '../../Pages/HomeSliderBanners/AddHomeSlide';
+import AddCategory from '../../Pages/Category/AddCategory';
+import AddSubCategory from '../../Pages/Category/AddSubCategory';
+import AddAddress from '../../Pages/Address/addAddress.jsx';
+import EditCategory from '../../Pages/Category/EditeCategory.jsx';
+import EditProduct from '../../Pages/AddProduct/editProduct.jsx';
+import AddBannerV1 from '../../Pages/Banners/addBannerV1.jsx';
+import EditBannerV1 from '../../Pages/Banners/EditBannerV1.jsx';
+import AddBannerV2 from '../../Pages/Banners2/addBannerV2.jsx';
+import EditBannerV2 from '../../Pages/Banners2/EditBannerV2.jsx';
+import Addblog from '../../Pages/Blog/Addblog.jsx';
+import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
-import AdminChat from '../../Pages/Chat/AdminChat.jsx';
-import io from 'socket.io-client'; // socket.io client
+import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
+import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
 
-// Transition for Dialog
+import UpdateVerifyOtp from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
+import VerifyOtpPanel from '../../Pages/SignUp/VerifyOtpPanel.jsx';
+
+// Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -35,135 +54,278 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 const Header = () => {
+  const [anchorMyAcc, setAnchorMyAcc] = useState(null);
+  const openMyAcc = Boolean(anchorMyAcc);
   const context = useContext(MyContext);
+  const history = useNavigate();
 
-  // --- Socket Setup ---
+  // --- Notification Count ---
   useEffect(() => {
-    const socket = io(process.env.REACT_APP_SOCKET_URL, {
-      withCredentials: true,
-    });
-
-    // Listen for new chat messages
-    socket.on('new_chat_message', (msg) => {
-      // যদি chat panel open না থাকে, unread increment করো
-      if (context.isOpenFullScreenPanel.model !== 'Chat Panel') {
-        context.setChatUnreadCount(prev => prev + 1);
+    fetchDataFromApi("/order/unread-count").then((res) => {
+      if (!res.error) {
+        context.setOrderCount(res.unreadOrders);
       }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [context.isOpenFullScreenPanel.model]);
-
-  // --- Fetch unread order count ---
-  useEffect(() => {
-    fetchDataFromApi("/order/unread-count").then(res => {
-      if (!res.error) context.setOrderCount(res.unreadOrders);
     });
   }, []);
 
-  // --- Account Menu ---
-  const [anchorMyAcc, setAnchorMyAcc] = React.useState(null);
-  const openMyAcc = Boolean(anchorMyAcc);
-  const handleClickMyAcc = (event) => setAnchorMyAcc(event.currentTarget);
-  const handleCloseMyAcc = () => setAnchorMyAcc(null);
+const handleBellClick = async () => {
+  try {
+    if (context.orderCount === 0) {
+      // যদি কোনো unread order না থাকে, কিছু না করো
+      return;
+    }
 
-  // --- Logout ---
-  const logout = async () => {
-    await fetchDataFromApi("/auth/logout", { withCredentials: true });
-    localStorage.removeItem("accesstoken");
-    localStorage.removeItem("refreshtoken");
-    context.setIsLogin(false);
-    context.setUserData(null);
-    window.location.href = "/login";
-  };
-
-  // --- Handle Bell Click ---
-  const handleBellClick = async () => {
-    if (context.orderCount === 0) return;
+    // mark orders as read
     await fetchDataFromApi("/order/mark-read", { method: "PUT" });
     context.setOrderCount(0);
-    context.setIsOpenFullScreenPanel({ open: true, model: "Order List" });
-  };
 
-  // --- Handle Chat Click ---
-  const handleChatClick = () => {
-    context.setIsOpenFullScreenPanel({ open: true, model: "Chat Panel" });
-    context.setChatUnreadCount(0); // Reset unread when opened
+    // open fullscreen panel
+    context.setIsOpenFullScreenPanel({
+      open: true,
+      model: "Order List",
+    });
+
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+  // --- Account Menu ---
+  const handleClickMyAcc = (event) => {
+    setAnchorMyAcc(event.currentTarget);
   };
+  const handleCloseMyAcc = () => {
+    setAnchorMyAcc(null);
+  };
+  // --- Logout ---
+const logout = async () => {
+  await fetchDataFromApi("/auth/logout", { withCredentials: true });
+
+  localStorage.removeItem("accesstoken");
+  localStorage.removeItem("refreshtoken");
+
+  context.setIsLogin(false);
+  context.setUserData(null);
+
+  window.location.href = "/login";
+};
 
   return (
     <>
       <header className={`w-full fixed h-[auto] pr-10 bg-[#fff] shadow-md
         flex items-center justify-between z-[50] transition-all duration-300
         ${context.isToggleSidebar ? "pl-5" : "pl-55"}`}>
-
+        
         {/* Sidebar Toggle */}
-        <div className='flex items-center'>
-          <IconButton onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}>
-            <RiMenu2Line className='text-[18px]' />
-          </IconButton>
+        <div className='part1'>
+          
+          <Button
+            className='!w-[40px] !h-[40px] !rounded-full !min-w-[40px]
+            flex items-center justify-center !text-[rgba(0,0,0,0.8)]'
+            onClick={() => context.setIsToggleSidebar(!context.isToggleSidebar)}
+          >
+            <RiMenu2Line className='text-[18px]' 
+     
+            />
+           <div>
+      {context.chatUnreadCount > 0 &&  (
+        <span 
+          className="absolute  left-8 top-3 min-w-[20px] h-[20px]
+          bg-red-600 text-white text-[12px] rounded-full
+          flex items-center justify-center px-1"
+        > 
+         
+          {context.chatUnreadCount}
+        </span>
+      )}
+          </div>
+          </Button>
+   
         </div>
+  
 
         {/* Right Side */}
-        <div className='flex items-center gap-4'>
+        <div className='part2 w-[40%] flex items-center justify-end gap-4'>
+          
           {/* Notification Bell */}
-          <IconButton onClick={handleBellClick}>
-            <StyledBadge badgeContent={context.orderCount} color="secondary">
-              <FaRegBell />
-            </StyledBadge>
-          </IconButton>
+<IconButton
+  aria-label="notifications"
+  onClick={handleBellClick}
+>
+  <StyledBadge badgeContent={context.orderCount} color="secondary">
+    <FaRegBell />
+  </StyledBadge>
+</IconButton>
 
-          {/* Chat Icon */}
-          <IconButton onClick={handleChatClick}>
-            <StyledBadge badgeContent={context.chatUnreadCount} color="error">
-              <FaRegCommentDots />
-            </StyledBadge>
-          </IconButton>
 
-          {/* User Avatar */}
-          {context.isLogin ? (
+          {/* User Avatar / Login */}
+          {context.isLogin === true ? (
             <div className='relative'>
-              <img
-                src={context.userData?.avatar || "/user.png"}
-                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/user.png"; }}
-                className="w-8 h-8 rounded-full cursor-pointer"
-                onClick={handleClickMyAcc}
-              />
-              <Menu anchorEl={anchorMyAcc} open={openMyAcc} onClose={handleCloseMyAcc} onClick={handleCloseMyAcc}>
-                <MenuItem>{context.userData?.name}</MenuItem>
+              <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'
+                onClick={handleClickMyAcc}>
+<img
+  src={context?.userData?.avatar || "/user.png"}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "/user.png";
+  }}
+  className="w-full h-full object-cover"
+/>
+              </div>
+              <Menu
+                anchorEl={anchorMyAcc}
+                id="account-menu"
+                open={openMyAcc}
+                onClose={handleCloseMyAcc}
+                onClick={handleCloseMyAcc}
+                slotProps={{
+                  paper: {
+                    elevation: 0,
+                    sx: {
+                      overflow: 'visible',
+                      filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                      mt: 1.5,
+                      '& .MuiAvatar-root': {
+                        width: 32,
+                        height: 32,
+                        ml: -0.5,
+                        mr: 1,
+                      },
+                      '&::before': {
+                        content: '""',
+                        display: 'block',
+                        position: 'absolute',
+                        top: 0,
+                        right: 14,
+                        width: 10,
+                        height: 10,
+                        bgcolor: 'background.paper',
+                        transform: 'translateY(-50%) rotate(45deg)',
+                        zIndex: 0,
+                      },
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={handleCloseMyAcc}>
+                  <div className='flex items-center gap-3'>
+                    <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
+
+                      
+                    <img
+  src={context?.userData?.avatar || "/user.png"}
+  onError={(e) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = "/user.png";
+  }}
+  className="w-full h-full object-cover"
+/>
+                    </div>
+                    <div className='info'>
+                      <h3 className='text-[16px] font-[500] leading-5'>{context?.userData?.name}</h3>
+                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.mobile}</p>
+                    </div>
+                  </div>
+                </MenuItem>
                 <Divider />
-                <MenuItem onClick={logout}>Log Out</MenuItem>
+
+                <Link to="/profile">
+                  <MenuItem onClick={handleCloseMyAcc} className='flex items-center gap-3'>
+                    <FaRegUser className='text-[16px]' /><span className='text-[13px]'>Profile</span>
+                  </MenuItem>
+                </Link>
+
+                <MenuItem onClick={logout} className='flex items-center gap-3'>
+                  <IoMdLogOut className='text-[16px]' /><span className='text-[13px]'>LogOut</span>
+                </MenuItem>
               </Menu>
             </div>
           ) : (
-            <a href="/login" className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm">Sign In</a>
+            <Link to="/login">
+              <Button className='btn-blue btn-sm !rounded-full'>Sign In</Button>
+            </Link>
           )}
         </div>
       </header>
 
-      {/* FullScreen Panel */}
+      {/* Full Screen Panel */}
       <Dialog
         fullScreen
-        open={context.isOpenFullScreenPanel.open}
-        onClose={() => context.setIsOpenFullScreenPanel({ open: false })}
+        open={context?.isOpenFullScreenPanel.open}
+        onClose={() => context?.setIsOpenFullScreenPanel({ open: false })}
         TransitionComponent={Transition}
       >
         <AppBar sx={{ position: 'relative' }}>
           <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={() => context.setIsOpenFullScreenPanel({ open: false })}>
-              <IoMdClose />
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => context?.setIsOpenFullScreenPanel({ open: false })}
+              aria-label="close"
+            >
+              <IoMdClose className='text-[black]' />
             </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6">
-              {context.isOpenFullScreenPanel.model}
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              <span className='text-gray-600'>{context?.isOpenFullScreenPanel?.model}</span>
             </Typography>
           </Toolbar>
         </AppBar>
 
-        {context.isOpenFullScreenPanel.model === "Order List" && <Orders />}
-        {context.isOpenFullScreenPanel.model === "Chat Panel" && <AdminChat />}
+        {context?.isOpenFullScreenPanel?.model === "Add Product" && <AddProduct />}
+        {context?.isOpenFullScreenPanel?.model === "AddHomeSlide" && <AddHomeSlide />}
+        {context?.isOpenFullScreenPanel?.model === "AddNewCategory" && <AddCategory />}
+        {context?.isOpenFullScreenPanel?.model === "AddNewSubCategory" && <AddSubCategory />}
+        {context?.isOpenFullScreenPanel?.model === "AddNewAddress" && <AddAddress />}
+        {context?.isOpenFullScreenPanel?.model === "EditeAddress" && <AddAddress />}
+        {context?.isOpenFullScreenPanel?.model === "Edit Category" && <EditCategory />}
+        {context?.isOpenFullScreenPanel?.model === "Edit Product" && <EditProduct />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV1" && <AddBannerV1 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV1" && <EditBannerV1 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV2" && <AddBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV2" && <EditBannerV2 />}
+        {context?.isOpenFullScreenPanel?.model === "Add BannerV3" && <AddBannerV3 />}
+        {context?.isOpenFullScreenPanel?.model === "Edit BannerV3" && <EditBannerV3 />}
+        {context?.isOpenFullScreenPanel?.model === "add Blog" && <Addblog />}
+        {context?.isOpenFullScreenPanel?.model === "edit Blog" && <Editblog />}
+          {context?.isOpenFullScreenPanel?.model === "Order List" && <Orders />}
       </Dialog>
+
+ {/*Update verify otp panel*/} 
+<Dialog
+  open={context.openUpateVerifyOtp}
+  onClose={() => context.toggleUpdateVerifyOtp(false)}
+  PaperProps={{
+    sx: {
+      width: "90%",            // smaller on mobile
+      maxWidth: 380,           // desktop small size
+      borderRadius: "16px",
+      backdropFilter: "blur(6px)", // glass blur effect
+      background: "rgba(255, 255, 255, 0.2)", // semi-transparent
+      boxShadow: "0 8px 30px rgba(0,0,0,0.25)"
+    },
+  }}
+>
+  {/* Header */}
+  <div className="flex items-center justify-between py-2 px-3 border-b border-gray-300">
+    <IoMdClose
+      className="text-[22px] text-red-600 cursor-pointer"
+      onClick={context.toggleUpdateVerifyOtp(false)}
+
+    />
+  </div>
+
+  {/* Content */}
+  <div className="p-4 overflow-y-auto max-h-[70vh]">
+    <UpdateVerifyOtp/>
+  </div>
+</Dialog>
+
+
+
+
+
     </>
   );
 };
