@@ -84,10 +84,7 @@ export default function AdminChat() {
   }, [token]);
 
   /* ================= SOCKET MESSAGE ================= */
-  useEffect(() => {
-    if (!socketRef.current) return;
-
-   const handleNewMessage = async (chat) => {
+     const handleNewMessage = async (chat) => {
   if (chat.from === "admin") return;
 
   const isActive = selectedCustomer?._id === chat.customerId;
@@ -117,6 +114,10 @@ export default function AdminChat() {
     });
   }
 };
+  useEffect(() => {
+    if (!socketRef.current) return;
+
+
 
     socketRef.current.on("newMessage", handleNewMessage);
     return () =>
