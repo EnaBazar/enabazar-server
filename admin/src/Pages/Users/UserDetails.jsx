@@ -442,78 +442,148 @@ const UserDetails = () => {
         </div>
 
         {/* ================= USER DETAILS MODAL ================= */}
-        <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: 600 }}>User Details</DialogTitle>
+          <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
+  <DialogTitle sx={{ fontWeight: 600 }}>User Details</DialogTitle>
 
-          <DialogContent dividers>
-            {selectedUser && (
-              <Box className="print-area" display="flex" flexDirection="column" gap={3}>
-                {/* Header */}
-                <Box textAlign="center" borderBottom="1px solid #eee" pb={2}>
-                  <Typography variant="h5" fontWeight={600}>User Profile & Orders</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Generated on: {new Date().toLocaleString()}
-                  </Typography>
-                </Box>
+  <DialogContent dividers>
+    {selectedUser && (
+      <Box className="print-area" display="flex" flexDirection="column" gap={3}>
 
-                {/* User Info */}
-                <Box display="flex" gap={3} alignItems="center" p={2} border="1px solid #eee" borderRadius={2} bgcolor="#fafafa">
-                  <img
-                    src={selectedUser.avatar || "/user.png"}
-                    alt="User Avatar"
-                    className="w-16 h-16 rounded-full"
-                    onError={(e) => (e.target.src = "/user.png")}
-                  />
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={600}>{selectedUser.name}</Typography>
-                    <Typography variant="body2">Mobile: {selectedUser.mobile}</Typography>
-                    <Typography variant="body2">Email: {selectedUser.email || "--"}</Typography>
-                    <Typography variant="body2">
-                      Address: {selectedUser.address_details?.map((a) => `${a.upazila}, ${a.city}`).join("; ") || "--"}
-                    </Typography>
-                  </Box>
-                </Box>
+        {/* 🔷 Header (Invoice Style) */}
+        <Box textAlign="center" borderBottom="1px solid #eee" pb={2}>
+          <Typography variant="h5" fontWeight={600}>
+            User Profile & Orders
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Generated on: {new Date().toLocaleString()}
+          </Typography>
+        </Box>
 
-                {/* Orders */}
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600} mb={1}>Orders ({selectedUser.orders.length})</Typography>
-                  {selectedUser.orders.length === 0 && (
-                    <Typography variant="body2">No orders found</Typography>
-                  )}
-                  {selectedUser.orders.length > 0 && (
-                    <Box overflow="auto">
-                      <table className="w-full text-[11px] border-collapse">
-                        <thead>
-                          <tr className="bg-gray-100 uppercase text-gray-700">
-                            <th className="p-2 text-left">Order ID</th>
-                            <th className="p-2 text-left">Date</th>
-                            <th className="p-2 text-left">Amount</th>
-                            <th className="p-2 text-left">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedUser.orders.map((o) => (
-                            <tr key={o._id} className="border-b">
-                              <td className="p-2">{o._id}</td>
-                              <td className="p-2">{new Date(o.createdAt).toLocaleDateString()}</td>
-                              <td className="p-2">{o.totalAmount} ৳</td>
-                              <td className="p-2">{o.status}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
+        {/* 🔷 User Info Card */}
+        <Box
+          display="flex"
+          gap={3}
+          alignItems="center"
+          p={2}
+          border="1px solid #eee"
+          borderRadius={2}
+          bgcolor="#fafafa"
+        >
+          <img
+            src={selectedUser.avatar ? selectedUser.avatar : "/user.png"}
+            width={90}
+            height={90}
+            style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #ddd" }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/user.png";
+            }}
+          />
 
-          <DialogActions>
-            <Button onClick={handleCloseModal}>Close</Button>
-            <Button onClick={handlePrint} variant="contained">Print</Button>
-          </DialogActions>
-        </Dialog>
+          <Box display="flex" flexDirection="column" gap={0.5} >
+            <Typography><b>Name:</b> {selectedUser.name}</Typography>
+            <Typography><b>Mobile:</b> {selectedUser.mobile}</Typography>
+            <Typography><b>Email:</b> {selectedUser.email}</Typography>
+
+            <Typography>
+              <b>Status:</b>{" "}
+              <span style={{
+                color: selectedUser.isBlocked ? "red" : "green",
+                fontWeight: 600
+              }}>
+                {selectedUser.isBlocked ? "Blocked" : "Active"}
+              </span>
+            </Typography>
+
+            <Typography><b>Addresses:</b></Typography>
+            {selectedUser.address_details?.map((a, idx) => (
+              <Typography key={idx} ml={2} fontSize="13px">
+                • {a.city}, {a.upazila}
+              </Typography>
+            ))}
+          </Box>
+        </Box>
+
+        {/* 🔷 Orders Section */}
+        <Box>
+          <Typography variant="h6" fontWeight={600} mb={1}>
+            Order History
+          </Typography>
+
+          {selectedUser?.orders?.length > 0 ? (
+            <Box sx={{ overflowX: "auto" }}>
+              <table className="w-full text-[10px] border border-gray-200 rounded-lg overflow-hidden">
+                
+                <thead style={{ background: "#f5f5f5" }}>
+                  <tr>
+                    <th className="p-2 text-left">Order ID</th>
+                    <th className="p-2 text-left">Date</th>
+                    <th className="p-2 text-left">Products</th>
+                    <th className="p-2 text-left">Qty</th>
+                    <th className="p-2 text-left">Total</th>
+                    <th className="p-2 text-left">Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {selectedUser.orders.map((order) => (
+                    <tr key={order._id} style={{ borderBottom: "1px solid #eee" }}>
+
+                      <td className="p-2">{order._id}</td>
+
+                      <td className="p-2">
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </td>
+
+                      <td className="p-2">
+                        {order.products.map((p, i) => (
+                          <div key={i}>
+                            {p.productTitle} × {p.quantity}
+                          </div>
+                        ))}
+                      </td>
+
+                      <td className="p-2">
+                        {order.products.reduce((sum, p) => sum + p.quantity, 0)}
+                      </td>
+
+                      <td className="p-2 font-semibold">
+                        ৳{order.totalAmt}
+                      </td>
+
+                      <td className="p-2">
+                        {order.order_status === "confirm" && <span style={{color:"green"}}>● Confirmed</span>}
+                        {order.order_status === "shipped" && <span style={{color:"orange"}}>● Shipped</span>}
+                        {order.order_status === "delivered" && <span style={{color:"blue"}}>● Delivered</span>}
+                        {order.order_status === "return" && <span style={{color:"red"}}>● Returned</span>}
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+            </Box>
+          ) : (
+            <Typography>No orders found.</Typography>
+          )}
+        </Box>
+
+      </Box>
+    )}
+  </DialogContent>
+
+  {/* 🔷 Footer */}
+  <DialogActions sx={{ justifyContent: "space-between", px: 3 }}>
+    <Button onClick={handlePrint} variant="contained">
+      Print
+    </Button>
+
+    <Button onClick={handleCloseModal}>
+      Close
+    </Button>
+  </DialogActions>
+          </Dialog>
       </div>
     </section>
   );
