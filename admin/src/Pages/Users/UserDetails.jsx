@@ -42,10 +42,10 @@ const UserDetails = () => {
     getUsers();
   }, []);
 
-
   const handlePrint = () => {
-  window.print();
-};
+    window.print();
+  };
+
   // Delete user
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -84,6 +84,10 @@ const UserDetails = () => {
       );
     });
   }, [users, search]);
+
+  // Split Active / Blocked
+  const activeUsers = useMemo(() => filteredUsers.filter((u) => !u.isBlocked), [filteredUsers]);
+  const blockedUsers = useMemo(() => filteredUsers.filter((u) => u.isBlocked), [filteredUsers]);
 
   // City statistics with upazila counts
   const cityStats = useMemo(() => {
@@ -175,23 +179,21 @@ const UserDetails = () => {
     return text.replace(regex, "<mark class='bg-yellow-200'>$1</mark>");
   };
 
-const handleOpenModal = async (user) => {
-  try {
-    const res = await fetchDataFromApi(`/order/user-orders/${user._id}`);
-
-    setSelectedUser({
-      ...user,
-      orders: res?.orders || [], // ✅ exact match backend
-    });
-
-  } catch (error) {
-    openAlertBox("error", "Orders load করতে সমস্যা হয়েছে");
-    setSelectedUser({
-      ...user,
-      orders: [],
-    });
-  }
-};
+  const handleOpenModal = async (user) => {
+    try {
+      const res = await fetchDataFromApi(`/order/user-orders/${user._id}`);
+      setSelectedUser({
+        ...user,
+        orders: res?.orders || [],
+      });
+    } catch (error) {
+      openAlertBox("error", "Orders load করতে সমস্যা হয়েছে");
+      setSelectedUser({
+        ...user,
+        orders: [],
+      });
+    }
+  };
   const handleCloseModal = () => setSelectedUser(null);
 
   return (
@@ -264,14 +266,26 @@ const handleOpenModal = async (user) => {
           </Button>
         </div>
 
-        {/* Users Table */}
+        {/* ================= ACTIVE USERS ================= */}
         <div className="bg-white shadow rounded p-4 border overflow-x-auto">
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-3 mb-3">
             <div>
-              <h2 className="text-sm md:text-base font-semibold">Users List</h2>
-              <p className="text-[11px] md:text-sm mt-1">
-                Total Users: <span className="text-blue-500 font-bold">{filteredUsers.length}</span>
-              </p>
+              <h2 className="text-sm md:text-base font-semibold">Active Users</h2>
+              <div className="flex gap-4 mt-1 flex-wrap">
+                <p className="text-[11px] md:text-sm">
+                  Total:
+                  <span className="text-blue-500 font-bold ml-1">{filteredUsers.length}</span>
+                </p>
+                <p className="text-[11px] md:text-sm">
+                  Active:
+                  <span className="text-green-600 font-bold ml-1">{activeUsers.length}</span>
+                </p>
+                <p className="text-[11px] md:text-sm">
+                  Blocked:
+                  <span className="text-red-500 font-bold ml-1">{blockedUsers.length}</span>
+                </p>
+              </div>
             </div>
             <input
               type="text"
@@ -282,7 +296,6 @@ const handleOpenModal = async (user) => {
             />
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-[11px] md:text-sm border-collapse table-auto md:table-fixed">
               <thead className="bg-gray-100 uppercase text-gray-700">
@@ -296,15 +309,16 @@ const handleOpenModal = async (user) => {
                   <th className="p-2 text-left">Action</th>
                 </tr>
               </thead>
+
               <tbody>
-                {filteredUsers.length === 0 && !loading && (
+                {activeUsers.length === 0 && !loading && (
                   <tr>
                     <td colSpan={7} className="text-center py-4 text-gray-500">
                       No users found
                     </td>
                   </tr>
                 )}
-                {filteredUsers
+                {activeUsers
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((user) => (
                     <tr
@@ -325,11 +339,7 @@ const handleOpenModal = async (user) => {
                       <td className="break-words">{user.address_details?.[0]?.upazila || "--"}</td>
                       <td className="break-words">{user.address_details?.[0]?.city || "--"}</td>
                       <td className="p-2">
-                        {user.isBlocked ? (
-                          <span className="text-red-500 font-semibold">Blocked</span>
-                        ) : (
-                          <span className="text-green-500 font-semibold">Active</span>
-                        )}
+                        <span className="text-green-500 font-semibold">Active</span>
                       </td>
                       <td className="p-2">
                         <Button
@@ -352,7 +362,7 @@ const handleOpenModal = async (user) => {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, 50]}
               component="div"
-              count={filteredUsers.length}
+              count={activeUsers.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}
@@ -362,150 +372,148 @@ const handleOpenModal = async (user) => {
           </div>
         </div>
 
-        {/* User Details Modal */}
-    <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
-  <DialogTitle sx={{ fontWeight: 600 }}>User Details</DialogTitle>
+        {/* ================= BLOCKED USERS ================= */}
+        <div className="bg-red-50 shadow rounded p-4 border mt-6 overflow-x-auto">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-sm md:text-base font-semibold text-red-600">Blocked Users List</h2>
+            <span className="text-[11px] bg-red-100 text-red-600 px-2 py-1 rounded">
+              {blockedUsers.length} Blocked
+            </span>
+          </div>
 
-  <DialogContent dividers>
-    {selectedUser && (
-      <Box className="print-area" display="flex" flexDirection="column" gap={3}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-[11px] md:text-sm border-collapse table-auto md:table-fixed">
+              <thead className="bg-red-100 uppercase text-gray-700">
+                <tr>
+                  <th className="p-2 text-left">Image</th>
+                  <th className="p-2 text-left">Name</th>
+                  <th className="p-2 text-left">Mobile</th>
+                  <th className="p-2 text-left">Upazila</th>
+                  <th className="p-2 text-left">City</th>
+                  <th className="p-2 text-left">Status</th>
+                  <th className="p-2 text-left">Action</th>
+                </tr>
+              </thead>
 
-        {/* 🔷 Header (Invoice Style) */}
-        <Box textAlign="center" borderBottom="1px solid #eee" pb={2}>
-          <Typography variant="h5" fontWeight={600}>
-            User Profile & Orders
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Generated on: {new Date().toLocaleString()}
-          </Typography>
-        </Box>
-
-        {/* 🔷 User Info Card */}
-        <Box
-          display="flex"
-          gap={3}
-          alignItems="center"
-          p={2}
-          border="1px solid #eee"
-          borderRadius={2}
-          bgcolor="#fafafa"
-        >
-          <img
-            src={selectedUser.avatar ? selectedUser.avatar : "/user.png"}
-            width={90}
-            height={90}
-            style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #ddd" }}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "/user.png";
-            }}
-          />
-
-          <Box display="flex" flexDirection="column" gap={0.5} >
-            <Typography><b>Name:</b> {selectedUser.name}</Typography>
-            <Typography><b>Mobile:</b> {selectedUser.mobile}</Typography>
-            <Typography><b>Email:</b> {selectedUser.email}</Typography>
-
-            <Typography>
-              <b>Status:</b>{" "}
-              <span style={{
-                color: selectedUser.isBlocked ? "red" : "green",
-                fontWeight: 600
-              }}>
-                {selectedUser.isBlocked ? "Blocked" : "Active"}
-              </span>
-            </Typography>
-
-            <Typography><b>Addresses:</b></Typography>
-            {selectedUser.address_details?.map((a, idx) => (
-              <Typography key={idx} ml={2} fontSize="13px">
-                • {a.city}, {a.upazila}
-              </Typography>
-            ))}
-          </Box>
-        </Box>
-
-        {/* 🔷 Orders Section */}
-        <Box>
-          <Typography variant="h6" fontWeight={600} mb={1}>
-            Order History
-          </Typography>
-
-          {selectedUser?.orders?.length > 0 ? (
-            <Box sx={{ overflowX: "auto" }}>
-              <table className="w-full text-[10px] border border-gray-200 rounded-lg overflow-hidden">
-                
-                <thead style={{ background: "#f5f5f5" }}>
+              <tbody>
+                {blockedUsers.length === 0 && (
                   <tr>
-                    <th className="p-2 text-left">Order ID</th>
-                    <th className="p-2 text-left">Date</th>
-                    <th className="p-2 text-left">Products</th>
-                    <th className="p-2 text-left">Qty</th>
-                    <th className="p-2 text-left">Total</th>
-                    <th className="p-2 text-left">Status</th>
+                    <td colSpan={7} className="text-center py-4 text-gray-500">
+                      No blocked users found
+                    </td>
                   </tr>
-                </thead>
+                )}
 
-                <tbody>
-                  {selectedUser.orders.map((order) => (
-                    <tr key={order._id} style={{ borderBottom: "1px solid #eee" }}>
+                {blockedUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="border-b hover:bg-red-100 cursor-pointer"
+                    onClick={() => handleOpenModal(user)}
+                  >
+                    <td className="p-2">
+                      <img
+                        src={user.avatar || "/user.png"}
+                        className="w-8 h-8 rounded-full"
+                        alt={user.name || "User"}
+                        onError={(e) => { e.target.src = "/user.png"; }}
+                      />
+                    </td>
+                    <td className="p-2 break-words">{user.name}</td>
+                    <td className="p-2 break-words">{user.mobile}</td>
+                    <td className="p-2 break-words">{user.address_details?.[0]?.upazila || "--"}</td>
+                    <td className="p-2 break-words">{user.address_details?.[0]?.city || "--"}</td>
+                    <td className="p-2">
+                      <span className="text-red-500 font-semibold">Blocked</span>
+                    </td>
+                    <td className="p-2">
+                      <Button
+                        color="error"
+                        size="small"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(user._id); }}
+                      >
+                        <GoTrash />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-                      <td className="p-2">{order._id}</td>
+        {/* ================= USER DETAILS MODAL ================= */}
+        <Dialog open={!!selectedUser} onClose={handleCloseModal} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontWeight: 600 }}>User Details</DialogTitle>
 
-                      <td className="p-2">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
+          <DialogContent dividers>
+            {selectedUser && (
+              <Box className="print-area" display="flex" flexDirection="column" gap={3}>
+                {/* Header */}
+                <Box textAlign="center" borderBottom="1px solid #eee" pb={2}>
+                  <Typography variant="h5" fontWeight={600}>User Profile & Orders</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Generated on: {new Date().toLocaleString()}
+                  </Typography>
+                </Box>
 
-                      <td className="p-2">
-                        {order.products.map((p, i) => (
-                          <div key={i}>
-                            {p.productTitle} × {p.quantity}
-                          </div>
-                        ))}
-                      </td>
+                {/* User Info */}
+                <Box display="flex" gap={3} alignItems="center" p={2} border="1px solid #eee" borderRadius={2} bgcolor="#fafafa">
+                  <img
+                    src={selectedUser.avatar || "/user.png"}
+                    alt="User Avatar"
+                    className="w-16 h-16 rounded-full"
+                    onError={(e) => (e.target.src = "/user.png")}
+                  />
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600}>{selectedUser.name}</Typography>
+                    <Typography variant="body2">Mobile: {selectedUser.mobile}</Typography>
+                    <Typography variant="body2">Email: {selectedUser.email || "--"}</Typography>
+                    <Typography variant="body2">
+                      Address: {selectedUser.address_details?.map((a) => `${a.upazila}, ${a.city}`).join("; ") || "--"}
+                    </Typography>
+                  </Box>
+                </Box>
 
-                      <td className="p-2">
-                        {order.products.reduce((sum, p) => sum + p.quantity, 0)}
-                      </td>
+                {/* Orders */}
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600} mb={1}>Orders ({selectedUser.orders.length})</Typography>
+                  {selectedUser.orders.length === 0 && (
+                    <Typography variant="body2">No orders found</Typography>
+                  )}
+                  {selectedUser.orders.length > 0 && (
+                    <Box overflow="auto">
+                      <table className="w-full text-[11px] border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100 uppercase text-gray-700">
+                            <th className="p-2 text-left">Order ID</th>
+                            <th className="p-2 text-left">Date</th>
+                            <th className="p-2 text-left">Amount</th>
+                            <th className="p-2 text-left">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedUser.orders.map((o) => (
+                            <tr key={o._id} className="border-b">
+                              <td className="p-2">{o._id}</td>
+                              <td className="p-2">{new Date(o.createdAt).toLocaleDateString()}</td>
+                              <td className="p-2">{o.totalAmount} ৳</td>
+                              <td className="p-2">{o.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
 
-                      <td className="p-2 font-semibold">
-                        ৳{order.totalAmt}
-                      </td>
-
-                      <td className="p-2">
-                        {order.order_status === "confirm" && <span style={{color:"green"}}>● Confirmed</span>}
-                        {order.order_status === "shipped" && <span style={{color:"orange"}}>● Shipped</span>}
-                        {order.order_status === "delivered" && <span style={{color:"blue"}}>● Delivered</span>}
-                        {order.order_status === "return" && <span style={{color:"red"}}>● Returned</span>}
-                      </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-
-              </table>
-            </Box>
-          ) : (
-            <Typography>No orders found.</Typography>
-          )}
-        </Box>
-
-      </Box>
-    )}
-  </DialogContent>
-
-  {/* 🔷 Footer */}
-  <DialogActions sx={{ justifyContent: "space-between", px: 3 }}>
-    <Button onClick={handlePrint} variant="contained">
-      Print
-    </Button>
-
-    <Button onClick={handleCloseModal}>
-      Close
-    </Button>
-  </DialogActions>
-</Dialog>
-
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Close</Button>
+            <Button onClick={handlePrint} variant="contained">Print</Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </section>
   );
