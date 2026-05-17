@@ -87,33 +87,36 @@ export default function AdminChat() {
   useEffect(() => {
     if (!socketRef.current) return;
 
-    const handleNewMessage = async (chat) => {
-      if (chat.from === "admin") return;
+   const handleNewMessage = async (chat) => {
+  if (chat.from === "admin") return;
 
-      const isActive = selectedCustomer?._id === chat.customerId;
+  const isActive = selectedCustomer?._id === chat.customerId;
 
-      setCustomers((prev) =>
-        prev.map((c) =>
-          c._id === chat.customerId
-            ? {
-                ...c,
-                unreadCount: isActive ? 0 : c.unreadCount + 1,
-              }
-            : c
-        )
-      );
+  // Customer list unread count update
+  setCustomers((prev) =>
+    prev.map((c) =>
+      c._id === chat.customerId
+        ? { ...c, unreadCount: isActive ? 0 : c.unreadCount + 1 }
+        : c
+    )
+  );
 
-      if (isActive) {
-          context.setChatUnreadCount(prev => prev + 1);
-        setMessages((prev) => [...prev, chat]);
-        notifyAudioRef.current?.play();
+  // Badge chatUnreadCount সবসময় update করবে
+  if (!isActive) {
+    context.setChatUnreadCount(prev => prev + 1); // <-- এখানে
+  }
 
-        await fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
-    };
+  // Messages list update
+  if (isActive) {
+    setMessages((prev) => [...prev, chat]);
+    notifyAudioRef.current?.play();
+
+    await fetch(`${SOCKET_URL}/chat/read/${chat.customerId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+};
 
     socketRef.current.on("newMessage", handleNewMessage);
     return () =>

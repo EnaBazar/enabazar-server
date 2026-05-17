@@ -138,17 +138,17 @@ const logout = async () => {
           {context.chatUnreadCount}
         </span>
       )}
-      </div>
+          </div>
           </Button>
    
         </div>
-
+  
 
         {/* Right Side */}
         <div className='part2 w-[40%] flex items-center justify-end gap-4'>
           
           {/* Notification Bell */}
-       <IconButton
+<IconButton
   aria-label="notifications"
   onClick={handleBellClick}
 >
