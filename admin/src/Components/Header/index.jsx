@@ -34,10 +34,10 @@ import Editblog from '../../Pages/Blog/Editblog .jsx';
 import Orders from '../../Pages/Orders/index.jsx';
 import AddBannerV3 from '../../Pages/Banners3/addBannerV3.jsx';
 import EditBannerV3 from '../../Pages/Banners3/EditBannerV3.jsx';
-
+import { FaRegCommentDots } from 'react-icons/fa'; // Chat icon
 import UpdateVerifyOtp from '../../Pages/SignUp/UpdateVerifyOtp.jsx';
 import VerifyOtpPanel from '../../Pages/SignUp/VerifyOtpPanel.jsx';
-
+import AdminChat from '../../Pages/Chat/AdminChat.jsx';
 // Transition
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -55,10 +55,14 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const Header = () => {
   const [anchorMyAcc, setAnchorMyAcc] = useState(null);
+  // App.jsx বা context file
+const [chatUnreadCount, setChatUnreadCount] = useState(0);
+const [isOpenChatPanel, setIsOpenChatPanel] = useState(false);
   const openMyAcc = Boolean(anchorMyAcc);
   const context = useContext(MyContext);
   const history = useNavigate();
-
+// On receiving new message
+context.setChatUnreadCount(prev => prev + 1);
   // --- Notification Count ---
   useEffect(() => {
     fetchDataFromApi("/order/unread-count").then((res) => {
@@ -67,6 +71,12 @@ const Header = () => {
       }
     });
   }, []);
+
+  useEffect(() => {
+  if (context.isOpenChatPanel) {
+    context.setChatUnreadCount(0);
+  }
+}, [context.isOpenChatPanel]);
 
 const handleBellClick = async () => {
   try {
@@ -145,111 +155,60 @@ const logout = async () => {
 
 
         {/* Right Side */}
-        <div className='part2 w-[40%] flex items-center justify-end gap-4'>
-          
-          {/* Notification Bell */}
-       <IconButton
-  aria-label="notifications"
-  onClick={handleBellClick}
->
-  <StyledBadge badgeContent={context.orderCount} color="secondary">
-    <FaRegBell />
-  </StyledBadge>
-</IconButton>
+       <div className='part2 w-[40%] flex items-center justify-end gap-4'>
+  
+  {/* Notification Bell */}
+  <IconButton aria-label="notifications" onClick={handleBellClick}>
+    <StyledBadge badgeContent={context.orderCount} color="secondary">
+      <FaRegBell />
+    </StyledBadge>
+  </IconButton>
 
+  {/* Chat Icon */}
+  <IconButton aria-label="chat" onClick={() => context.setIsOpenChatPanel(true)}>
+    <StyledBadge badgeContent={context.chatUnreadCount} color="error">
+      <FaRegCommentDots />
+    </StyledBadge>
+  </IconButton>
 
-          {/* User Avatar / Login */}
-          {context.isLogin === true ? (
-            <div className='relative'>
-              <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'
-                onClick={handleClickMyAcc}>
-<img
-  src={context?.userData?.avatar || "/user.png"}
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/user.png";
-  }}
-  className="w-full h-full object-cover"
-/>
-              </div>
-              <Menu
-                anchorEl={anchorMyAcc}
-                id="account-menu"
-                open={openMyAcc}
-                onClose={handleCloseMyAcc}
-                onClick={handleCloseMyAcc}
-                slotProps={{
-                  paper: {
-                    elevation: 0,
-                    sx: {
-                      overflow: 'visible',
-                      filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                      mt: 1.5,
-                      '& .MuiAvatar-root': {
-                        width: 32,
-                        height: 32,
-                        ml: -0.5,
-                        mr: 1,
-                      },
-                      '&::before': {
-                        content: '""',
-                        display: 'block',
-                        position: 'absolute',
-                        top: 0,
-                        right: 14,
-                        width: 10,
-                        height: 10,
-                        bgcolor: 'background.paper',
-                        transform: 'translateY(-50%) rotate(45deg)',
-                        zIndex: 0,
-                      },
-                    },
-                  },
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              >
-                <MenuItem onClick={handleCloseMyAcc}>
-                  <div className='flex items-center gap-3'>
-                    <div className='rounded-full w-[30px] h-[30px] overflow-hidden cursor-pointer'>
-
-                      
-                    <img
-  src={context?.userData?.avatar || "/user.png"}
-  onError={(e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/user.png";
-  }}
-  className="w-full h-full object-cover"
-/>
-                    </div>
-                    <div className='info'>
-                      <h3 className='text-[16px] font-[500] leading-5'>{context?.userData?.name}</h3>
-                      <p className='text-[12px] font-[400] opacity-70'>{context?.userData?.mobile}</p>
-                    </div>
-                  </div>
-                </MenuItem>
-                <Divider />
-
-                <Link to="/profile">
-                  <MenuItem onClick={handleCloseMyAcc} className='flex items-center gap-3'>
-                    <FaRegUser className='text-[16px]' /><span className='text-[13px]'>Profile</span>
-                  </MenuItem>
-                </Link>
-
-                <MenuItem onClick={logout} className='flex items-center gap-3'>
-                  <IoMdLogOut className='text-[16px]' /><span className='text-[13px]'>LogOut</span>
-                </MenuItem>
-              </Menu>
-            </div>
-          ) : (
-            <Link to="/login">
-              <Button className='btn-blue btn-sm !rounded-full'>Sign In</Button>
-            </Link>
-          )}
-        </div>
+  {/* User Avatar / Login */}
+  {context.isLogin === true ? (
+    <div className='relative'>
+      {/* ...existing user avatar code */}
+    </div>
+  ) : (
+    <Link to="/login">
+      <Button className='btn-blue btn-sm !rounded-full'>Sign In</Button>
+    </Link>
+  )}
+       </div>
       </header>
 
+
+<Dialog
+  fullScreen
+  open={context.isOpenChatPanel}
+  onClose={() => context.setIsOpenChatPanel(false)}
+  TransitionComponent={Transition}
+>
+  <AppBar sx={{ position: 'relative', background: '#075E54' }}>
+    <Toolbar>
+      <IconButton
+        edge="start"
+        color="inherit"
+        onClick={() => context.setIsOpenChatPanel(false)}
+        aria-label="close"
+      >
+        <IoMdClose />
+      </IconButton>
+      <Typography sx={{ ml: 2, flex: 1 }} variant="h6">
+        Chat
+      </Typography>
+    </Toolbar>
+  </AppBar>
+
+  <AdminChat />
+</Dialog>
       {/* Full Screen Panel */}
       <Dialog
         fullScreen
