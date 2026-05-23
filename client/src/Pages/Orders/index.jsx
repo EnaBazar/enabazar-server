@@ -69,7 +69,7 @@ const Orders = () => {
       // Confirmation
       
 
-      const res = await fetch("https://api.goroabazar.com/order/cancel", {
+      const res = await fetch("https://api.inabazar.com/order/cancel", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

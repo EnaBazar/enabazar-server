@@ -75,7 +75,7 @@ const Footer = () => {
     <div className="lg:w-1/4 flex flex-col gap-4">
       <h2 className="font-semibold text-lg mb-2 text-[#FC8934]">Contact Us</h2>
       <p>
-        EnaBazars.com<br />
+        InaBazar.com<br />
         Islampur Road-3900 <br />
         Bangladesh
       </p>
@@ -161,7 +161,7 @@ const Footer = () => {
     </ul>
 
     {/* Copy Text */}
-    <p className="text-center text-sm mb-0">© 2025 - EanBazar.com By Ibrahim Khalil</p>
+    <p className="text-center text-sm mb-0">© 2025 - InaBazar.com By Ibrahim Khalil</p>
 
     {/* Payment Image */}
     <div className="flex items-center justify-center">

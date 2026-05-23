@@ -157,7 +157,7 @@ const UserDetails = () => {
     }
 
     try {
-      const res = await fetch("https://api.goroabazar.com/promosms/sendBulkSMS", {
+      const res = await fetch("https://api.inabazar.com/promosms/sendBulkSMS", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ smsList }),

@@ -4,7 +4,7 @@ import { MicrophoneIcon } from "@heroicons/react/24/solid";
 import { MyContext } from "../App";
 import { useContext } from "react";
 
-const SOCKET_URL = "https://api.goroabazar.com";
+const SOCKET_URL = "https://api.inabazar.com";
 
 export default function AdminChat() {
   const [customers, setCustomers] = useState([]);
