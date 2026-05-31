@@ -196,7 +196,7 @@ useEffect(() => {
   const filteredOrders = orders?.filter(
     (order) =>
       order?.userId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order?._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order?.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order?.updatedAt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order?.delivery_address?.mobile?.includes(searchQuery) ||
       order?.delivery_address?.city?.includes(searchQuery)
@@ -337,9 +337,9 @@ const changeOrderStatus = async (order, status) => {
             { image: companyLogo, width: 70 },
             {
               stack: [
-                { text: "EnaBazar.com", style: "companyName" },
+                { text: "InaBazar.com", style: "companyName" },
                 { text: "IslamPur Road,Feni,3900", fontSize: 10, color: "#555" },
-                { text: "ফোন: 0167484746 | ইমেইল: EnaBazar@gmail.com", fontSize: 10, color: "#555" },
+                { text: "ফোন: 0167484746 | ইমেইল: InaBazar@gmail.com", fontSize: 10, color: "#555" },
               ],
               margin: [10, 0, 0, 0],
             },
@@ -354,7 +354,7 @@ const changeOrderStatus = async (order, status) => {
         { text: "\n" },
         {
           columns: [
-            { text: `অর্ডার আইডি: ${order?._id}`, bold: true },
+            { text: `অর্ডার আইডি: ${order?.orderId}`, bold: true },
             {
               text: `তারিখ: ${order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : "--"}`,
               alignment: "right",
@@ -488,7 +488,7 @@ const exportAllOrderDetailsPdf = (orders) => {
 
 orders.forEach((order, index) => {
   content.push(
-    { text: `অর্ডার #${index + 1}: ${order._id}`, style: "subHeader" },
+    { text: `অর্ডার #${index + 1}: ${order.orderId}`, style: "subHeader" },
     {
       table: {
         widths: ["25%", "75%"],
@@ -592,7 +592,7 @@ orders.forEach((order, index) => {
 };
 
 const exportDeliveryLabel = (order) => {
-  const barcodeImage = generateBarcode(order?._id);
+  const barcodeImage = generateBarcode(order?.orderId);
 
   const docDefinition = {
     pageSize: { width: 300, height: 260 },
@@ -606,7 +606,7 @@ const exportDeliveryLabel = (order) => {
           { image: companyLogo, width: 40 },
           {
             stack: [
-              { text: "EnaBazar.com", bold: true, fontSize: 10 },
+              { text: "inaBazar.com", bold: true, fontSize: 10 },
               { text: "IslamPur Road, Feni", fontSize: 7, color: "#555" },
               { text: "Phone: 0167484746", fontSize: 7, color: "#555" }
             ],
@@ -632,7 +632,7 @@ const exportDeliveryLabel = (order) => {
           body: [
             [
               { text: "Order ID:", bold: true, fontSize: 7 },
-              { text: order?._id || "--", fontSize: 7 }
+              { text: order?.orderId || "--", fontSize: 7 }
             ],
             [
               { text: "Name:", bold: true, fontSize: 7 },
@@ -673,7 +673,7 @@ const exportDeliveryLabel = (order) => {
 
       // ===== Order ID below Barcode =====
       {
-        text: order?._id,
+        text: order?.orderId,
         alignment: "center",
         fontSize: 7,
         bold: true,
@@ -984,11 +984,11 @@ Pending ({pendingOrders.length})
 
 {pendingOrders.map((order) => (
 
-<div key={order._id} className="bg-white border rounded p-2 !mr-2 !text-[7px] shadow">
+<div key={order.orderId} className="bg-white border rounded p-2 !mr-2 !text-[7px] shadow">
 
 {/* Order ID */}
 <p className="font-semibold">
-  Order Id: {order._id}
+  Order Id: {order.orderId}
 </p>
 <p className="font-semibold">{order?.userId?.name}</p>
 
@@ -1037,7 +1037,7 @@ Confirm ({confirmOrders.length})
 
 <div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[12px] shadow !text-[7px]">
 <p className="font-semibold">
-  Order Id: {order._id}
+  Order Id: {order.orderId}
 </p>
 <p className="font-semibold">{order?.userId?.name}</p>
 
@@ -1078,7 +1078,7 @@ Shipped ({shippedOrders.length})
 
 <div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
 <p className="font-semibold">
-  Order Id: {order._id}
+  Order Id: {order.orderId}
 </p>
 <p className="font-semibold">{order?.userId?.name}</p>
 
@@ -1118,7 +1118,7 @@ Delivered ({deliveredOrders.length})
 
 <div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
 <p className="font-semibold">
-  Order Id: {order._id}
+  Order Id: {order.orderId}
 </p>
 <p className="font-semibold">{order?.userId?.name}</p>
 
@@ -1154,7 +1154,7 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
 <div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
 
 <p className="font-semibold">
-  Order Id: {order._id}
+  Order Id: {order.orderId}
 </p>
 
 <p className="font-semibold">{order?.userId?.name}</p>
@@ -1212,7 +1212,7 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
           </thead>
           <tbody>
             {filteredOrders?.map((order, index) => (
-              <React.Fragment key={order?._id}>
+              <React.Fragment key={order?.orderId}>
 
 <tr
   className="bg-white border-b border-[rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50"
@@ -1226,7 +1226,7 @@ Return ({filteredOrders.filter(o => o.order_status === "return").length})
                       {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
                     </Button>
                   </td>
-                  <td className="px-3 py-2 text-[#ff5252]">{order?._id}</td>
+                  <td className="px-3 py-2 text-[#ff5252]">{order?.orderId}</td>
                   <td className="px-3 py-2">{order?.paymentId || "Cash on Delivery"}</td>
                   <td className="px-3 py-2">{order?.userId?.name}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>

@@ -24,7 +24,7 @@ export async function createOrderController(request, response) {
     order = await order.save();
 
     // ✅ এখন _id পাওয়া যাবে
-    const orderId = `ORD-${order._id.toString().slice(-8).toUpperCase()}`;
+    const orderId = `${order._id.toString().slice(-8).toUpperCase()}`;
 
     // update order with orderId
     order.orderId = orderId;

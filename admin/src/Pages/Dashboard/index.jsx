@@ -251,7 +251,7 @@ useEffect(() => {
         { text: "\n" },
         {
           columns: [
-            { text: `অর্ডার আইডি: ${order?._id}`, bold: true },
+            { text: `অর্ডার আইডি: ${order?.orderId}`, bold: true },
             {
               text: `তারিখ: ${order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : "--"}`,
               alignment: "right",
@@ -384,7 +384,7 @@ const exportAllOrderDetailsPdf = (orders) => {
 
 orders.forEach((order, index) => {
   content.push(
-    { text: `অর্ডার #${index + 1}: ${order._id}`, style: "subHeader" },
+    { text: `অর্ডার #${index + 1}: ${order.orderId}`, style: "subHeader" },
     {
       table: {
         widths: ["25%", "75%"],
@@ -620,7 +620,7 @@ fetchDataFromApi("/order/allSales").then((res)=>{
        const filteredOrders = orders?.filter(order =>
             
          order?.userId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           order?._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           order?.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
              order?.updatedAt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             order?.delivery_address?.mobile?.includes(searchQuery) ||
             order?.delivery_address?.city?.includes(searchQuery) ||
@@ -1173,7 +1173,7 @@ return (
           </thead>
           <tbody>
             {filteredOrders?.map((order, index) => (
-              <React.Fragment key={order?._id}>
+              <React.Fragment key={order?.orderId}>
 
                 <tr className="bg-white border-b border-[rgba(0,0,0,0.1)]">
                   <td className="px-3 py-2">
@@ -1184,7 +1184,7 @@ return (
                       {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
                     </Button>
                   </td>
-                  <td className="px-3 py-2 text-[#ff5252]">{order?._id}</td>
+                  <td className="px-3 py-2 text-[#ff5252]">{order?.orderId}</td>
                   <td className="px-3 py-2">{order?.paymentId || "Cash on Delivery"}</td>
                   <td className="px-3 py-2">{order?.userId?.name}</td>
                   <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>
