@@ -9,11 +9,7 @@ import sendSMSorder from "../utils/sendSMSorder.js";
 export async function createOrderController(request, response) {
   try {
 
-    const orderId = `ORD-${Date.now().toString().slice(-8)}`;
-
     let order = new ordermodel({
-      orderId, // <-- add this
-
       userId: new mongoose.Types.ObjectId(request.body.userId),
       products: request.body.products,
       paymentId: request.body.paymentId,
@@ -24,6 +20,15 @@ export async function createOrderController(request, response) {
       totalAmt: request.body.totalAmt,
       date: new Date().toISOString()
     });
+
+    order = await order.save();
+
+    // ✅ এখন _id পাওয়া যাবে
+    const orderId = `ORD-${order._id.toString().slice(-8).toUpperCase()}`;
+
+    // update order with orderId
+    order.orderId = orderId;
+    await order.save();
 
     // Stock update...
     for (let i = 0; i < request.body.products.length; i++) {
@@ -37,8 +42,6 @@ export async function createOrderController(request, response) {
         { new: true }
       );
     }
-
-    order = await order.save();
 
     order = await ordermodel
       .findById(order._id)
