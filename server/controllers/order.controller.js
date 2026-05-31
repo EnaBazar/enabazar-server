@@ -9,7 +9,7 @@ import sendSMSorder from "../utils/sendSMSorder.js";
 export async function createOrderController(request, response) {
   try {
 
-   const orderId = `${res?.order?._id?.slice(-8).toUpperCase()}`;
+    const orderId = `ORD-${Date.now().toString().slice(-8)}`;
 
     let order = new ordermodel({
       orderId, // <-- add this
