@@ -147,7 +147,7 @@ const Orders = () => {
                               {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
                             </Button>
                           </td>
-                          <td className="px-4 py-3 text-[#ff5252]">{order._id}</td>
+                          <td className="px-4 py-3 text-[#ff5252]">{order.orderId}</td>
                           <td className="px-4 py-3 text-[12px]">{order.paymentId || "CASH ON DELIVERY"}</td>
                           <td className="px-4 py-3">{order.userId?.name}</td>
                           <td className="px-4 py-3">{order.userId?.mobile || '--'}</td>

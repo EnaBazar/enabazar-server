@@ -37,7 +37,7 @@ export const OrderSuccess = () => {
         <h2 className="text-[18px] font-semibold !mb-3">ডেলিভারি ঠিকানা</h2>
 
 
-         <p><strong>Order Id:</strong> {order._id}</p>
+         <p><strong>Order Id:</strong> {order.orderId}</p>
         <p><strong>Name:</strong> {order.userId?.name}</p>
           <p><strong>Address:</strong> {delivery?.address_line}, {delivery?.city}, {delivery?.state}</p>
         <p><strong>Phone:</strong> {order.userId?.mobile}</p>

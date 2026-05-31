@@ -112,7 +112,7 @@ await postData(`/sms/order-confirm`, {
 
   mobile: user?.mobile,
   name: user?.name,
-  orderId: res?.order?._id,
+  orderId: res?.order?.orderId,
   total: totalAmount,
 
   products: context?.cartData,

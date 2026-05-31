@@ -8,7 +8,12 @@ import sendSMSorder from "../utils/sendSMSorder.js";
 // ------------------------
 export async function createOrderController(request, response) {
   try {
+
+   const orderId = `ORD-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+
     let order = new ordermodel({
+      orderId, // <-- add this
+
       userId: new mongoose.Types.ObjectId(request.body.userId),
       products: request.body.products,
       paymentId: request.body.paymentId,
@@ -17,18 +22,10 @@ export async function createOrderController(request, response) {
       subTotalAmt: request.body.subTotalAmt,
       delivery_charge: request.body.delivery_charge,
       totalAmt: request.body.totalAmt,
-         date: new Date().toISOString() 
+      date: new Date().toISOString()
     });
 
-    if (!order) {
-      return response.status(500).json({
-        error: true,
-        success: false,
-        message: "Failed to create order",
-      });
-    }
-
-    // Stock update
+    // Stock update...
     for (let i = 0; i < request.body.products.length; i++) {
       await productmodel.findByIdAndUpdate(
         request.body.products[i].productId,
@@ -43,18 +40,18 @@ export async function createOrderController(request, response) {
 
     order = await order.save();
 
-order = await ordermodel
-  .findById(order._id)
-  .populate('userId', 'name mobile email')
-  .populate('delivery_address');
+    order = await ordermodel
+      .findById(order._id)
+      .populate("userId", "name mobile email")
+      .populate("delivery_address");
 
-  
     return response.status(200).json({
       error: false,
       success: true,
       message: "Order Placed Successfully",
-      order: order,
+      order,
     });
+
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,

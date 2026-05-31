@@ -27,7 +27,7 @@ const OrderReceipt = () => {
     <div className="p-10 bg-[#fffaf7] min-h-screen">
       <div id="receipt" className="bg-white p-8 rounded shadow-lg">
         <h1 className="text-2xl font-bold mb-4">Order Receipt</h1>
-        <p><strong>Order ID:</strong> {order?._id}</p>
+        <p><strong>Order ID:</strong> {order?.orderId}</p>
         <p><strong>Date:</strong> {orderDate}</p>
         <p><strong>Customer:</strong> {customerName}</p>
         <p><strong>Address:</strong> {addressObj ? `${addressObj.address_line}, ${addressObj.city}, ${addressObj.state}, ${addressObj.pincode}` : 'No Address Found'}</p>

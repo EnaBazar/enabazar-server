@@ -83,10 +83,10 @@ const Header =() => {
    <div className="col1 w-full lg:w-[100%] overflow-hidden">
   <div className="marquee">
     <div className="marquee-track">
-      <span>inabazar.com এ আপনাকে স্বাগতম| বাংলাদেশের বিশ্বস্ত অনলাইন শপ| সারা দেশর কেশ অন ডেলেভারি (৪৮ থেকে ৭২ ঘন্টার মধ্যে নিশ্চিত ডেরিভারি) সকাল ১০টা থেকে রাত ১০ টা পর্যন্ত | আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446!</span>
+      <span>inabazar.com এ আপনাকে স্বাগতম| বাংলাদেশের বিশ্বস্ত অনলাইন শপ| সারা দেশর কেশ অন ডেলেভারি (৪৮ থেকে ৭২ ঘন্টার মধ্যে নিশ্চিত ডেরিভারি) সকাল ১০টা থেকে রাত ১০ টা পর্যন্ত | আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446 </span>
 
       {/* duplicate for smooth loop */}
-     <span>inabazar.com এ আপনাকে স্বাগতম| বাংলাদেশের বিশ্বস্ত অনলাইন শপ| সারা দেশর কেশ অন ডেলেভারি (৪৮ থেকে ৭২ ঘন্টার মধ্যে নিশ্চিত ডেরিভারি) সকাল ১০টা থেকে রাত ১০ টা পর্যন্ত | আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446!</span> 
+     <span>inabazar.com এ আপনাকে স্বাগতম| বাংলাদেশের বিশ্বস্ত অনলাইন শপ| সারা দেশর কেশ অন ডেলেভারি (৪৮ থেকে ৭২ ঘন্টার মধ্যে নিশ্চিত ডেরিভারি) সকাল ১০টা থেকে রাত ১০ টা পর্যন্ত | আমাদের যে কোন পন্য অর্ডার করতে কল বা WhatsUp করুন: 01674847446 </span> 
    </div>  
    </div>
    </div>
@@ -109,19 +109,34 @@ const Header =() => {
             </Button>
           }
       </div>
-      
-  <div className="col1 w-[25%] lg:w-[20%] flex items-center 
-     justify-end lg:justify-start">
+
+  <div 
+  className="
+  col1 w-[25%]
+  lg:w-[20%] 
+  flex items-center 
+  justify-end 
+  lg:justify-start"
+  >
+
   <Link to={"/"}> 
-    <img src="/logo.png"/>
+  <img src="/logo.png"/>
   </Link>
 </div>
    {
-            context?.windowWidth > 992 && 
- <div className="fixed  h-full p-2 bg-white rounded-full z-50 block lg:w-[40%] lg:static lg:p-0 ">
-  <div className=" h-full flex items-start justify-center">
-    <Search />
-  </div>
+  context?.windowWidth > 992 && 
+ <div className="fixed 
+ h-full p-2 bg-white 
+ rounded-full z-50 
+ block lg:w-[40%] 
+ lg:static lg:p-0 "
+ >
+  <div className="h-full 
+  flex items-start 
+  justify-center"
+  >
+<Search/>
+</div>
 </div>
 }
 
@@ -305,11 +320,7 @@ const Header =() => {
       </StyledBadge>
       </IconButton>
       </Tooltip>
-
       </li>
-
-
-
       </ul>  
       </div>  
       </div>
