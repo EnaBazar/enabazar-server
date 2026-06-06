@@ -1,0 +1,1433 @@
+import React, { useContext, useEffect, useState,useMemo } from "react";
+import Button from "@mui/material/Button";
+import { FaAngleDown, FaAngleUp } from "react-icons/fa6";
+import SearchBox from "../../Components/SearchBox";
+import { editData, fetchDataFromApi } from "../../utils/api";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Pagination from "@mui/material/Pagination";
+import { MyContext } from "../../App";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import pdfMake from "../../Fonts/pdfFonts.js";
+import companyLogo from "../../assets/logo-base64"; // Base64 লোগো ইমেজ
+import sendSMSCustomer from "../../../../server/utils/sendSMSCustomer.js";
+import JsBarcode from "jsbarcode";
+import { useNavigate } from "react-router-dom";
+
+
+
+
+const Orders = () => {
+  const context = useContext(MyContext);
+  const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isOpenOrderProduct, setIsOpenOrderProduct] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+const [startDate, setStartDate] = useState("");
+const [endDate, setEndDate] = useState("");
+const [contactOrder, setContactOrder] = useState(null);
+const [message, setmessage] = useState("");
+const [sendingSms, setSendingSms] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+const [showStatusBox, setShowStatusBox] = useState(false);
+const [showCityBox, setShowCityBox] = useState(false);
+const [activeCity, setActiveCity] = useState(null);
+
+
+
+const generateBarcode = (value) => {
+  const canvas = document.createElement("canvas");
+
+  JsBarcode(canvas, value, {
+    format: "CODE128",
+    width: 2,
+    height: 40,
+    displayValue: false
+  });
+
+  return canvas.toDataURL("image/png");
+};
+
+const navigate = useNavigate();
+
+const handleProductClick = (productId) => {
+  if (!productId) return;
+  navigate(`/product/${productId}`);
+};
+
+const getNextStatuses = (status) => {
+  switch (status) {
+    case "pending":
+      return ["confirm"];
+    case "confirm":
+      return ["shipped"];
+    case "shipped":
+      return ["delivered", "return"];
+    default:
+      return [];
+  }
+};
+
+
+  const getStatusColor = (status) => {
+  switch (status) {
+    case "pending":
+      return "bg-red-400";
+
+    case "confirm":
+      return "bg-green-400";
+
+    case "shipped":
+      return "bg-orange-400";
+case "return":
+  return "bg-purple-400";
+    case "delivered":
+      return "bg-yellow-400";
+
+    default:
+      return "bg-gray-300";
+  }
+};
+
+const sendCustomSms = async () => {
+  if (!message) {
+    context.openAlertBox("error", "Write SMS first");
+    return;
+  }
+
+  setSendingSms(true);
+
+ await sendSMSCustomer(
+      contactOrder?.userId?.mobile,
+      message
+    );
+  setSendingSms(false);
+    context.openAlertBox("success", "SMS Sent Successfully");
+  setmessage("");
+
+};
+
+
+// Status change timer (10 minutes)
+const getStatusTimeLeft = (createdAt) => {
+  const orderTime = new Date(createdAt).getTime();
+  const currentTime = new Date().getTime();
+  const limit = 10 * 60 * 1000;
+
+  const remaining = limit - (currentTime - orderTime);
+
+  if (remaining <= 0) return null;
+
+  const minutes = Math.floor(remaining / (1000 * 60));
+  const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+  return `${minutes}m ${seconds}s`;
+};
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) => ({
+        ...order,
+        statusTimeLeft: getStatusTimeLeft(order.createdAt)
+      }))
+    );
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
+const isTimeLocked = (order) => {
+  return new Date() - new Date(order.createdAt) < 10 * 60 * 1000;
+};
+
+  const toggleOrderProduct = (index) => {
+    setIsOpenOrderProduct(isOpenOrderProduct === index ? null : index);
+  };
+
+  const handleChange = (event, id) => {
+    const newStatus = event.target.value;
+    editData(`/order/order-status/${id}`, { id, order_status: newStatus }).then((res) => {
+      if (res?.data?.error === false) {
+        context.openAlertBox("success", res?.data?.message);
+        setOrders((prevOrders) =>
+          prevOrders.map((o) =>
+            o._id === id ? { ...o, order_status: newStatus } : o
+          )
+        );
+      }
+    });
+  };
+
+const fetchOrders = async (page = 1) => {
+  const start = startDate ? `&startDate=${startDate}` : "";
+  const end = endDate ? `&endDate=${endDate}` : "";
+
+  fetchDataFromApi(
+    `/order/order-list-admin?page=${page}&limit=8&search=${searchQuery}${start}${end}`
+  ).then((res) => {
+    if (res?.error === false) {
+      setOrders(res?.data);
+      setTotalPages(res?.totalPages);
+      setCurrentPage(res?.currentPage);
+    }
+  });
+};
+
+
+
+
+useEffect(() => {
+  fetchOrders(currentPage);
+}, [currentPage, searchQuery, startDate, endDate]);
+
+
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+    setIsOpenOrderProduct(null);
+  };
+
+  const filteredOrders = orders?.filter(
+    (order) =>
+      order?.userId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order?.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order?.updatedAt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order?.delivery_address?.mobile?.includes(searchQuery) ||
+      order?.delivery_address?.city?.includes(searchQuery)
+  );
+
+const orderStats = useMemo(() => {
+  const stats = {};
+
+  filteredOrders.forEach((order) => {
+    const city = order?.delivery_address?.city || "Unknown";
+    const upazila = order?.delivery_address?.upazila || "Unknown";
+    const status = order?.order_status || "pending";
+
+    if (!stats[city]) stats[city] = {};
+
+    if (!stats[city][upazila]) {
+      stats[city][upazila] = {
+        total: 0,
+        pending: 0,
+        confirm: 0,
+        shipped: 0,
+        delivered: 0,
+        return: 0,
+      };
+    }
+
+    stats[city][upazila].total += 1;
+
+    if (stats[city][upazila][status] !== undefined) {
+      stats[city][upazila][status] += 1;
+    }
+  });
+
+  return stats;
+}, [filteredOrders]);
+
+
+const cityTotals = useMemo(() => {
+  const result = {};
+
+  Object.entries(orderStats).forEach(([city, upazilas]) => {
+    let total = 0;
+
+    Object.values(upazilas).forEach((u) => {
+      total += u.total;
+    });
+
+    result[city] = total;
+  });
+
+  return result;
+}, [orderStats]);
+const activeCityData = useMemo(() => {
+  if (!activeCity || !orderStats[activeCity]) return [];
+  return Object.entries(orderStats[activeCity]);
+}, [activeCity, orderStats]);
+
+const pendingOrders = filteredOrders
+  .filter((o) => o.order_status === "pending")
+  .slice(0, 10);
+
+const confirmOrders = filteredOrders
+  .filter((o) => o.order_status === "confirm")
+  .slice(0, 10);
+
+const shippedOrders = filteredOrders
+  .filter((o) => o.order_status === "shipped")
+  .slice(0, 10);
+
+const deliveredOrders = filteredOrders
+  .filter((o) => o.order_status === "delivered")
+  .slice(0, 10);
+
+
+const changeOrderStatus = async (order, status) => {
+
+  const orderTime = new Date(order.createdAt).getTime();
+  const currentTime = new Date().getTime();
+
+  if (currentTime - orderTime < 10 * 60 * 1000) {
+    context.openAlertBox("error", "10 minutes not completed yet");
+    return;
+  }
+
+  const res = await editData(`/order/order-status/${order._id}`, {
+    id: order._id,
+    order_status: status
+  });
+
+  if (res?.data?.error === false) {
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o._id === order._id ? { ...o, order_status: status } : o
+      )
+    );
+
+    context.openAlertBox("success", "Order status updated");
+
+    // SMS send
+    sendSMSCustomer(
+      order?.userId?.mobile,
+      `Your order ${order._id} status changed to ${status}`
+    );
+
+  }
+};
+
+  const handleViewOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setOpenModal(true);
+  };
+
+  const handleShowContact = (order) => {
+  if (contactOrder?._id === order._id) {
+    setContactOrder(null);
+  } else {
+    setContactOrder(order);
+  }
+};
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedOrder(null);
+  };
+
+  const exportOrderInvoice = (order) => {
+    const docDefinition = {
+      pageSize: "A4",
+      pageMargins: [40, 60, 40, 60],
+      defaultStyle: {
+        font: "NotoSansBangla",
+        fontSize: 11,
+      },
+      content: [
+        {
+          columns: [
+            { image: companyLogo, width: 70 },
+            {
+              stack: [
+                { text: "InaBazar.com", style: "companyName" },
+                { text: "IslamPur Road,Feni,3900", fontSize: 10, color: "#555" },
+                { text: "ফোন: 0167484746 | ইমেইল: InaBazar@gmail.com", fontSize: 10, color: "#555" },
+              ],
+              margin: [10, 0, 0, 0],
+            },
+            {
+              text: "অর্ডার ইনভয়েস",
+              style: "invoiceTitle",
+              alignment: "right",
+            },
+          ],
+        },
+        { canvas: [{ type: "line", x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 1 }] },
+        { text: "\n" },
+        {
+          columns: [
+            { text: `অর্ডার আইডি: ${order?.orderId}`, bold: true },
+            {
+              text: `তারিখ: ${order?.createdAt ? new Date(order.createdAt).toLocaleDateString() : "--"}`,
+              alignment: "right",
+            },
+          ],
+        },
+        { text: "\n" },
+        {
+          style: "sectionHeader",
+          text: "গ্রাহকের তথ্য",
+          margin: [0, 0, 0, 6],
+        },
+        {
+          table: {
+            widths: ["25%", "75%"],
+            body: [
+              ["নাম:", order?.userId?.name || "--"],
+              ["ফোন:", order?.userId?.mobile|| "--"],
+              ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"},
+                 ${order?.delivery_address?.city || "--"}, ${order?.delivery_address?.state || ""}`],
+              ["স্ট্যাটাস:", order?.order_status || "--"],
+              ["পেমেন্ট:", order?.paymentId || "Cash on Delivery"],
+            ],
+          },
+          layout: "noBorders",
+          margin: [0, 0, 0, 15],
+        },
+        {
+          style: "sectionHeader",
+          text: "পণ্যের তালিকা",
+          margin: [0, 0, 0, 6],
+        },
+        {
+          table: {
+            headerRows: 1,
+            widths: ["*", "auto", "auto", "auto"],
+            body: [
+              [
+                { text: "প্রোডাক্ট", style: "tableHeader" },
+                { text: "পরিমাণ", style: "tableHeader" },
+                { text: "মূল্য", style: "tableHeader" },
+                { text: "সাবটোটাল", style: "tableHeader" },
+              ],
+              ...order?.products?.map((item) => [
+                item?.productTitle || "--",
+                item?.quantity || 0,
+                (item?.price || 0).toFixed(2),
+                ((item?.quantity || 0) * (item?.price || 0)).toFixed(2),
+              ]),
+            ],
+          },
+          layout: "lightHorizontalLines",
+        },
+        {
+          columns: [
+            { text: "" },
+            {
+              width: "auto",
+              table: {
+                body: [
+                  ["সাবটোটাল:", `${order?.subTotalAmt || 0}`],
+                  ["ডেলিভারি চার্জ:", `${order?.delivery_charge || 0}`],
+                  [
+                    { text: "মোট:", bold: true },
+                    { text: `${order?.totalAmt || 0}`, bold: true },
+                  ],
+                ],
+              },
+              layout: "noBorders",
+            },
+          ],
+          margin: [0, 15, 0, 20],
+        },
+        {
+          columns: [
+            { text: "" },
+            {
+              stack: [
+                { text: "Authorized Signature", alignment: "right", margin: [0, 40, 0, 0], italics: true },
+                { canvas: [{ type: "line", x1: 350, y1: 0, x2: 515, y2: 0, lineWidth: 1 }] },
+              ],
+            },
+          ],
+        },
+        {
+          text: "ধন্যবাদ আমাদের সাথে কেনাকাটা করার জন্য!",
+          style: "thankyou",
+          alignment: "center",
+          margin: [0, 40, 0, 0],
+        },
+      ],
+      styles: {
+        companyName: { fontSize: 14, bold: true, color: "#2c3e50" },
+        invoiceTitle: { fontSize: 16, bold: true, color: "#e74c3c" },
+        sectionHeader: { fontSize: 13, bold: true, color: "#2980b9" },
+        tableHeader: {
+          bold: true,
+          fillColor: "#2980b9",
+          color: "white",
+          alignment: "center",
+        },
+        thankyou: { fontSize: 12, italics: true, color: "#27ae60" },
+      },
+    };
+
+    pdfMake.createPdf(docDefinition).download(`order-${order?._id}.pdf`);
+  };
+
+
+const exportAllOrderDetailsPdf = (orders) => {
+  const content = [];
+
+  content.push({
+    text: `সব অর্ডারের রিপোর্ট (${orders.length} টি অর্ডার)`,
+    style: "header",
+    margin: [0, 0, 0, 15],
+  });
+
+  const tableBody = [
+    [
+      { text: "অর্ডার ID", style: "tableHeader" },
+      { text: "নাম", style: "tableHeader" },
+      { text: "ফোন", style: "tableHeader" },
+      { text: "ঠিকানা", style: "tableHeader" },
+      { text: "স্ট্যাটাস", style: "tableHeader" },
+      { text: "তারিখ", style: "tableHeader" },
+      { text: "পেমেন্ট", style: "tableHeader" },
+      { text: "মোট টাকা", style: "tableHeader" },
+    ],
+  ];
+
+orders.forEach((order, index) => {
+  content.push(
+    { text: `অর্ডার #${index + 1}: ${order.orderId}`, style: "subHeader" },
+    {
+      table: {
+        widths: ["25%", "75%"],
+        body: [
+          ["নাম:", order?.userId?.name || "--"],
+          ["ফোন:", order?.userId?.mobile || "--"],
+          ["ঠিকানা:", `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`],
+          ["স্ট্যাটাস:", order?.order_status || "--"],
+          ["তারিখ:", new Date(order?.createdAt).toLocaleDateString()],
+          ["পেমেন্ট:", order?.paymentId || "Cash on Delivery"],
+        ],
+      },
+      layout: "noBorders",
+      margin: [0, 0, 0, 8],
+    },
+    {
+      table: {
+        headerRows: 1,
+        widths: ["*", "auto", "auto", "auto"],
+        body: [
+          [
+            { text: "প্রোডাক্ট", style: "tableHeader" },
+            { text: "পরিমাণ", style: "tableHeader" },
+            { text: "দাম", style: "tableHeader" },
+            { text: "সাবটোটাল", style: "tableHeader" },
+          ],
+          ...order.products.map((p) => [
+            p.productTitle || "--",
+            p.quantity || 0,
+            p.price?.toFixed(2) || "0.00",
+            (p.quantity * p.price)?.toFixed(2) || "0.00",
+          ]),
+        ],
+      },
+      layout: "lightHorizontalLines",
+    },
+    {
+      columns: [
+        { text: "" },
+        {
+          width: "auto",
+          table: {
+            body: [
+              ["Subtotal:", `${order?.subTotalAmt || 0}`],
+              ["Delivery Charge:", `${order?.delivery_charge || 0}`],
+              [
+                { text: "মোট:", bold: true },
+                { text: `${order?.totalAmt || 0}`, bold: true },
+              ],
+            ],
+          },
+          layout: "noBorders",
+        },
+      ],
+      margin: [0, 10, 0, 20],
+    }
+  );
+
+  // এখানে পেজ ব্রেক সরিয়ে দিলাম, আর কোনো কোড রাখলাম না
+  // if (index !== orders.length - 1) {
+  //   content.push({ text: "", pageBreak: "after" });
+  // }
+});
+
+
+  content.push({
+    table: {
+      headerRows: 1,
+      widths: ["*", "*", "*", "*", "*", "*", "*", "*"],
+      body: tableBody,
+    },
+    layout: "lightHorizontalLines",
+  });
+
+  const docDefinition = {
+    pageSize: "A4",
+    pageMargins: [20, 30, 20, 30],
+    defaultStyle: {
+      font: "NotoSansBangla",
+      fontSize: 9,
+    },
+    content,
+    styles: {
+      header: {
+        fontSize: 15,
+        bold: true,
+        alignment: "center",
+        color: "#2c3e50",
+      },
+      tableHeader: {
+        bold: true,
+        fillColor: "#393a3bff",
+        color: "white",
+        alignment: "center",
+        fontSize: 10,
+      },
+    },
+  };
+
+  pdfMake.createPdf(docDefinition).download("All_Orders_List.pdf");
+};
+
+const exportDeliveryLabel = (order) => {
+  const barcodeImage = generateBarcode(order?.orderId);
+
+  const docDefinition = {
+    pageSize: { width: 300, height: 260 },
+    pageMargins: [15, 15, 15, 15],
+    defaultStyle: { font: "NotoSansBangla", fontSize: 8 },
+
+    content: [
+      // ===== Company Header =====
+      {
+        columns: [
+          { image: companyLogo, width: 40 },
+          {
+            stack: [
+              { text: "inaBazar.com", bold: true, fontSize: 10 },
+              { text: "IslamPur Road, Feni", fontSize: 7, color: "#555" },
+              { text: "Phone: 0167484746", fontSize: 7, color: "#555" }
+            ],
+            margin: [5, 0, 0, 0]
+          }
+        ]
+      },
+
+      { text: "\n" },
+
+      // ===== Label Title =====
+      {
+        text: "DELIVERY ADDRESS",
+        style: "labelHeader",
+        alignment: "center",
+        margin: [0, 0, 0, 8]
+      },
+
+      // ===== Order Info Table =====
+      {
+        table: {
+          widths: ["30%", "70%"],
+          body: [
+            [
+              { text: "Order ID:", bold: true, fontSize: 7 },
+              { text: order?.orderId || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Name:", bold: true, fontSize: 7 },
+              { text: order?.userId?.name || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Phone:", bold: true, fontSize: 7 },
+              { text: order?.userId?.mobile || "--", fontSize: 7 }
+            ],
+            [
+              { text: "Address:", bold: true, fontSize: 7 },
+              { text: `${order?.delivery_address?.address_line || "--"}, ${order?.delivery_address?.city || ""}`, fontSize: 7 }
+            ],
+            [
+              { text: "Payment:", bold: true, fontSize: 7 },
+              { text: order?.paymentId || "Cash on Delivery", fontSize: 7 }
+            ],
+            [
+              { text: "Total:", bold: true, fontSize: 7 },
+              { text: `${order?.totalAmt || 0} ৳`, fontSize: 7 }
+            ]
+          ]
+        },
+        layout: {
+          hLineWidth: () => 0,
+          vLineWidth: () => 0
+        },
+        margin: [0, 0, 0, 12]
+      },
+
+      // ===== Barcode =====
+      {
+        image: barcodeImage,
+        width: 200,
+        alignment: "center",
+        margin: [0, 5, 0, 2]
+      },
+
+      // ===== Order ID below Barcode =====
+      {
+        text: order?.orderId,
+        alignment: "center",
+        fontSize: 7,
+        bold: true,
+        margin: [0, 0, 0, 8]
+      },
+
+      // ===== Footer =====
+      {
+        text: "Thank you for shopping with EnaBazar\nwww.enabazars.com",
+        fontSize: 6,
+        color: "#666",
+        alignment: "center"
+      }
+    ],
+
+    styles: {
+      labelHeader: {
+        fontSize: 9,
+        bold: true,
+        color: "#2c3e50"
+      }
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).open();
+};
+
+
+const copyPhone = (phone) => {
+  navigator.clipboard.writeText(phone);
+  context.openAlertBox("success", "Phone number copied");
+};
+
+
+
+
+
+  return (
+    <div className="card my-4 shadow-md sm:rounded-lg bg-white">
+     <div className="flex flex-col gap-4 px-5 py-3">
+  {/* Title and Order Count */}
+  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+    <div>
+      <h2 className="text-lg font-semibold">Recent Orders</h2>
+      <p className="text-[12px] text-gray-600">
+        There are <span className="font-bold text-[#ff5252]">{filteredOrders?.length}</span>
+         orders in this page
+      </p>
+    </div>
+
+    {/* Search Box */}
+    <div className="w-full sm:w-[300px]">
+      <SearchBox
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        resetPage={(page) => setCurrentPage(page)}
+      />
+    </div>
+  </div>
+
+  {/* Date Filters + Buttons */}
+  <div className="flex flex-col sm:flex-row sm:items-center flex-wrap gap-2 sm:gap-4 w-full">
+    {/* Start Date */}
+    <div className="w-full sm:w-auto">
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => {
+          setStartDate(e.target.value);
+          setCurrentPage(1);
+        }}
+        className="border px-3 py-2 rounded-md w-full"
+      />
+    </div>
+
+    {/* Separator */}
+    <div className="text-gray-500 text-center sm:text-left">to</div>
+
+    {/* End Date */}
+    <div className="w-full sm:w-auto">
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => {
+          setEndDate(e.target.value);
+          setCurrentPage(1);
+        }}
+        className="border px-3 py-2 rounded-md w-full"
+      />
+    </div>
+
+    {/* Action Buttons */}
+    <div className="flex flex-col sm:flex-row gap-2 w-full  sm:w-auto">
+      <Button
+        variant="contained"
+        color="primary"
+     onClick={() => exportAllOrderDetailsPdf(orders)}
+        className="w-full sm:w-auto"
+      >
+        Export PDF
+      </Button>
+
+      <button
+        className="px-4 py-2 bg-gray-300 text-black  rounded-md w-full sm:w-auto"
+        onClick={() => {
+          setStartDate("");
+          setEndDate("");
+          fetchOrders(1);
+        }}
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+</div>
+
+  {/* Customer Sms Service*/}
+{contactOrder && (
+  <div className="bg-white border rounded-lg shadow-md p-4 mx-5 mb-4 flex flex-col gap-4">
+
+    {/* Customer Info */}
+    <div className="flex items-center justify-between flex-wrap gap-4">
+
+      <div>
+        <p className="font-semibold text-[15px]">{contactOrder?.userId?.name}</p>
+        <p className="text-gray-600">{contactOrder?.userId?.mobile}</p>
+        <p className="text-gray-500 text-[13px]">
+          {contactOrder?.delivery_address?.address_line},{" "}
+          {contactOrder?.delivery_address?.city}
+        </p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        <a
+          href={`tel:${contactOrder?.userId?.mobile}`}
+          className="bg-green-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          📞 Call
+        </a>
+
+        <a
+          href={`https://wa.me/${contactOrder?.userId?.mobile}`}
+          target="_blank"
+          rel="noreferrer"
+          className="bg-green-600 text-white px-3 py-1 rounded text-[13px]"
+        >
+          WhatsApp
+        </a>
+
+        <button
+          onClick={() => copyPhone(contactOrder?.userId?.mobile)}
+          className="bg-gray-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          Copy
+        </button>
+
+        <button
+          onClick={() => setContactOrder(null)}
+          className="bg-red-500 text-white px-3 py-1 rounded text-[13px]"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+
+    {/* Custom SMS Box */}
+    <div className="border-t pt-3">
+      <p className="text-[13px] font-semibold mb-1">Send Custom SMS</p>
+      <textarea
+        value={message}
+        onChange={(e) => setmessage(e.target.value)}
+        placeholder="Write SMS to customer..."
+        className="w-full border rounded-md p-2 text-[13px]"
+        rows="3"
+      />
+      <button
+        onClick={sendCustomSms}
+        disabled={sendingSms}
+        className="mt-2 bg-blue-600 text-white px-4 py-1 rounded text-[13px]"
+      >
+        {sendingSms ? "Sending..." : "Send SMS"}
+      </button>
+    </div>
+
+  </div>
+)}
+{showCityBox && (
+<div className="bg-white shadow-lg rounded-xl p-4 mx-5 mb-5">
+
+  <h2 className="text-[14px] font-semibold mb-3">
+    📊 Order Analytics (City & Upazila)
+  </h2>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    {/* ===== LEFT SIDE: CITY LIST ===== */}
+    <div className="border rounded-lg p-3 bg-gray-50 h-full flex flex-col">
+
+  <h3 className="text-[12px] font-semibold mb-2 text-blue-600">
+    City List
+  </h3>
+
+  <div className="flex-1 overflow-y-auto space-y-2">
+    {Object.keys(cityTotals).map((city) => (
+      <div
+        key={city}
+        onClick={() => setActiveCity(city)}
+        className={`p-2 border rounded cursor-pointer flex justify-between text-[10px]
+        ${activeCity === city ? "bg-blue-100" : "bg-white"}`}
+      >
+        <span>{city}</span>
+        <span className="font-bold text-blue-600">
+          {cityTotals[city]}
+        </span>
+      </div>
+    ))}
+  </div>
+
+</div>
+
+    {/* ===== RIGHT SIDE: UPAZILA DATA ===== */}
+   <div className="md:col-span-2 border rounded-lg p-3 bg-white h-full flex flex-col">
+
+  {!activeCity ? (
+    <p className="text-gray-500 text-[10px]">
+      Select a city
+    </p>
+  ) : (
+    <>
+      <h3 className="text-[10px] font-semibold text-blue-600 mb-3">
+        {activeCity} - Upazila Wise Data
+      </h3>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+          {activeCityData.map(([upazila, data]) => (
+            <div
+              key={upazila}
+              className="border rounded-md p-2 bg-gray-50 shadow-sm text-[10px]"
+            >
+              <div className="font-semibold mb-1 text-gray-700">
+                {upazila}
+              </div>
+
+              <div className="grid grid-cols-2 gap-1 text-start">
+                <span className="bg-gray-200 rounded px-1">
+                  মোট: {data.total}
+                </span>
+
+                <span className="bg-red-100 text-red-600 rounded px-1">
+                  Pending: {data.pending}
+                </span>
+
+                <span className="bg-green-100 text-green-600 rounded px-1">
+                  Confirm: {data.confirm}
+                </span>
+
+                <span className="bg-orange-100 text-orange-600 rounded px-1">
+                  Shipped: {data.shipped}
+                </span>
+
+                <span className="bg-blue-100 text-blue-600 rounded px-1">
+                  Delivered: {data.delivered}
+                </span>
+
+                <span className="bg-purple-100 text-purple-600 rounded px-1">
+                  Return: {data.return}
+                </span>
+              </div>
+            </div>
+          ))}
+
+        </div>
+      </div>
+    </>
+  )}
+
+</div>
+
+  </div>
+
+</div>
+)}
+<div className="px-5 mb-3">
+  <button
+    onClick={() => setShowCityBox(!showCityBox)}
+    className="btn-orgnge text-white !w-[60%] px-4 py-2 rounded text-[12px]"
+  >
+    {showCityBox ? "Hide City Order" : "Show City Order"}
+  </button>
+</div>
+
+
+  {/* Order Status Box */}
+{showStatusBox && (
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-5 mb-2 transition-all duration-300">
+
+{/* Pending */}
+<div className="bg-red-50 border rounded-lg p-3 h-[155px] flex flex-col">
+
+<h3 className="font-bold text-red-600 mb-2">
+Pending ({pendingOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2 ">
+
+{pendingOrders.map((order) => (
+
+<div key={order.orderId} className="bg-white border rounded p-2 !mr-2 !text-[7px] shadow">
+
+{/* Order ID */}
+<p className="font-semibold">
+  Order Id: {order.orderId}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p className="text-gray-600">
+  Products:{order?.products?.[0]?.productTitle}
+</p>
+
+<p>   Phone:{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+  City:{order?.delivery_address?.city}
+</p>
+{/* TIMER */}
+{order.statusTimeLeft && (
+  <p className="text-[10px] text-red-500">
+    change after: {order.statusTimeLeft}
+  </p>
+)}
+<button
+className={`mt-1 px-2 py-1 rounded text-[8px] text-white 
+${order.statusTimeLeft ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"}`}
+disabled={order.statusTimeLeft !== null}
+onClick={() => changeOrderStatus(order,"confirm")}
+>
+Confirm
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Confirm */}
+<div className="bg-green-50 border rounded-lg p-3 h-[155px] flex flex-col">
+
+<h3 className="font-bold text-green-600 mb-2">
+Confirm ({confirmOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2 ">
+
+{confirmOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[12px] shadow !text-[7px]">
+<p className="font-semibold">
+  Order Id: {order.orderId}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+<button
+className="mt-1 bg-orange-500 text-white px-2 py-1 rounded text-[8px]"
+disabled={new Date() - new Date(order.createdAt) < 10 * 60 * 1000}
+onClick={() => changeOrderStatus(order,"shipped")}
+>
+Ship
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Shipped */}
+<div className="bg-orange-50 border rounded-lg p-3 h-[155px] flex flex-col">
+
+<h3 className="font-bold text-orange-600 mb-2">
+Shipped ({shippedOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{shippedOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
+<p className="font-semibold">
+  Order Id: {order.orderId}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+<button
+className="mt-1 bg-blue-500 text-white px-2 py-1 rounded text-[8px]"
+onClick={() => changeOrderStatus(order,"delivered")}
+>
+Deliver
+</button>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+{/* Delivered */}
+<div className="bg-yellow-50 border rounded-lg p-3 h-[155px] flex flex-col ">
+
+<h3 className="font-bold text-yellow-600 mb-2">
+Delivered ({deliveredOrders.length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{deliveredOrders.map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 !mr-2 text-[7px] shadow">
+<p className="font-semibold">
+  Order Id: {order.orderId}
+</p>
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+{/* Return */}
+<div className="bg-purple-50 border rounded-lg p-3 h-[155px] flex flex-col">
+
+<h3 className="font-bold text-purple-600 mb-2">
+Return ({filteredOrders.filter(o => o.order_status === "return").length})
+</h3>
+
+<div className="overflow-y-auto flex-1 space-y-2">
+
+{filteredOrders
+  .filter((o) => o.order_status === "return")
+  .slice(0, 10)
+  .map((order) => (
+
+<div key={order._id} className="bg-white border rounded p-2 text-[7px] shadow">
+
+<p className="font-semibold">
+  Order Id: {order.orderId}
+</p>
+
+<p className="font-semibold">{order?.userId?.name}</p>
+
+<p>{order?.products?.[0]?.productTitle}</p>
+
+<p>{order?.userId?.mobile}</p>
+
+<p className="text-gray-500">
+{order?.delivery_address?.city}
+</p>
+
+</div>
+
+))}
+
+</div>
+</div>
+
+
+</div>
+)}
+
+
+<div className="px-5 mb-3">
+  <button
+    onClick={() => setShowStatusBox(!showStatusBox)}
+    className="btn-orgnge text-white px-4 py-2 !w-[60%] rounded text-[12px]"
+  >
+    {showStatusBox ? "Hide Order Status" : "Show Order Status"}
+  </button>
+</div>
+  {/* OrderList */}
+      <div className="relative overflow-x-auto max-h-[600px] pr-2 mb-4 mt-5">
+        <table className="w-full text-[10px] text-left">
+          <thead className="uppercase bg-[rgba(0,0,0,0.1)] border-b-[gray]">
+            <tr className="!text-[12px]">
+              <th className="px-3 py-2">&nbsp;</th>
+              <th className="px-3 py-2 whitespace-nowrap">Order Id</th>
+              <th className="px-3 py-2">Pay</th>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2 hidden sm:table-cell">Phone</th>
+              <th className="px-3 py-2 hidden lg:table-cell">Address</th>
+              <th className="px-3 py-2 hidden lg:table-cell">Upzila</th>
+                 <th className="px-3 py-2 hidden lg:table-cell">City</th>
+              <th className="px-3 py-2">S.t</th>
+              <th className="px-3 py-2 hidden sm:table-cell">D.C</th>
+              <th className="px-3 py-2">Total</th>
+             
+           
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2 hidden sm:table-cell">Date</th>
+              <th className="px-3 py-2">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders?.map((order, index) => (
+              <React.Fragment key={order?.orderId}>
+
+<tr
+  className="bg-white border-b border-[rgba(0,0,0,0.1)] cursor-pointer hover:bg-gray-50"
+  onClick={() => handleShowContact(order)}
+>
+                  <td className="px-3 py-2">
+                    <Button
+                      className="!w-[30px] !h-[30px] !min-w-[30px] !rounded-full !bg-[#f1f1f1]"
+                      onClick={() => toggleOrderProduct(index)}
+                    >
+                      {isOpenOrderProduct === index ? <FaAngleUp /> : <FaAngleDown />}
+                    </Button>
+                  </td>
+                  <td className="px-3 py-2 text-[#ff5252]">{order?.orderId}</td>
+                  <td className="px-3 py-2">{order?.paymentId || "Cash on Delivery"}</td>
+                  <td className="px-3 py-2">{order?.userId?.name}</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">{order?.userId?.mobile || "--"}</td>
+                  <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.address_line}</td>
+               <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.upazila}</td>
+               <td className="px-3 py-2 hidden lg:table-cell">{order?.delivery_address?.city}</td>
+                  <td className="px-3 py-2">{order?.subTotalAmt}</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">{order?.delivery_charge}</td>
+                  <td className="px-3 py-2">{order?.totalAmt}</td>
+                
+                <td className="px-3 py-2">
+ 
+ {order.statusTimeLeft && (
+    <p className="text-[8px] text-red-500 mb-1">
+    change after: {order.statusTimeLeft}
+    </p>
+  )}    
+  <div className="flex items-center gap-2">
+    {/* Round Status Indicator */}
+  <span
+    className={`!w-[18px] !h-[15px] rounded-full  ${getStatusColor(
+      order?.order_status
+    )}`}
+  ></span>   
+<Select
+  value={order?.order_status || ""}
+  onChange={(e) => handleChange(e, order?._id)}
+  className={`!w-[70%] h-[25px] !text-[12px] ${getStatusColor(order?.order_status)}`}
+  disabled={
+    isTimeLocked(order) || // সময়সীমা না হয়ে disable
+    ["delivered", "return"].includes(order?.order_status) || // delivered/return disable
+    order?.userId?.isBlocked // blocked user জন্য confirm disable
+  }
+>
+  {/* Current Status */}
+  <MenuItem value={order?.order_status}>
+    {order?.order_status}
+  </MenuItem>
+
+  {/* Next Allowed Status */}
+  {!isTimeLocked(order) &&
+    getNextStatuses(order?.order_status).map((status) => {
+      // blocked user confirm disable
+      const isBlockedConfirm = status === "confirm" && order?.userId?.isBlocked;
+
+      return (
+        <MenuItem key={status} value={status} disabled={isBlockedConfirm}>
+          {status} {isBlockedConfirm ? "(Blocked user)" : ""}
+        </MenuItem>
+      );
+    })}
+</Select>
+</div>
+
+</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">
+                   {new Date(order.createdAt).toLocaleDateString()}
+                    
+                  </td>
+                  <td className="px-3 py-2 ">
+
+<div className="flex items-center gap-2">
+  <Button
+    variant="contained"
+    className="!h-[25px] !text-[12px]"
+    onClick={() => handleViewOrderDetails(order)}
+  >
+    View
+  </Button>
+
+  <Button
+    variant="contained"
+    color="success"
+    className="!h-[25px] !text-[12px]"
+    onClick={() => handleShowContact(order)}
+  >
+    Call
+  </Button>
+</div>
+
+                  </td>
+                </tr>
+
+
+     {isOpenOrderProduct === index && (
+                  <tr>
+                    <td colSpan="15" className="pl-4 bg-[#fafafa] overflow-x-auto">
+                      <table className="w-full text-[10px] text-left">
+                        <thead className="capitalize bg-[rgba(0,0,0,0.1)] border-b-[gray]">
+                          <tr>
+                            <th className="px-3 py-2 w-[150px]">Product Id</th>
+                            <th className="px-3 py-2 w-[150px]">Product Name</th>
+                            <th className="px-3 py-2">Image</th>
+                            <th className="px-3 py-2">Quantity</th>
+                            <th className="px-3 py-2">Price</th>
+                            <th className="px-3 py-2">Sub Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {order?.products?.map((item) => (
+                            <tr key={item?.productId?._id} className="bg-white border-b border-[rgba(0,0,0,0.2)]">
+                              <td className="px-3 py-2 text-[#ff5252]">{item?.productId}</td>
+                           <td
+  className="px-3 py-2 whitespace-nowrap text-blue-600 cursor-pointer hover:underline"
+  onClick={() => handleProductClick(item?.productId)}
+>
+  {item?.productTitle}
+</td>
+                              <td className="px-3 py-2">
+  <img
+    src={item?.image || '/no-image.png'}
+    alt={item?.productTitle}
+    className="w-[50px] h-[50px] object-cover rounded-md cursor-pointer"
+    onClick={() => handleProductClick(item?.productId)}
+  />
+</td>
+                              <td className="px-3 py-2">{item?.quantity}</td>
+                              <td className="px-3 py-2">{item?.price}</td>
+                              <td className="px-3 py-2">{item?.quantity * item?.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                )}
+
+
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex justify-end py-4">
+        <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />
+      </div>
+
+      {/* ========= ORDER DETAILS MODAL ========= */}
+      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="md" fullWidth>
+        <DialogTitle>অর্ডারের বিস্তারিত</DialogTitle>
+        <DialogContent dividers>
+          {selectedOrder && (
+            <div className="space-y-4 text-[14px]">
+              <p><strong>নাম:</strong> {selectedOrder?.userId?.name}</p>
+              <p><strong>ফোন:</strong> {selectedOrder?.delivery_address?.mobile}</p>
+              <p><strong>ঠিকানা:</strong> {selectedOrder?.delivery_address?.address_line}, {selectedOrder?.delivery_address?.city}</p>
+              <p><strong>স্ট্যাটাস:</strong> {selectedOrder?.order_status}</p>
+
+              <div>
+                <strong>পণ্য:</strong>
+                <table className="w-full mt-2 border text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border px-2 py-1">প্রোডাক্ট</th>
+                      <th className="border px-2 py-1">পরিমাণ</th>
+                      <th className="border px-2 py-1">দাম</th>
+                      <th className="border px-2 py-1">সাবটোটাল</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.products.map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="border px-2 py-1">{item.productTitle}</td>
+                        <td className="border px-2 py-1">{item.quantity}</td>
+                        <td className="border px-2 py-1">{item.price}</td>
+                        <td className="border px-2 py-1">{item.quantity * item.price}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </DialogContent>
+
+
+      
+        <DialogActions>
+  <Button onClick={handleCloseModal} color="inherit">বন্ধ করুন</Button>
+
+  {/* Delivery Label Print */}
+  <Button variant="contained" color="primary" onClick={() => {
+    exportDeliveryLabel(selectedOrder);
+  }}>
+    ডেলিভারি লেবেল
+  </Button>
+
+  {/* Invoice Download */}
+  <Button variant="contained" color="secondary" onClick={() => {
+    exportOrderInvoice(selectedOrder);
+    handleCloseModal();
+  }}>
+    ডাউনলোড ইনভয়েস
+  </Button>
+</DialogActions>
+
+      </Dialog>
+    </div>
+  );
+};
+
+export default Orders;

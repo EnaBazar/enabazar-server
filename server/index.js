@@ -25,6 +25,8 @@ import chatrouter from "./route/chat.routes.js";
 import smsRoutes from "./route/sms.js";
 import reportrouter from "./route/reportRoute.js";
 import smsRouter from "./route/promosms.js";
+import supplierRoutes from "./route/supplierRoutes.js";
+
 
 
 
@@ -115,6 +117,10 @@ app.use("/chat", chatrouter);
 app.use("/sms", smsRoutes);
 app.use("/rpt", reportrouter);
 app.use("/promosms", smsRouter);
+app.use("/suppliers", supplierRoutes);
+
+
+
 /* ================== SERVER START ================== */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

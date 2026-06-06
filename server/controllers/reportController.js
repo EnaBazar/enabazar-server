@@ -1,170 +1,121 @@
-import ordermodel from "../models/order.model.js"
-import productmodel from "../models/product.model.js"
+﻿import Supplier from "../models/Supplier.js";
+import Mokam from "../models/Mokam.js";
+import Purchase from "../models/Purchase.js";
+import Sale from "../models/Sale.js";
+import Expense from "../models/Expense.js";
+import Collection from "../models/Collection.js";
+import Loan from "../models/Loan.js";
+import Lot from "../models/Lot.js";
+import CashTransaction from "../models/CashTransaction.js";
+import BankTransaction from "../models/BankTransaction.js";
 
+const sum = (items, field) => items.reduce((total, item) => total + Number(item[field] || 0), 0);
 
-export const getAnalytics = async (req,res)=>{
-
- try{
-
- const {filter} = req.query
-
- let startDate = new Date()
-
- if(filter==="today"){
-  startDate.setHours(0,0,0,0)
- }
-
- if(filter==="week"){
-  startDate.setDate(startDate.getDate()-7)
- }
-
- if(filter==="month"){
-  startDate.setMonth(startDate.getMonth()-1)
- }
-
- if(filter==="year"){
-  startDate.setFullYear(startDate.getFullYear()-1)
- }
-
- const orders = await ordermodel.find({
-  order_status:"delivered",
-  createdAt:{$gte:startDate}
- })
-
- const products = await productmodel.find()
-
- let totalSales = 0
- let totalProfit = 0
- let topProducts = {}
-
-  orders.forEach(order=>{
-  totalSales += order.totalAmt
-  order.products.forEach(item=>{
-
-  const product = products.find(
-  p => p._id.toString() === item.productId.toString()
-)
-
-   const purchasePrice = product?.purchasePrice || 0
-   const profit =
-   (item.price - purchasePrice) * item.quantity
-console.log(product)
-   totalProfit += profit
-
-   if(!topProducts[item.productTitle]){
-     topProducts[item.productTitle]=0
-   }
-
-   topProducts[item.productTitle]+=item.quantity
-
-  })
-
- })
-
- const lowStock = products.filter(
-  p=>p.countInStock < 5
- )
-
- res.json({
-  success:true,
-  data:{
-   totalSales,
-   totalProfit,
-   topProducts,
-   lowStock
-  }
- })
-
- }catch(error){
-
- res.status(500).json({
-  success:false,
-  message:error.message
- })
-
- }
-
-}
-
-
-
-export const getSalesList = async (req, res) => {
+export const getDashboard = async (req, res) => {
   try {
-    const { filter, startDate: startStr, endDate: endStr } = req.query;
+    const [suppliers, mokams, purchases, sales, expenses, collections, loans, lots, cashTransactions, bankTransactions] = await Promise.all([
+      Supplier.find(), Mokam.find(), Purchase.find(), Sale.find(), Expense.find(), Collection.find(), Loan.find(), Lot.find(), CashTransaction.find(), BankTransaction.find()
+    ]);
 
-    let startDate = null;
-    let endDate = null;
+    const totalPurchase = sum(purchases, "totalAmount");
+    const purchasePaid = sum(purchases, "paidAmount");
+    const supplierOpeningDue = sum(suppliers, "openingDue");
+    const totalSales = sum(sales, "totalAmount");
+    const salesReceived = sum(sales, "receivedAmount");
+    const mokamOpeningDue = sum(mokams, "openingDue");
+    const totalExpense = sum(expenses, "amount");
+    const expensePaid = sum(expenses, "paidAmount");
+    const totalCollection = sum(collections, "amount");
 
-    // Custom date range
-    if (startStr && endStr) {
-      startDate = new Date(startStr);
-      endDate = new Date(endStr);
-      // Ensure endDate covers the whole day
-      endDate.setHours(23, 59, 59, 999);
-    } else {
-      // Predefined filters
-      startDate = new Date();
-      switch (filter) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date();
-          break;
-        case "week":
-          startDate.setDate(startDate.getDate() - 7);
-          endDate = new Date();
-          break;
-        case "month":
-          startDate.setMonth(startDate.getMonth() - 1);
-          endDate = new Date();
-          break;
-        case "year":
-          startDate.setFullYear(startDate.getFullYear() - 1);
-          endDate = new Date();
-          break;
-        default:
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date();
+    const loanReceive = loans.filter((item) => item.type === "receive").reduce((total, item) => total + Number(item.amount || 0), 0);
+    const loanPayment = loans.filter((item) => item.type === "payment").reduce((total, item) => total + Number(item.amount || 0), 0);
+    const cashIn = cashTransactions.filter((item) => item.type === "in").reduce((total, item) => total + Number(item.amount || 0), 0);
+    const cashOut = cashTransactions.filter((item) => item.type === "out").reduce((total, item) => total + Number(item.amount || 0), 0);
+    const bankDeposit = bankTransactions.filter((item) => item.type === "deposit").reduce((total, item) => total + Number(item.amount || 0), 0);
+    const bankWithdraw = bankTransactions.filter((item) => item.type === "withdraw").reduce((total, item) => total + Number(item.amount || 0), 0);
+
+    res.status(200).json({
+      success: true,
+      error: false,
+      data: {
+        currentStock: lots.reduce((total, lot) => total + Number(lot.purchaseKg - lot.soldKg), 0),
+        totalPurchase,
+        totalSales,
+        totalExpense,
+        totalCollection,
+        supplierDue: supplierOpeningDue + totalPurchase - purchasePaid,
+        mokamDue: mokamOpeningDue + totalSales - salesReceived - totalCollection,
+        expenseDue: totalExpense - expensePaid,
+        loanDue: loanReceive - loanPayment,
+        cashBalance: cashIn - cashOut,
+        bankBalance: bankDeposit - bankWithdraw,
+        profit: totalSales - totalPurchase - totalExpense
       }
-    }
-
- const orders = await ordermodel.find({
- order_status:"delivered",
- createdAt:{$gte:startDate,$lte:endDate}
-})
-.populate("userId")
-.populate("delivery_address")
-
-    const products = await productmodel.find();
-
-    const salesList = [];
-
-    orders.forEach((order) => {
-      order.products.forEach((item) => {
-        const product = products.find(
-          (p) => p._id.toString() === item.productId.toString()
-        );
-
-        const purchasePrice = product?.purchasePrice || 0;
-        const profit = (item.price - purchasePrice) * item.quantity;
-
-        salesList.push({
-          orderId: order._id,
-          productName: item.productTitle,
-          quantity: item.quantity,
-          salePrice: item.price,
-          purchasePrice,
-          profit,
-          customerName: order.userId?.name,
-          mobile: order.userId?.mobile,
-          city: order.delivery_address?.city,
-          address: order.delivery_address?.address_line,
-          date: order.createdAt,
-        });
-      });
     });
+  } catch (error) {
+    res.status(500).json({ success: false, error: true, message: error.message });
+  }
+};
 
-    res.json({ success: true, data: salesList });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+export const getStockReport = async (req, res) => {
+  try {
+    const lots = await Lot.find().sort({ createdAt: -1 });
+    const data = lots.map((lot) => ({ lotNo: lot.lotNo, purchaseKg: lot.purchaseKg, soldKg: lot.soldKg, stockKg: lot.purchaseKg - lot.soldKg, status: lot.status }));
+    res.status(200).json({ success: true, error: false, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: true, message: error.message });
+  }
+};
+
+export const getLotProfitReport = async (req, res) => {
+  try {
+    const lots = await Lot.find().sort({ createdAt: -1 });
+    const data = lots.map((lot) => ({
+      lotNo: lot.lotNo,
+      purchaseKg: lot.purchaseKg,
+      soldKg: lot.soldKg,
+      stockKg: lot.purchaseKg - lot.soldKg,
+      purchaseAmount: lot.purchaseAmount,
+      expenseAmount: lot.expenseAmount,
+      salesAmount: lot.salesAmount,
+      profitLoss: lot.salesAmount - lot.purchaseAmount - lot.expenseAmount
+    }));
+    res.status(200).json({ success: true, error: false, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: true, message: error.message });
+  }
+};
+
+export const getSupplierDueReport = async (req, res) => {
+  try {
+    const suppliers = await Supplier.find().sort({ name: 1 });
+    const purchases = await Purchase.find();
+    const data = suppliers.map((supplier) => {
+      const supplierPurchases = purchases.filter((item) => String(item.supplier) === String(supplier._id));
+      const totalPurchase = sum(supplierPurchases, "totalAmount");
+      const paid = sum(supplierPurchases, "paidAmount");
+      return { supplierId: supplier._id, name: supplier.name, mobile: supplier.mobile, openingDue: supplier.openingDue, totalPurchase, paid, due: Number(supplier.openingDue || 0) + totalPurchase - paid };
+    });
+    res.status(200).json({ success: true, error: false, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: true, message: error.message });
+  }
+};
+
+export const getMokamDueReport = async (req, res) => {
+  try {
+    const mokams = await Mokam.find().sort({ name: 1 });
+    const sales = await Sale.find();
+    const collections = await Collection.find();
+    const data = mokams.map((mokam) => {
+      const mokamSales = sales.filter((item) => String(item.mokam) === String(mokam._id));
+      const mokamCollections = collections.filter((item) => String(item.mokam) === String(mokam._id));
+      const totalSales = sum(mokamSales, "totalAmount");
+      const received = sum(mokamSales, "receivedAmount") + sum(mokamCollections, "amount");
+      return { mokamId: mokam._id, name: mokam.name, mobile: mokam.mobile, openingDue: mokam.openingDue, totalSales, received, due: Number(mokam.openingDue || 0) + totalSales - received };
+    });
+    res.status(200).json({ success: true, error: false, data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: true, message: error.message });
   }
 };
