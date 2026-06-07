@@ -5,14 +5,14 @@ import {IoMdEye} from 'react-icons/io';
 import {IoMdEyeOff} from 'react-icons/io';
 import { Link } from "react-router-dom";
 import {FcGoogle} from 'react-icons/fc';
-import { postData } from '../../utils/api';
-import { MyContext } from '../../App';
+
+
 import  CircularProgress  from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { firebaseApp } from '../../firebase';
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
+
+import { postData } from '../utils/api';
+import { MyContext } from '../App';
+
 
 
  const Suppliers = () => {

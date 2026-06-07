@@ -34,7 +34,8 @@ import VerifyOtpPanel from './Pages/SignUp/VerifyOtpPanel';
 import Layout from './Components/Layout';
 import { fetchDataFromApi } from './utils/api';
 import Purchases from './Pages/Purchases';
-import Suppliers from './Pages/Suppliersss';
+import Suppliers from './Pages/Suppliers';
+
 
 export const MyContext = createContext();
 
