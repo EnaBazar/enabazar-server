@@ -260,11 +260,6 @@ const removeImg = (image, index) => {
     });
 };
 
-   
-  
-  
-  
-  
   const handleSubmitg=(e)=>{
 e.preventDefault(0); // ✅
 
@@ -396,20 +391,10 @@ e.preventDefault(0); // ✅
 });
   }
   
-  
-  
-  
-  
-  
-  
-  
   return (
   <section className='p-6 min-h-screen bg-gradient-to-br from-blue-300 via-white to-pink-200'>
-
   <form className='form py-3 ' onSubmit={handleSubmitg}>
-
- <div className='scroll !sm:w-[full] max-h-[70vh] overflow-y-scroll pr-2 md:pr-4'>
-  
+  <div className='scroll !sm:w-[full] max-h-[70vh] overflow-y-scroll pr-2 md:pr-4'>
   <div className='grid grid-cols-1 mb-3'>
   <div className='col'>
   <h3 className='text-[16px] font-[600]'>Product Name<span className='text-red-400'> *</span></h3>

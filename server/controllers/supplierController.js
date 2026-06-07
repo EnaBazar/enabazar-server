@@ -1,7 +1,12 @@
 ﻿import Supplier from "../models/Supplier.js";
 
+//Create Supplier
 
-// Create Supplier
+
+
+
+
+
 export async function createSupplier(req, res) {
   try {
     let supplier = new Supplier({
@@ -27,7 +32,6 @@ export async function createSupplier(req, res) {
     });
   }
 }
-
 // Get All Suppliers
 export async function getAllSuppliers(req, res) {
   try {
@@ -46,7 +50,6 @@ export async function getAllSuppliers(req, res) {
     });
   }
 }
-
 // Get Single Supplier
 export async function getSupplierById(req, res) {
   try {
@@ -73,7 +76,6 @@ export async function getSupplierById(req, res) {
     });
   }
 }
-
 // Update Supplier
 export async function updateSupplier(req, res) {
   try {
@@ -110,7 +112,6 @@ export async function updateSupplier(req, res) {
     });
   }
 }
-
 // Delete Supplier
 export async function deleteSupplier(req, res) {
   try {
@@ -137,7 +138,6 @@ export async function deleteSupplier(req, res) {
     });
   }
 }
-
 // Multiple Delete Supplier
 export async function deleteMultipleSuppliers(req, res) {
   try {
