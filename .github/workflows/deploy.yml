@@ -21,8 +21,7 @@ jobs:
             set -e
 
             export NVM_DIR="/root/.nvm"
-            source "$NVM_DIR/nvm.sh"
-            nvm use 26
+            export PATH="/root/.nvm/versions/node/v26.13.0/bin:$PATH"
 
             git config --global http.version HTTP/1.1
 
@@ -32,6 +31,6 @@ jobs:
             cd server
             npm install
 
-            pm2 restart inabazar_server
+            /root/.nvm/versions/node/v26.13.0/bin/pm2 restart inabazar_server
 
-            echo "EnaBazar deployment successful!"
+            echo "Deployment successful!"
