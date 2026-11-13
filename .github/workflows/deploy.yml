@@ -1,17 +1,22 @@
-
-name: Deploy EnaBazar
+name: Inabazar Auto Deploy
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: inabazar-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    name: Deploy to VPS
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS
+      - name: Run deployment
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -19,18 +24,5 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-
-            export NVM_DIR="/root/.nvm"
-            export PATH="/root/.nvm/versions/node/v26.13.0/bin:$PATH"
-
-            git config --global http.version HTTP/1.1
-
             cd /root/enabazar-server
-            git pull origin main
-
-            cd server
-            npm install
-
-            /root/.nvm/versions/node/v26.13.0/bin/pm2 restart inabazar_server
-
-            echo "Deployment successful!"
+            bash deploy.sh
